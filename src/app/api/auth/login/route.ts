@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { connectToDatabase } from "@/lib/db";
+import { User } from "@/models/User";
+import { verifyPassword, createJwt } from "@/lib/auth";
+
+export const runtime = "nodejs";
+
+const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const input = LoginSchema.parse(body);
+
+    await connectToDatabase();
+
+    const user = await User.findOne({ email: input.email });
+    if (!user || !user.isActive) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const ok = await verifyPassword(input.password, user.passwordHash);
+    if (!ok) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const token = await createJwt({
+      sub: user._id.toString(),
+      role: user.role,
+      email: user.email,
+    });
+
+    const res = NextResponse.json({
+      user: {
+        id: user._id.toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+    res.cookies.set("auth_token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return res;
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.flatten() }, { status: 400 });
+    }
+    console.error("Login error", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
