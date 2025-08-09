@@ -62,9 +62,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: err.flatten() }, { status: 400 });
     }
     console.error("Login error", err);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    const message =
+      (err as { message?: string })?.message || "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -22,6 +22,7 @@ const CreateDeliverySchema = z.object({
   codAmount: z.number().optional(),
   specialInstructions: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  isDraft: z.boolean().optional(),
 });
 
 export const runtime = "nodejs";
@@ -34,8 +35,10 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
+  const payment = url.searchParams.get("payment");
   const query: Record<string, unknown> = {};
   if (status) query.status = status;
+  if (payment) query.paymentMethod = payment;
 
   const deliveries = await Delivery.find(query)
     .sort({ createdAt: -1 })

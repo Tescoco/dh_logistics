@@ -14,44 +14,85 @@ import {
   ArrowUpIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-const statCards = [
-  {
-    label: "Active Deliveries",
-    value: 147,
-    change: "+12%",
-    trending: "up",
-    icon: TruckIcon,
-    color: "blue",
-  },
-  {
-    label: "Completed",
-    value: 892,
-    change: "+5%",
-    trending: "up",
-    icon: CheckIcon,
-    color: "green",
-  },
-  {
-    label: "Returned",
-    value: 23,
-    change: "-2%",
-    trending: "down",
-    icon: RefreshIcon,
-    color: "red",
-  },
-  {
-    label: "Pending Upload",
-    value: 34,
-    change: "+8%",
-    trending: "up",
-    icon: ClockIcon,
-    color: "yellow",
-  },
-];
+type StatCard = {
+  label: string;
+  value: number;
+  change: string;
+  trending: "up" | "down";
+  icon: (props: { size?: number; className?: string }) => React.ReactElement;
+  color: "blue" | "green" | "red" | "yellow";
+};
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const [stats, setStats] = useState<{
+    activeDeliveries: number;
+    delivered: number;
+    returned: number;
+  } | null>(null);
+  const [recent, setRecent] = useState<
+    { _id: string; customerName: string; status: string; createdAt: string }[]
+  >([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (mounted) setStats(d);
+      })
+      .catch(() => {})
+      .finally(() => {});
+    fetch("/api/deliveries")
+      .then((r) => r.json())
+      .then((d) => {
+        if (mounted) setRecent((d.deliveries || []).slice(0, 4));
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const statCards: StatCard[] = useMemo(
+    () => [
+      {
+        label: "Active Deliveries",
+        value: stats?.activeDeliveries ?? 0,
+        change: "",
+        trending: "up",
+        icon: TruckIcon,
+        color: "blue",
+      },
+      {
+        label: "Completed",
+        value: stats?.delivered ?? 0,
+        change: "",
+        trending: "up",
+        icon: CheckIcon,
+        color: "green",
+      },
+      {
+        label: "Returned",
+        value: stats?.returned ?? 0,
+        change: "",
+        trending: "down",
+        icon: RefreshIcon,
+        color: "red",
+      },
+      {
+        label: "Pending Upload",
+        value: 0,
+        change: "",
+        trending: "up",
+        icon: ClockIcon,
+        color: "yellow",
+      },
+    ],
+    [stats]
+  );
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -183,33 +224,7 @@ export default function AdminDashboardPage() {
           }
         >
           <div className="space-y-4">
-            {[
-              {
-                action: "New delivery created",
-                time: "2 minutes ago",
-                icon: TruckIcon,
-                color: "blue",
-              },
-              {
-                action: "Package delivered",
-                time: "15 minutes ago",
-                icon: CheckIcon,
-                color: "green",
-              },
-              {
-                action: "Return processed",
-                time: "1 hour ago",
-                icon: RefreshIcon,
-                color: "red",
-              },
-              {
-                action: "Driver assigned",
-                time: "2 hours ago",
-                icon: TruckIcon,
-                color: "blue",
-              },
-            ].map((activity, idx) => {
-              const IconComponent = activity.icon;
+            {recent.map((delivery, idx) => {
               const colorClasses = {
                 blue: "bg-blue-50 text-blue-600",
                 green: "bg-emerald-50 text-emerald-600",
@@ -223,16 +238,30 @@ export default function AdminDashboardPage() {
                 >
                   <div
                     className={`h-8 w-8 rounded-lg ${
-                      colorClasses[activity.color as keyof typeof colorClasses]
+                      colorClasses[
+                        (delivery.status === "delivered"
+                          ? "green"
+                          : delivery.status === "returned"
+                          ? "red"
+                          : "blue") as keyof typeof colorClasses
+                      ]
                     } flex items-center justify-center flex-shrink-0`}
                   >
-                    <IconComponent size={16} />
+                    {delivery.status === "delivered" ? (
+                      <CheckIcon size={16} />
+                    ) : delivery.status === "returned" ? (
+                      <RefreshIcon size={16} />
+                    ) : (
+                      <TruckIcon size={16} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900">
-                      {activity.action}
+                      {delivery.customerName}
                     </p>
-                    <p className="text-xs text-slate-500">{activity.time}</p>
+                    <p className="text-xs text-slate-500">
+                      {new Date(delivery.createdAt).toLocaleString()}
+                    </p>
                   </div>
                 </div>
               );
@@ -297,64 +326,35 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {[
-                {
-                  id: 1,
-                  client: "John Doe",
-                  status: "Delivered",
-                  date: "Jan 15, 2025",
-                  driver: "Mike Johnson",
-                },
-                {
-                  id: 2,
-                  client: "Sarah Smith",
-                  status: "In Transit",
-                  date: "Jan 15, 2025",
-                  driver: "David Brown",
-                },
-                {
-                  id: 3,
-                  client: "Robert Wilson",
-                  status: "Pending",
-                  date: "Jan 14, 2025",
-                  driver: "Not assigned",
-                },
-                {
-                  id: 4,
-                  client: "Emily Davis",
-                  status: "Delivered",
-                  date: "Jan 14, 2025",
-                  driver: "Mike Johnson",
-                },
-              ].map((delivery) => (
+              {recent.map((delivery) => (
                 <tr
-                  key={delivery.id}
+                  key={delivery._id}
                   className="hover:bg-slate-50/50 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <span className="font-semibold text-slate-900">
-                      #DD{delivery.id.toString().padStart(3, "0")}
+                      {delivery._id.slice(-8).toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {delivery.client
+                        {delivery.customerName
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </div>
                       <span className="font-medium text-slate-900">
-                        {delivery.client}
+                        {delivery.customerName}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                        delivery.status === "Delivered"
+                        delivery.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                          : delivery.status === "In Transit"
+                          : delivery.status === "in_transit"
                           ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200"
                           : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
                       }`}
@@ -362,16 +362,12 @@ export default function AdminDashboardPage() {
                       {delivery.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{delivery.date}</td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {new Date(delivery.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4">
-                    <span
-                      className={
-                        delivery.driver === "Not assigned"
-                          ? "text-slate-400 italic"
-                          : "text-slate-900 font-medium"
-                      }
-                    >
-                      {delivery.driver}
+                    <span className={"text-slate-400 italic"}>
+                      Not assigned
                     </span>
                   </td>
                   <td className="px-6 py-4">

@@ -29,6 +29,7 @@ export interface DeliveryDocument {
   assignedDriverId?: Types.ObjectId;
   status: DeliveryStatus;
   createdById?: Types.ObjectId;
+  isDraft?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +69,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
       index: true,
     },
     createdById: { type: Schema.Types.ObjectId, ref: "User" },
+    isDraft: { type: Boolean, default: false, index: true },
   },
   { timestamps: true }
 );

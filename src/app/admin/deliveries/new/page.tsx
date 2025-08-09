@@ -1,13 +1,80 @@
+"use client";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export const metadata = {
-  title: "Create Delivery",
-};
+// metadata is set at a parent server component level
 
 export default function CreateDeliveryPage() {
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({
+    reference: "",
+    senderName: "",
+    senderPhone: "",
+    senderAddress: "",
+    customerName: "",
+    customerPhone: "",
+    deliveryAddress: "",
+    weightKg: "",
+    dimensions: "",
+    packageType: "",
+    description: "",
+    priority: "standard",
+    paymentMethod: "prepaid",
+    deliveryFee: "",
+    codAmount: "",
+    notes: "",
+  });
+
+  function update<K extends keyof typeof form>(
+    key: K,
+    value: (typeof form)[K]
+  ) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function submit(isDraft: boolean) {
+    setSubmitting(true);
+    try {
+      const payload = {
+        reference: form.reference || `REF-${Date.now()}`,
+        senderName: form.senderName || undefined,
+        senderPhone: form.senderPhone || undefined,
+        senderAddress: form.senderAddress || undefined,
+        customerName: form.customerName,
+        customerPhone: form.customerPhone,
+        deliveryAddress: form.deliveryAddress,
+        weightKg: form.weightKg ? Number(form.weightKg) : undefined,
+        dimensions: form.dimensions || undefined,
+        packageType: form.packageType || undefined,
+        description: form.description || undefined,
+        priority: form.priority as "standard" | "express",
+        paymentMethod: form.paymentMethod as "prepaid" | "cod",
+        deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
+        codAmount: form.codAmount ? Number(form.codAmount) : undefined,
+        notes: form.notes || undefined,
+        isDraft,
+      };
+      const res = await fetch("/api/deliveries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error ?? "Failed to save delivery");
+        return;
+      }
+      router.push("/admin/deliveries");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -35,7 +102,11 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Reference Number
                 </label>
-                <Input placeholder="SHIPZ-2025-001" />
+                <Input
+                  placeholder="SHIPZ-2025-001"
+                  value={form.reference}
+                  onChange={(e) => update("reference", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
@@ -43,6 +114,8 @@ export default function CreateDeliveryPage() {
                 </label>
                 <Select>
                   <option>Select Service</option>
+                  <option>COD</option>
+                  <option>Jeddah Operations</option>
                 </Select>
               </div>
             </div>
@@ -57,20 +130,32 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Sender Name
                 </label>
-                <Input placeholder="John Doe" />
+                <Input
+                  placeholder="John Doe"
+                  value={form.senderName}
+                  onChange={(e) => update("senderName", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   Sender Phone
                 </label>
-                <Input placeholder="+1 234 567 8900" />
+                <Input
+                  placeholder="+1 234 567 8900"
+                  value={form.senderPhone}
+                  onChange={(e) => update("senderPhone", e.target.value)}
+                />
               </div>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">
                 Sender Address
               </label>
-              <Input placeholder="123 Main Street, City, State, ZIP" />
+              <Input
+                placeholder="123 Main Street, City, State, ZIP"
+                value={form.senderAddress}
+                onChange={(e) => update("senderAddress", e.target.value)}
+              />
             </div>
           </section>
 
@@ -83,20 +168,32 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Receiver Name
                 </label>
-                <Input placeholder="Jane Smith" />
+                <Input
+                  placeholder="Jane Smith"
+                  value={form.customerName}
+                  onChange={(e) => update("customerName", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   Receiver Phone
                 </label>
-                <Input placeholder="+1 234 567 8901" />
+                <Input
+                  placeholder="+1 234 567 8901"
+                  value={form.customerPhone}
+                  onChange={(e) => update("customerPhone", e.target.value)}
+                />
               </div>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">
                 Delivery Address
               </label>
-              <Input placeholder="456 Oak Avenue, City, State, ZIP" />
+              <Input
+                placeholder="456 Oak Avenue, City, State, ZIP"
+                value={form.deliveryAddress}
+                onChange={(e) => update("deliveryAddress", e.target.value)}
+              />
             </div>
           </section>
 
@@ -109,20 +206,36 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Weight (kg)
                 </label>
-                <Input placeholder="1.5" />
+                <Input
+                  placeholder="1.5"
+                  value={form.weightKg}
+                  onChange={(e) => update("weightKg", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   Dimensions (L×W×H)
                 </label>
-                <Input placeholder="20×15×10 cm" />
+                <Input
+                  placeholder="20×15×10 cm"
+                  value={form.dimensions}
+                  onChange={(e) => update("dimensions", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   Package Type
                 </label>
-                <Select>
+                <Select
+                  value={form.packageType}
+                  onChange={(e) =>
+                    update("packageType", (e.target as HTMLSelectElement).value)
+                  }
+                >
                   <option>Select Type</option>
+                  <option>Document</option>
+                  <option>Parcel</option>
+                  <option>Other</option>
                 </Select>
               </div>
             </div>
@@ -130,7 +243,11 @@ export default function CreateDeliveryPage() {
               <label className="text-[13px] text-slate-600">
                 Package Description
               </label>
-              <Input placeholder="Brief description of package contents" />
+              <Input
+                placeholder="Brief description of package contents"
+                value={form.description}
+                onChange={(e) => update("description", e.target.value)}
+              />
             </div>
           </section>
 
@@ -141,18 +258,31 @@ export default function CreateDeliveryPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">Priority</label>
-                <Select>
-                  <option>Standard</option>
-                  <option>Express</option>
+                <Select
+                  value={form.priority}
+                  onChange={(e) =>
+                    update("priority", (e.target as HTMLSelectElement).value)
+                  }
+                >
+                  <option value="standard">Standard</option>
+                  <option value="express">Express</option>
                 </Select>
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   Payment Method
                 </label>
-                <Select>
-                  <option>Prepaid</option>
-                  <option>COD</option>
+                <Select
+                  value={form.paymentMethod}
+                  onChange={(e) =>
+                    update(
+                      "paymentMethod",
+                      (e.target as HTMLSelectElement).value
+                    )
+                  }
+                >
+                  <option value="prepaid">Prepaid</option>
+                  <option value="cod">COD</option>
                 </Select>
               </div>
             </div>
@@ -161,13 +291,21 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Delivery Fee ($)
                 </label>
-                <Input placeholder="25.00" />
+                <Input
+                  placeholder="25.00"
+                  value={form.deliveryFee}
+                  onChange={(e) => update("deliveryFee", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   COD Amount ($)
                 </label>
-                <Input placeholder="0.00" />
+                <Input
+                  placeholder="0.00"
+                  value={form.codAmount}
+                  onChange={(e) => update("codAmount", e.target.value)}
+                />
               </div>
             </div>
           </section>
@@ -192,13 +330,29 @@ export default function CreateDeliveryPage() {
               <label className="text-[13px] text-slate-600">
                 Additional Notes
               </label>
-              <Input placeholder="Any special delivery instructions or notes" />
+              <Input
+                placeholder="Any special delivery instructions or notes"
+                value={form.notes}
+                onChange={(e) => update("notes", e.target.value)}
+              />
             </div>
           </section>
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
-          <Button variant="secondary">Save as Draft</Button>
-          <Button variant="gradient">Create Delivery</Button>
+          <Button
+            disabled={submitting}
+            variant="secondary"
+            onClick={() => submit(true)}
+          >
+            {submitting ? "Saving..." : "Save as Draft"}
+          </Button>
+          <Button
+            disabled={submitting}
+            variant="gradient"
+            onClick={() => submit(false)}
+          >
+            {submitting ? "Submitting..." : "Create Delivery"}
+          </Button>
         </div>
       </Card>
     </div>

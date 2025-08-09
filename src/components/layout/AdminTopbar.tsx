@@ -1,12 +1,29 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { BellIcon, UserIcon } from "@/components/icons";
 
 export default function AdminTopbar() {
   const pathname = usePathname();
   const title = getTitleFromPath(pathname || "/admin");
+  const [me, setMe] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (mounted) setMe(d.user ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
   return (
     <header className="sticky top-0 z-20 h-18 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8">
@@ -32,9 +49,12 @@ export default function AdminTopbar() {
             </div>
             <div className="text-left">
               <div className="text-sm font-medium text-slate-900">
-                Admin User
+                {me
+                  ? [me.firstName, me.lastName].filter(Boolean).join(" ") ||
+                    me.email
+                  : "—"}
               </div>
-              <div className="text-xs text-slate-500">admin@shipz.com</div>
+              <div className="text-xs text-slate-500">{me?.email ?? ""}</div>
             </div>
           </div>
         </div>

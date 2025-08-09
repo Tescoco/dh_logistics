@@ -11,11 +11,58 @@ import {
   SearchIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Modal from "@/components/ui/Modal";
+
+type ApiUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+};
 
 export default function UsersPage() {
   const [tab, setTab] = useState("all");
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<ApiUser[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((d) => {
+        if (mounted) setUsers(d.users ?? []);
+      })
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return users.filter((u) =>
+      !q
+        ? true
+        : [u.firstName, u.lastName, u.email, u.role].some((x) =>
+            (x || "").toLowerCase().includes(q)
+          )
+    );
+  }, [users, query]);
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this user?")) return;
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    if (res.ok) setUsers((prev) => prev.filter((u) => u._id !== id));
+  }
+
+  const [viewUser, setViewUser] = useState<ApiUser | null>(null);
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -66,6 +113,16 @@ export default function UsersPage() {
             </button>
             <button
               className={`px-3 py-1.5 text-sm font-medium ${
+                tab === "customers"
+                  ? "text-blue-600 bg-blue-50 rounded-lg"
+                  : "text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+              }`}
+              onClick={() => setTab("customers")}
+            >
+              Customers
+            </button>
+            <button
+              className={`px-3 py-1.5 text-sm font-medium ${
                 tab === "drivers"
                   ? "text-blue-600 bg-blue-50 rounded-lg"
                   : "text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
@@ -80,6 +137,8 @@ export default function UsersPage() {
               leftIcon={<SearchIcon size={16} />}
               placeholder="Search users..."
               className="border-slate-200"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
           </div>
         </div>
@@ -100,48 +159,24 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {[
-                {
-                  name: "John Smith",
-                  email: "john.smith@email.com",
-                  role: "Admin",
-                  status: "Active",
-                  lastActive: "2 hours ago",
-                },
-                {
-                  name: "Sarah Johnson",
-                  email: "sarah.j@email.com",
-                  role: "Driver",
-                  status: "Active",
-                  lastActive: "1 day ago",
-                },
-                {
-                  name: "Mike Wilson",
-                  email: "mike.w@email.com",
-                  role: "Manager",
-                  status: "Inactive",
-                  lastActive: "1 week ago",
-                },
-                {
-                  name: "Emily Davis",
-                  email: "emily.d@email.com",
-                  role: "Driver",
-                  status: "Active",
-                  lastActive: "30 minutes ago",
-                },
-              ].map((user, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+              {filtered.map((user) => (
+                <tr
+                  key={user._id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
-                        {user.name
-                          .split(" ")
+                        {[user.firstName, user.lastName]
+                          .filter(Boolean)
                           .map((n) => n[0])
                           .join("")}
                       </div>
                       <div>
                         <div className="font-semibold text-slate-900">
-                          {user.name}
+                          {[user.firstName, user.lastName]
+                            .filter(Boolean)
+                            .join(" ")}
                         </div>
                         <div className="text-sm text-slate-500">
                           {user.email}
@@ -152,9 +187,9 @@ export default function UsersPage() {
                   <td className="px-6 py-4">
                     <Badge
                       variant={
-                        user.role === "Admin"
+                        user.role === "admin"
                           ? "info"
-                          : user.role === "Manager"
+                          : user.role === "manager"
                           ? "warning"
                           : "default"
                       }
@@ -163,18 +198,19 @@ export default function UsersPage() {
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge
-                      variant={user.status === "Active" ? "success" : "neutral"}
-                    >
-                      {user.status}
+                    <Badge variant={user.isActive ? "success" : "neutral"}>
+                      {user.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>
                   <td className="px-6 py-4 text-slate-600">
-                    {user.lastActive}
+                    {new Date(user.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button className="inline-flex items-center gap-1.5 text-slate-600 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50">
+                      <button
+                        onClick={() => setViewUser(user)}
+                        className="inline-flex items-center gap-1.5 text-slate-600 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50"
+                      >
                         <EyeIcon size={16} />
                         <span className="text-sm font-medium">View</span>
                       </button>
@@ -182,7 +218,10 @@ export default function UsersPage() {
                         <EditIcon size={16} />
                         <span className="text-sm font-medium">Edit</span>
                       </button>
-                      <button className="inline-flex items-center gap-1.5 text-slate-600 hover:text-red-600 transition-colors px-2 py-1 rounded-lg hover:bg-red-50">
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        className="inline-flex items-center gap-1.5 text-slate-600 hover:text-red-600 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                      >
                         <TrashIcon size={16} />
                         <span className="text-sm font-medium">Delete</span>
                       </button>
@@ -192,8 +231,49 @@ export default function UsersPage() {
               ))}
             </tbody>
           </table>
+          {loading && (
+            <div className="p-4 text-sm text-slate-500">Loading users…</div>
+          )}
         </div>
       </Card>
+      <Modal
+        open={!!viewUser}
+        onClose={() => setViewUser(null)}
+        title="User Details"
+      >
+        {viewUser && (
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-slate-500">Name:</span>{" "}
+              <span className="font-medium">
+                {[viewUser.firstName, viewUser.lastName]
+                  .filter(Boolean)
+                  .join(" ")}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Email:</span>{" "}
+              <span className="font-medium">{viewUser.email}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Role:</span>{" "}
+              <span className="font-medium">{viewUser.role}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Status:</span>{" "}
+              <span className="font-medium">
+                {viewUser.isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Created:</span>{" "}
+              <span className="font-medium">
+                {new Date(viewUser.createdAt).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
