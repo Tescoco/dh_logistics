@@ -295,7 +295,7 @@ export default function DailyParcelsPage() {
             <option value="50to100">₹50 - ₹100</option>
             <option value="gt100">Above ₹100</option>
           </Select>
-          <div className="flex items-center justify-end gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-4">
             <button
               type="button"
               onClick={() => {
@@ -315,7 +315,7 @@ export default function DailyParcelsPage() {
 
       {/* Today's Parcels */}
       <Card padded={false}>
-        <div className="flex items-center justify-between px-6 pt-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 pt-4">
           <div className="font-semibold text-slate-900">
             Today&apos;s Parcels
           </div>
@@ -334,7 +334,7 @@ export default function DailyParcelsPage() {
             </Select>
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between px-6 py-3 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 py-3 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
           <div className="font-medium">&nbsp;</div>
           <div />
         </div>
@@ -349,11 +349,20 @@ export default function DailyParcelsPage() {
                   "Amount",
                   "Status",
                   "Actions",
-                ].map((h) => (
-                  <th key={h} className="px-6 py-3 font-medium">
-                    {h}
-                  </th>
-                ))}
+                ].map((h) => {
+                  const hideOnMobile = ["Receiver", "Amount"].includes(h);
+                  return (
+                    <th
+                      key={h}
+                      className={[
+                        "px-6 py-3 font-medium",
+                        hideOnMobile ? "hidden sm:table-cell" : "",
+                      ].join(" ")}
+                    >
+                      {h}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -365,7 +374,7 @@ export default function DailyParcelsPage() {
                     </div>
                     <div className="text-xs text-slate-500">REF: {r.id}</div>
                   </td>
-                  <td className="px-6 py-4 align-top">
+                  <td className="px-6 py-4 align-top hidden sm:table-cell">
                     <div className="font-medium text-slate-800">
                       {r.receiverName}
                     </div>
@@ -376,7 +385,7 @@ export default function DailyParcelsPage() {
                       {r.receiverPhone}
                     </div>
                   </td>
-                  <td className="px-6 py-4 align-top font-semibold text-slate-800">
+                  <td className="px-6 py-4 align-top font-semibold text-slate-800 hidden sm:table-cell">
                     ₹{r.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 align-top">
@@ -408,7 +417,7 @@ export default function DailyParcelsPage() {
           )}
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-slate-100">
           <div className="text-[12px] text-slate-500">
             Showing {filteredRows.length === 0 ? 0 : pageStart + 1} to{" "}
             {Math.min(pageEnd, filteredRows.length)} of {filteredRows.length}{" "}
@@ -423,20 +432,22 @@ export default function DailyParcelsPage() {
             >
               Previous
             </Button>
-            {renderPageButtons().map((p) => (
-              <button
-                key={p}
-                className={
-                  "h-9 w-9 rounded-md text-sm font-medium " +
-                  (p === clampedPage
-                    ? "bg-[#0EA5E9] text-white"
-                    : "border border-slate-200")
-                }
-                onClick={() => goToPage(p)}
-              >
-                {p}
-              </button>
-            ))}
+            <div className="hidden sm:flex items-center gap-2">
+              {renderPageButtons().map((p) => (
+                <button
+                  key={p}
+                  className={
+                    "h-9 w-9 rounded-md text-sm font-medium " +
+                    (p === clampedPage
+                      ? "bg-[#0EA5E9] text-white"
+                      : "border border-slate-200")
+                  }
+                  onClick={() => goToPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
             <Button
               variant="secondary"
               size="sm"

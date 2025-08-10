@@ -220,7 +220,7 @@ export default function CodReportPage() {
               <option value="CSV">CSV</option>
             </Select>
           </div>
-          <div className="flex items-center gap-3 md:justify-end">
+          <div className="flex flex-wrap items-center gap-3 md:justify-end">
             <Button
               leftIcon={<UploadIcon size={16} />}
               onClick={handleGenerate}
@@ -293,8 +293,8 @@ export default function CodReportPage() {
         header={<div className="font-semibold">Report History</div>}
         padded={false}
       >
-        <div className="px-6 py-4 flex items-center gap-3">
-          <div className="ml-auto w-72">
+        <div className="px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="w-full sm:ml-auto sm:w-72">
             <Input
               leftIcon={<SearchIcon size={16} />}
               placeholder="Search reports..."
@@ -302,14 +302,17 @@ export default function CodReportPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button
-            className="h-10 w-10 rounded-md border border-slate-200 grid place-items-center text-slate-500"
-            aria-label="More"
-          >
-            ▾
-          </button>
+          <div className="flex items-center">
+            <button
+              className="h-10 w-10 rounded-md border border-slate-200 grid place-items-center text-slate-500"
+              aria-label="More"
+            >
+              ▾
+            </button>
+          </div>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop/tablet table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
@@ -320,11 +323,24 @@ export default function CodReportPage() {
                   "Format",
                   "Status",
                   "Actions",
-                ].map((h) => (
-                  <th key={h} className="px-6 py-3 font-medium">
-                    {h}
-                  </th>
-                ))}
+                ].map((h) => {
+                  const hideOnMobile = [
+                    "Generated On",
+                    "Format",
+                    "Status",
+                  ].includes(h);
+                  return (
+                    <th
+                      key={h}
+                      className={[
+                        "px-6 py-3 font-medium",
+                        hideOnMobile ? "hidden sm:table-cell" : "",
+                      ].join(" ")}
+                    >
+                      {h}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -342,11 +358,13 @@ export default function CodReportPage() {
                     </div>
                   </td>
                   <td className="px-6 py-3 text-slate-700">{r.range}</td>
-                  <td className="px-6 py-3 text-slate-700">{r.generatedOn}</td>
-                  <td className="px-6 py-3">
+                  <td className="px-6 py-3 text-slate-700 hidden sm:table-cell">
+                    {r.generatedOn}
+                  </td>
+                  <td className="px-6 py-3 hidden sm:table-cell">
                     <Badge variant="neutral">{r.format}</Badge>
                   </td>
-                  <td className="px-6 py-3">
+                  <td className="px-6 py-3 hidden sm:table-cell">
                     <Badge
                       variant={r.status === "Ready" ? "success" : "warning"}
                     >
@@ -431,13 +449,110 @@ export default function CodReportPage() {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-end px-6 py-4 border-t border-slate-100 gap-2">
-          <Button variant="secondary" size="sm">
-            Previous
-          </Button>
-          <button className="h-9 w-9 rounded-md bg-[#0EA5E9] text-white text-sm font-medium">
-            1
-          </button>
+
+        {/* Mobile cards */}
+        <div className="sm:hidden">
+          <div className="divide-y border-t border-slate-100">
+            {filtered.map((r) => (
+              <div key={r.name} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[#0EA5E9] font-semibold">{r.name}</div>
+                    <div className="text-xs text-slate-500">{r.range}</div>
+                  </div>
+                  <Badge variant={r.status === "Ready" ? "success" : "warning"}>
+                    {r.status}
+                  </Badge>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                  <div>
+                    <span className="text-slate-500">Generated:</span>
+                    <div className="font-medium text-slate-700">
+                      {r.generatedOn}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Format:</span>
+                    <div className="font-medium text-slate-700">{r.format}</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center gap-3 text-[#0EA5E9]">
+                  <IconButton
+                    label="Download"
+                    onClick={() => {
+                      const { from, to } = extractDatesFromRange(r.range);
+                      const link = document.createElement("a");
+                      link.href = `/api/cod?from=${from}&to=${to}&format=${r.format}&download=true`;
+                      link.download = `${r.name}.${r.format.toLowerCase()}`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <DownloadIcon size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="View"
+                    onClick={async () => {
+                      setClickedFrom("generate");
+                      setPreviewLoading(true);
+                      try {
+                        const { from, to } = extractDatesFromRange(r.range);
+                        const url = new URL("/api/cod", window.location.origin);
+                        url.searchParams.set("from", from);
+                        url.searchParams.set("to", to);
+                        url.searchParams.set("detailed", "true");
+                        const res = await fetch(url.toString());
+                        if (!res.ok) {
+                          alert("Failed to load report data");
+                          return;
+                        }
+                        const data = await res.json();
+                        setPreviewData(data.deliveries || []);
+                        setPreviewOpen(true);
+                      } catch (error) {
+                        alert("Failed to load report data");
+                      } finally {
+                        setPreviewLoading(false);
+                      }
+                    }}
+                  >
+                    <LinkIcon size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Delete"
+                    onClick={async () => {
+                      const ok = confirm("Delete this report?");
+                      if (!ok) return;
+                      try {
+                        await fetch(
+                          `/api/reports/cod?name=${encodeURIComponent(r.name)}`,
+                          { method: "DELETE" }
+                        );
+                        setHistory((prev) =>
+                          prev.filter((h) => h.name !== r.name)
+                        );
+                      } catch {}
+                    }}
+                  >
+                    <TrashIcon size={16} />
+                  </IconButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end px-6 py-4 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm">
+              Previous
+            </Button>
+            <button className="h-9 w-9 rounded-md bg-[#0EA5E9] text-white text-sm font-medium">
+              1
+            </button>
+          </div>
         </div>
       </Card>
 

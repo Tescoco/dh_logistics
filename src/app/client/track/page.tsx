@@ -359,7 +359,7 @@ export default function TrackDeliveriesPage() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-          <div className="flex gap-2 md:justify-end">
+          <div className="flex flex-wrap gap-2 md:justify-end">
             <Button leftIcon={<SearchIcon size={16} />}>Search</Button>
             <Button
               variant="secondary"
@@ -388,14 +388,15 @@ export default function TrackDeliveriesPage() {
 
       {/* Table */}
       <Card padded={false}>
-        <div className="flex items-center justify-between px-6 py-4 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 py-4 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
           <div className="font-semibold">All Deliveries</div>
-          <div className="text-[12px] bg-white/15 px-3 py-1 rounded-full">
+          <div className="text-[12px] bg-white/15 px-3 py-1 rounded-full w-max">
             {totalCount.toLocaleString()} total deliveries
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop/tablet table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
@@ -510,7 +511,96 @@ export default function TrackDeliveriesPage() {
           )}
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+        {/* Mobile cards */}
+        <div className="sm:hidden">
+          <div className="divide-y border-t border-slate-100">
+            {pageRows.map((r) => (
+              <div key={r.trackingId} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[#0EA5E9] font-semibold">
+                      {r.trackingId.split(" ")[0]}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {r.trackingId.split(" ")[1]}
+                    </div>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </div>
+
+                <div className="mt-3 flex items-center gap-3">
+                  <div
+                    className="h-9 w-9 rounded-full grid place-items-center text-white text-[12px] font-semibold"
+                    style={{ backgroundColor: `hsl(${r.avatarHue} 80% 45%)` }}
+                    aria-hidden
+                  >
+                    {r.customerName
+                      .split(" ")
+                      .map((s) => s[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-medium text-slate-800">
+                      {r.customerName}
+                    </div>
+                    <div className="text-[12px] text-slate-500">
+                      {r.customerPhone}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-xs text-slate-500">
+                  <span className="font-medium text-slate-600">From:</span>{" "}
+                  {r.origin}
+                </div>
+                <div className="text-xs text-slate-500">
+                  <span className="font-medium text-slate-600">To:</span>{" "}
+                  {r.destination}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {new Date(r.date).toLocaleString(undefined, {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  })}
+                </div>
+
+                <div className="mt-3 flex items-center gap-3 text-[#0EA5E9]">
+                  <IconButton
+                    label="View"
+                    onClick={() => handleView(r.deliveryId)}
+                  >
+                    <EyeIcon size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Edit"
+                    onClick={() => handleEdit(r.deliveryId)}
+                  >
+                    <EditIcon size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Delete"
+                    onClick={() => handleDelete(r.deliveryId)}
+                  >
+                    <TrashIcon size={16} />
+                  </IconButton>
+                </div>
+              </div>
+            ))}
+          </div>
+          {!loading && rows.length === 0 && (
+            <div className="p-4 text-sm text-slate-500">
+              No deliveries found.
+            </div>
+          )}
+          {loading && (
+            <div className="p-4 text-sm text-slate-500">Loading…</div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-slate-100">
           <div className="text-[12px] text-slate-500">
             Showing {filteredRows.length === 0 ? 0 : start + 1} to{" "}
             {Math.min(end, filteredRows.length)} of {filteredRows.length}{" "}
@@ -525,23 +615,25 @@ export default function TrackDeliveriesPage() {
             >
               Previous
             </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const p = i + 1;
-              return (
-                <button
-                  key={p}
-                  className={
-                    "h-9 w-9 rounded-md text-sm font-medium " +
-                    (p === clampedPage
-                      ? "bg-[#0EA5E9] text-white"
-                      : "border border-slate-200")
-                  }
-                  onClick={() => setCurrentPage(p)}
-                >
-                  {p}
-                </button>
-              );
-            })}
+            <div className="hidden sm:flex items-center gap-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const p = i + 1;
+                return (
+                  <button
+                    key={p}
+                    className={
+                      "h-9 w-9 rounded-md text-sm font-medium " +
+                      (p === clampedPage
+                        ? "bg-[#0EA5E9] text-white"
+                        : "border border-slate-200")
+                    }
+                    onClick={() => setCurrentPage(p)}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
             <Button
               variant="secondary"
               size="sm"

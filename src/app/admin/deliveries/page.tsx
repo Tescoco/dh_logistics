@@ -28,15 +28,6 @@ function DeliveriesInner() {
   const tab = searchParams?.get("tab") || "cod";
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Deliveries</h1>
-          <p className="text-slate-500 text-sm">
-            Manage COD and Internal driver deliveries
-          </p>
-        </div>
-      </div>
-
       <Tabs
         className="-mt-2"
         items={tabs}

@@ -39,109 +39,144 @@ const topLevel: NavItem[] = [
   { href: "/admin/profile", label: "Profile", icon: "user" },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  mobileOpen,
+  onClose,
+}: {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}) {
   return (
     <Suspense fallback={null}>
-      <AdminSidebarInner />
+      <AdminSidebarInner mobileOpen={mobileOpen} onClose={onClose} />
     </Suspense>
   );
 }
 
-function AdminSidebarInner() {
+function AdminSidebarInner({
+  mobileOpen,
+  onClose,
+}: {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams?.get("tab");
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-[280px] border-r border-slate-200/60 bg-white/80 backdrop-blur-xl px-6 py-6">
-      <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg flex items-center justify-center">
-          <span className="text-white font-bold text-lg">S</span>
+    <>
+      {/* Overlay for mobile */}
+      <div
+        className={[
+          "fixed inset-0 z-30 bg-slate-900/40 transition-opacity lg:hidden",
+          mobileOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        ].join(" ")}
+        onClick={onClose}
+      />
+      <aside
+        className={[
+          "fixed inset-y-0 left-0 z-40 w-[280px] border-r border-slate-200/60 bg-white/80 backdrop-blur-xl px-6 py-6 transition-transform",
+          "lg:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        ].join(" ")}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="mb-8 flex items-center gap-3 px-2">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg flex items-center justify-center">
+            <span className="text-white font-bold text-lg">S</span>
+          </div>
+          <div>
+            <div className="font-semibold text-lg text-slate-900">Shipz</div>
+            <div className="text-xs text-slate-500 font-medium">
+              Admin Portal
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="font-semibold text-lg text-slate-900">Shipz</div>
-          <div className="text-xs text-slate-500 font-medium">Admin Portal</div>
-        </div>
-      </div>
-      <nav className="flex flex-col gap-2">
-        {/* Deliveries group */}
+        <nav className="flex flex-col gap-2">
+          {/* Deliveries group */}
 
-        {/* Other items */}
-        <div className="space-y-1">
-          {topLevel.map((item) => {
-            const active = pathname === item.href;
-            if (item.type === "group") {
+          {/* Other items */}
+          <div className="space-y-1">
+            {topLevel.map((item) => {
+              const active = pathname === item.href;
+              if (item.type === "group") {
+                return (
+                  <div key={item.href} className="mb-4">
+                    <div
+                      className={[
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-all duration-200",
+                        pathname === item.href
+                          ? "bg-slate-100 text-slate-900 shadow-sm"
+                          : "text-slate-700 hover:bg-slate-50",
+                      ].join(" ")}
+                    >
+                      <span aria-hidden className="text-slate-600">
+                        <TruckIcon size={20} />
+                      </span>
+                      <span className="font-semibold">{item.label}</span>
+                    </div>
+                    <div className="mt-2 space-y-1 pl-4">
+                      {item.children?.map((child) => {
+                        const active =
+                          pathname === child.href ||
+                          (tab && child.href.includes(tab));
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => onClose?.()}
+                            className={[
+                              "block rounded-lg px-4 py-2.5 text-[14px] font-medium transition-all duration-200 group",
+                              active
+                                ? "bg-gradient-to-r from-[#0EA5E9] to-[#0284c7] text-white shadow-lg shadow-blue-500/25"
+                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                            ].join(" ")}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={[
+                                  "w-1.5 h-1.5 rounded-full transition-all duration-200",
+                                  active
+                                    ? "bg-white"
+                                    : "bg-slate-400 group-hover:bg-slate-600",
+                                ].join(" ")}
+                              />
+                              {child.label}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
               return (
-                <div key={item.href} className="mb-4">
-                  <div
-                    className={[
-                      "flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-all duration-200",
-                      pathname === item.href
-                        ? "bg-slate-100 text-slate-900 shadow-sm"
-                        : "text-slate-700 hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    <span aria-hidden className="text-slate-600">
-                      <TruckIcon size={20} />
-                    </span>
-                    <span className="font-semibold">{item.label}</span>
-                  </div>
-                  <div className="mt-2 space-y-1 pl-4">
-                    {item.children?.map((child) => {
-                      const active =
-                        pathname === child.href ||
-                        (tab && child.href.includes(tab));
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className={[
-                            "block rounded-lg px-4 py-2.5 text-[14px] font-medium transition-all duration-200 group",
-                            active
-                              ? "bg-gradient-to-r from-[#0EA5E9] to-[#0284c7] text-white shadow-lg shadow-blue-500/25"
-                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                          ].join(" ")}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={[
-                                "w-1.5 h-1.5 rounded-full transition-all duration-200",
-                                active
-                                  ? "bg-white"
-                                  : "bg-slate-400 group-hover:bg-slate-600",
-                              ].join(" ")}
-                            />
-                            {child.label}
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => onClose?.()}
+                  className={[
+                    "flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-all duration-200 group",
+                    active
+                      ? "bg-gradient-to-r from-[#0EA5E9] to-[#0284c7] text-white shadow-lg shadow-blue-500/25"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+                  ].join(" ")}
+                >
+                  {renderIcon(item.icon, active)}
+                  <span>{item.label}</span>
+                  {active && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
+                  )}
+                </Link>
               );
-            }
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={[
-                  "flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-all duration-200 group",
-                  active
-                    ? "bg-gradient-to-r from-[#0EA5E9] to-[#0284c7] text-white shadow-lg shadow-blue-500/25"
-                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
-                ].join(" ")}
-              >
-                {renderIcon(item.icon, active)}
-                <span>{item.label}</span>
-                {active && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-    </aside>
+            })}
+          </div>
+        </nav>
+      </aside>
+    </>
   );
 }
 

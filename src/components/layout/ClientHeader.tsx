@@ -47,7 +47,11 @@ const navigation = [
   },
 ];
 
-export default function ClientHeader() {
+export default function ClientHeader({
+  onMenuClick,
+}: {
+  onMenuClick?: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -63,20 +67,33 @@ export default function ClientHeader() {
     return () => window.removeEventListener("popstate", onPopState);
   }, [pathname]);
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl h-20 flex items-center">
-      <div className="w-72 border-r border-slate-200/60 h-full flex items-center px-6">
-        <Link href="/client" className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <div>
-            <div className="font-semibold text-lg text-slate-900">Shipz</div>
-          </div>
-        </Link>
+    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl h-16 sm:h-20 flex items-center">
+      <div className="flex items-center gap-3 pl-4 sm:pl-6 pr-4 md:ml-60">
+        <button
+          className="md:hidden grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+          aria-label="Open sidebar"
+          onClick={onMenuClick}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M3 6h18" />
+            <path d="M3 12h18" />
+            <path d="M3 18h18" />
+          </svg>
+        </button>
       </div>
-      <div className="flex-1 px-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+      <div className="flex-1 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="hidden md:block">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             {navigation.find((item) => item.href === pathname)?.name ||
               "Edit Delivery"}
           </h1>
@@ -89,7 +106,7 @@ export default function ClientHeader() {
       {navigation.find(
         (item) => item.search && pathname === "/client/daily-parcels"
       ) && (
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3 pr-4">
           <Input
             className="w-72"
             leftIcon={<SearchIcon size={16} />}
