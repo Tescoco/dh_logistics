@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -62,7 +62,40 @@ export default function TrackDeliveriesPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [date, setDate] = useState<string>("");
-  const [rows] = useState<DeliveryRow[]>(INITIAL_ROWS);
+  const [rows, setRows] = useState<DeliveryRow[]>(INITIAL_ROWS);
+
+  useEffect(() => {
+    // Pull from deliveries API for real data when available
+    fetch("/api/deliveries")
+      .then((r) => r.json())
+      .then((d) => {
+        const serverRows: DeliveryRow[] = (d.deliveries || [])
+          .slice(0, 20)
+          .map((it: any, i: number) => ({
+            trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
+            customerName: it.customerName || "—",
+            customerEmail: `${(it.customerName || "user")
+              .split(" ")[0]
+              .toLowerCase()}@example.com`,
+            status:
+              it.status === "delivered"
+                ? "Delivered"
+                : it.status === "in_transit"
+                ? "In Transit"
+                : it.status === "pending"
+                ? "Pending"
+                : it.status === "assigned"
+                ? "Assigned"
+                : "Returned",
+            origin: it.senderAddress || "—",
+            destination: it.deliveryAddress || "—",
+            date: new Date(it.createdAt).toISOString().slice(0, 10),
+            avatarHue: (i * 47) % 360,
+          }));
+        if (serverRows.length) setRows(serverRows);
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase();

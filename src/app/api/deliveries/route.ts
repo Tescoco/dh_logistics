@@ -39,6 +39,8 @@ export async function GET(req: NextRequest) {
   const query: Record<string, unknown> = {};
   if (status) query.status = status;
   if (payment) query.paymentMethod = payment;
+  // Scope to the requesting user unless admin
+  if (auth.role !== "admin") query.createdById = auth.userId;
 
   const deliveries = await Delivery.find(query)
     .sort({ createdAt: -1 })

@@ -28,17 +28,21 @@ export default function ClientLoginPage() {
     setError(null);
 
     try {
-      // Simulate API call
-      setTimeout(() => {
-        if (email === "user@example.com" && password === "password") {
-          router.push("/client");
-        } else {
-          setError("Invalid email or password");
-        }
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data?.error ?? "Invalid email or password");
         setLoading(false);
-      }, 1000);
+        return;
+      }
+      router.push("/client");
     } catch (err) {
       setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
     }
   };

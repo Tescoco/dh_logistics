@@ -33,7 +33,7 @@ const navigation = [
   {
     name: "COD Report",
     href: "/client/cod-report",
-    helperText: "Add new parcel deliveries and manage today's shipments",
+    helperText: "Download and manage your Cash on Delivery reports",
   },
   {
     name: "Settings",

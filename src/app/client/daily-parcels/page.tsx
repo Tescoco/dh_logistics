@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -69,7 +69,37 @@ export default function DailyParcelsPage() {
   const [dateTo, setDateTo] = useState("");
   const [amountBand, setAmountBand] = useState("");
   const [pageSize, setPageSize] = useState("10");
-  const [rows] = useState(INITIAL_ROWS);
+  const [rows, setRows] = useState(INITIAL_ROWS);
+
+  useEffect(() => {
+    fetch("/api/deliveries")
+      .then((r) => r.json())
+      .then((d) => {
+        const serverRows: ParcelRow[] = (d.deliveries || [])
+          .slice(0, 20)
+          .map((it: any, i: number) => ({
+            id: it.reference || `PKG-${i}`,
+            title: it.packageType || it.description || "Parcel",
+            receiverName: it.customerName || "—",
+            receiverAddress: it.deliveryAddress || "—",
+            receiverPhone: it.customerPhone || "—",
+            amount: Number(it.codAmount || it.deliveryFee || 0),
+            status:
+              it.status === "delivered"
+                ? "Delivered"
+                : it.status === "in_transit"
+                ? "In Transit"
+                : it.status === "pending"
+                ? "Pending"
+                : it.status === "assigned"
+                ? "Assigned"
+                : "Returned",
+            date: new Date(it.createdAt).toISOString().slice(0, 10),
+          }));
+        if (serverRows.length) setRows(serverRows);
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
