@@ -15,11 +15,31 @@ import {
 import Link from "next/link";
 
 export default function ClientDashboard() {
+  type DeliveryApiItem = {
+    _id?: string;
+    reference?: string;
+    status?: "pending" | "assigned" | "in_transit" | "delivered" | "returned";
+    updatedAt?: string | Date;
+    createdAt?: string | Date;
+    deliveryAddress?: string;
+  };
   const [stats, setStats] = useState({
     total: 0,
     delivered: 0,
     inTransit: 0,
     returned: 0,
+  });
+  const [changes, setChanges] = useState({
+    totalPct: 0,
+    deliveredPct: 0,
+    inTransitPct: 0,
+    returnedPct: 0,
+  });
+  const [adminChanges, setAdminChanges] = useState({
+    totalPct: 0,
+    deliveredPct: 0,
+    inTransitPct: 0,
+    returnedPct: 0,
   });
   const [recent, setRecent] = useState<
     {
@@ -52,6 +72,18 @@ export default function ClientDashboard() {
           inTransit: d.inTransit ?? 0,
           returned: d.returned ?? 0,
         });
+        setChanges({
+          totalPct: d.changes?.totalPct ?? 0,
+          deliveredPct: d.changes?.deliveredPct ?? 0,
+          inTransitPct: d.changes?.inTransitPct ?? 0,
+          returnedPct: d.changes?.returnedPct ?? 0,
+        });
+        setAdminChanges({
+          totalPct: d.adminChanges?.totalPct ?? 0,
+          deliveredPct: d.adminChanges?.deliveredPct ?? 0,
+          inTransitPct: d.adminChanges?.inTransitPct ?? 0,
+          returnedPct: d.adminChanges?.returnedPct ?? 0,
+        });
         setSecondary({
           readyForReturn: sec.readyForReturn ?? 0,
           returnInTransit: sec.returnInTransit ?? 0,
@@ -60,11 +92,13 @@ export default function ClientDashboard() {
           pending: sec.pending ?? 0,
         });
 
-        const rows: any[] = (list.deliveries || []).slice(0, 3);
+        const rows = ((list.deliveries || []) as DeliveryApiItem[]).slice(0, 3);
         const mapped = rows.map((it) => {
           const status = String(it.status || "pending");
           const { dot, statusColor } = statusToColors(status);
-          const when = timeAgo(new Date(it.updatedAt || it.createdAt));
+          const when = timeAgo(
+            new Date(it.updatedAt ?? it.createdAt ?? Date.now())
+          );
           const id = (it.reference || it._id || "")
             .toString()
             .slice(-9)
@@ -141,6 +175,11 @@ export default function ClientDashboard() {
     return `${d}d ago`;
   }
 
+  function formatChange(pct: number): string {
+    const sign = pct > 0 ? "+" : "";
+    return `${sign}${pct}% from last month`;
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Stats Cards */}
@@ -149,28 +188,28 @@ export default function ClientDashboard() {
           {
             label: "Total Parcels",
             value: stats.total,
-            change: "+12% from last month",
+            change: formatChange(adminChanges.totalPct),
             Icon: PackageIcon,
             color: "bg-blue-100 text-blue-600",
           },
           {
             label: "Delivered",
             value: stats.delivered,
-            change: "+8% from last month",
+            change: formatChange(adminChanges.deliveredPct),
             Icon: CheckIcon,
             color: "bg-emerald-100 text-emerald-600",
           },
           {
             label: "In Transit",
             value: stats.inTransit,
-            change: "-3% from last month",
+            change: formatChange(adminChanges.inTransitPct),
             Icon: TruckIcon,
             color: "bg-amber-100 text-amber-600",
           },
           {
             label: "Returned",
             value: stats.returned,
-            change: "+2% from last month",
+            change: formatChange(adminChanges.returnedPct),
             Icon: RefreshIcon,
             color: "bg-rose-100 text-rose-600",
           },

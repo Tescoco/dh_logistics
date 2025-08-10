@@ -25,6 +25,15 @@ type DeliveryRow = {
   avatarHue: number; // HSL hue to generate a simple avatar color
 };
 
+type DeliveryApiLite = {
+  reference?: string;
+  customerName?: string;
+  status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
+  senderAddress?: string;
+  deliveryAddress?: string;
+  createdAt?: string | Date;
+};
+
 const INITIAL_ROWS: DeliveryRow[] = [
   {
     trackingId: "SH2025 001",
@@ -69,9 +78,11 @@ export default function TrackDeliveriesPage() {
     fetch("/api/deliveries")
       .then((r) => r.json())
       .then((d) => {
-        const serverRows: DeliveryRow[] = (d.deliveries || [])
+        const serverRows: DeliveryRow[] = (
+          (d.deliveries || []) as DeliveryApiLite[]
+        )
           .slice(0, 20)
-          .map((it: any, i: number) => ({
+          .map((it: DeliveryApiLite, i: number) => ({
             trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
             customerName: it.customerName || "—",
             customerEmail: `${(it.customerName || "user")
@@ -89,7 +100,9 @@ export default function TrackDeliveriesPage() {
                 : "Returned",
             origin: it.senderAddress || "—",
             destination: it.deliveryAddress || "—",
-            date: new Date(it.createdAt).toISOString().slice(0, 10),
+            date: new Date(it.createdAt ?? Date.now())
+              .toISOString()
+              .slice(0, 10),
             avatarHue: (i * 47) % 360,
           }));
         if (serverRows.length) setRows(serverRows);

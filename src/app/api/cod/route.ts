@@ -17,10 +17,15 @@ export async function GET(req: NextRequest) {
   const start = from ? new Date(from) : new Date(0);
   const end = to ? new Date(to) : new Date();
 
-  const match: any = {
+  type MatchFilter = {
+    paymentMethod: "cod";
+    createdAt: { $gte: Date; $lte: Date };
+    createdById?: string;
+  };
+  const match: MatchFilter = {
     paymentMethod: "cod",
     createdAt: { $gte: start, $lte: end },
-  } as const;
+  };
   if (auth.role !== "admin") match.createdById = auth.userId;
 
   const [totalAmountAgg, deliveries, pendingAmountAgg, collectedAmountAgg] =

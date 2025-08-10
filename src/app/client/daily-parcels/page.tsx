@@ -29,6 +29,19 @@ type ParcelRow = {
   date: string; // yyyy-mm-dd
 };
 
+type DeliveryApiLite = {
+  reference?: string;
+  packageType?: string;
+  description?: string;
+  customerName?: string;
+  deliveryAddress?: string;
+  customerPhone?: string;
+  codAmount?: number;
+  deliveryFee?: number;
+  status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
+  createdAt?: string | Date;
+};
+
 const INITIAL_ROWS: ParcelRow[] = [
   {
     id: "PKG-2025-001",
@@ -75,9 +88,11 @@ export default function DailyParcelsPage() {
     fetch("/api/deliveries")
       .then((r) => r.json())
       .then((d) => {
-        const serverRows: ParcelRow[] = (d.deliveries || [])
+        const serverRows: ParcelRow[] = (
+          (d.deliveries || []) as DeliveryApiLite[]
+        )
           .slice(0, 20)
-          .map((it: any, i: number) => ({
+          .map((it: DeliveryApiLite, i: number) => ({
             id: it.reference || `PKG-${i}`,
             title: it.packageType || it.description || "Parcel",
             receiverName: it.customerName || "—",
@@ -94,7 +109,9 @@ export default function DailyParcelsPage() {
                 : it.status === "assigned"
                 ? "Assigned"
                 : "Returned",
-            date: new Date(it.createdAt).toISOString().slice(0, 10),
+            date: new Date(it.createdAt ?? Date.now())
+              .toISOString()
+              .slice(0, 10),
           }));
         if (serverRows.length) setRows(serverRows);
       })
