@@ -1,0 +1,300 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import Badge from "@/components/ui/Badge";
+import {
+  SearchIcon,
+  UploadIcon,
+  EyeIcon,
+  EditIcon,
+  TrashIcon,
+} from "@/components/icons";
+
+type DeliveryRow = {
+  trackingId: string;
+  customerName: string;
+  customerEmail: string;
+  status: "Delivered" | "In Transit" | "Pending" | "Returned" | "Assigned";
+  origin: string;
+  destination: string;
+  date: string; // ISO string
+  avatarHue: number; // HSL hue to generate a simple avatar color
+};
+
+const INITIAL_ROWS: DeliveryRow[] = [
+  {
+    trackingId: "SH2025 001",
+    customerName: "John Smith",
+    customerEmail: "john@example.com",
+    status: "Delivered",
+    origin: "New York, NY",
+    destination: "Boston, MA",
+    date: "2025-01-15",
+    avatarHue: 210,
+  },
+  {
+    trackingId: "SH2025 002",
+    customerName: "Sarah Johnson",
+    customerEmail: "sarah@example.com",
+    status: "In Transit",
+    origin: "Chicago, IL",
+    destination: "Detroit, MI",
+    date: "2025-01-16",
+    avatarHue: 260,
+  },
+  {
+    trackingId: "SH2025 003",
+    customerName: "Mike Wilson",
+    customerEmail: "mike@example.com",
+    status: "Pending",
+    origin: "Los Angeles, CA",
+    destination: "San Francisco, CA",
+    date: "2025-01-17",
+    avatarHue: 30,
+  },
+];
+
+export default function TrackDeliveriesPage() {
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [rows] = useState<DeliveryRow[]>(INITIAL_ROWS);
+
+  const filteredRows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows.filter((r) => {
+      const matchesQuery = q
+        ? [
+            r.trackingId,
+            r.customerName,
+            r.customerEmail,
+            r.origin,
+            r.destination,
+            r.status,
+          ]
+            .filter(Boolean)
+            .some((v) => (v || "").toLowerCase().includes(q))
+        : true;
+      const matchesStatus = statusFilter
+        ? r.status.toLowerCase().replace(/\s+/g, "_") ===
+          statusFilter.toLowerCase()
+        : true;
+      const matchesDate = date ? r.date === date : true;
+      return matchesQuery && matchesStatus && matchesDate;
+    });
+  }, [rows, query, statusFilter, date]);
+
+  const totalCount = rows.length;
+
+  return (
+    <div className="space-y-6">
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(260px,1fr)_200px_200px_auto] md:items-center">
+          <Input
+            leftIcon={<SearchIcon size={16} />}
+            placeholder="Search by tracking ID, customer name, email..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter((e.target as HTMLSelectElement).value)
+            }
+          >
+            <option value="">All Statuses</option>
+            <option value="delivered">Delivered</option>
+            <option value="in_transit">In Transit</option>
+            <option value="pending">Pending</option>
+            <option value="assigned">Assigned</option>
+            <option value="returned">Returned</option>
+          </Select>
+          <Input
+            type="date"
+            placeholder="mm/dd/yyyy"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <div className="flex gap-2 md:justify-end">
+            <Button leftIcon={<SearchIcon size={16} />}>Search</Button>
+            <Button variant="secondary">Bulk Search</Button>
+            <Button variant="secondary">Advanced Filters</Button>
+            <Button variant="gradient" leftIcon={<UploadIcon size={16} />}>
+              Export
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Card padded={false}>
+        <div className="flex items-center justify-between px-6 py-4 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
+          <div className="font-semibold">All Deliveries</div>
+          <div className="text-[12px] bg-white/15 px-3 py-1 rounded-full">
+            {totalCount.toLocaleString()} total deliveries
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="text-left text-[13px] text-slate-500">
+                {[
+                  "",
+                  "Tracking ID",
+                  "Customer",
+                  "Status",
+                  "Origin",
+                  "Destination",
+                  "Date",
+                  "Actions",
+                ].map((h, idx) => (
+                  <th key={h + idx} className="px-6 py-3 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRows.map((r) => (
+                <tr key={r.trackingId} className="border-t border-slate-100">
+                  <td className="px-6 py-3 align-middle">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                  </td>
+                  <td className="px-6 py-3 align-middle">
+                    <div className="text-[#0EA5E9] font-medium hover:underline cursor-pointer">
+                      {r.trackingId.split(" ")[0]}
+                      <div className="text-xs text-[#0EA5E9]/80">
+                        {r.trackingId.split(" ")[1]}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 align-middle">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-8 w-8 rounded-full grid place-items-center text-white text-[12px] font-semibold"
+                        style={{
+                          backgroundColor: `hsl(${r.avatarHue} 80% 45%)`,
+                        }}
+                        aria-hidden
+                      >
+                        {r.customerName
+                          .split(" ")
+                          .map((s) => s[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-medium text-slate-800">
+                          {r.customerName}
+                        </div>
+                        <div className="text-[12px] text-slate-500">
+                          {r.customerEmail}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 align-middle">
+                    <StatusBadge status={r.status} />
+                  </td>
+                  <td className="px-6 py-3 align-middle text-slate-700">
+                    {r.origin}
+                  </td>
+                  <td className="px-6 py-3 align-middle text-slate-700">
+                    {r.destination}
+                  </td>
+                  <td className="px-6 py-3 align-middle text-slate-700">
+                    {new Date(r.date).toLocaleString(undefined, {
+                      month: "short",
+                      day: "2-digit",
+                      year: "numeric",
+                    })}
+                  </td>
+                  <td className="px-6 py-3 align-middle text-[#0EA5E9]">
+                    <div className="flex items-center gap-3">
+                      <IconButton label="View">
+                        <EyeIcon size={16} />
+                      </IconButton>
+                      <IconButton label="Edit">
+                        <EditIcon size={16} />
+                      </IconButton>
+                      <IconButton label="Delete">
+                        <TrashIcon size={16} />
+                      </IconButton>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+          <div className="text-[12px] text-slate-500">
+            Showing 1 to {Math.min(filteredRows.length, 10)} of{" "}
+            {filteredRows.length} results
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm">
+              Previous
+            </Button>
+            <button className="h-9 w-9 rounded-md bg-[#0EA5E9] text-white text-sm font-medium">
+              1
+            </button>
+            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
+              2
+            </button>
+            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
+              3
+            </button>
+            <Button variant="secondary" size="sm">
+              Next
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: DeliveryRow["status"] }) {
+  const mapping: Record<
+    DeliveryRow["status"],
+    { label: string; variant: Parameters<typeof Badge>[0]["variant"] }
+  > = {
+    Delivered: { label: "Delivered", variant: "success" },
+    "In Transit": { label: "In Transit", variant: "info" },
+    Pending: { label: "Pending", variant: "warning" },
+    Returned: { label: "Returned", variant: "danger" },
+    Assigned: { label: "Assigned", variant: "default" },
+  } as const;
+  const { label, variant } = mapping[status];
+  return <Badge variant={variant}>{label}</Badge>;
+}
+
+function IconButton({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      aria-label={label}
+      title={label}
+      className="h-8 w-8 inline-grid place-items-center rounded-md text-[#0EA5E9] hover:bg-sky-50"
+    >
+      {children}
+    </button>
+  );
+}

@@ -87,7 +87,6 @@ export default function SettingsPage() {
               <Select className="mt-2">
                 <option>Customer</option>
                 <option>Driver</option>
-                <option>Manager</option>
               </Select>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-4">

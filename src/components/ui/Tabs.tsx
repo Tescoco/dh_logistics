@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export interface TabItem {
   key: string;
@@ -18,8 +20,18 @@ export default function Tabs({
   onChange: (key: string) => void;
   className?: string;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   return (
-    <div className={className}>
+    <div
+      className={className}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`${pathname}?tab=${value}`);
+        onChange(value);
+      }}
+    >
       <div className="flex gap-6 border-b border-slate-200">
         {items.map((t) => (
           <button
