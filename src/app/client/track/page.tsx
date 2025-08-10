@@ -13,6 +13,10 @@ import {
   EyeIcon,
   EditIcon,
   TrashIcon,
+  FilterIcon,
+  ListIcon,
+  CalendarIcon,
+  XIcon,
 } from "@/components/icons";
 
 type DeliveryRow = {
@@ -45,6 +49,18 @@ export default function TrackDeliveriesPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Bulk search state
+  const [bulkSearchOpen, setBulkSearchOpen] = useState(false);
+  const [bulkSearchQuery, setBulkSearchQuery] = useState("");
+
+  // Advanced filters state
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [originFilter, setOriginFilter] = useState("");
+  const [destinationFilter, setDestinationFilter] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -89,7 +105,21 @@ export default function TrackDeliveriesPage() {
 
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const bulkIds = bulkSearchQuery
+      .split(/[\n,\s]+/)
+      .map((id) => id.trim().toLowerCase())
+      .filter((id) => id.length > 0);
+
     return rows.filter((r) => {
+      // Handle bulk search
+      if (bulkIds.length > 0) {
+        const matchesBulk = bulkIds.some((id) =>
+          r.trackingId.toLowerCase().includes(id)
+        );
+        if (!matchesBulk) return false;
+      }
+
+      // Regular query search
       const matchesQuery = q
         ? [
             r.trackingId,
@@ -102,18 +132,117 @@ export default function TrackDeliveriesPage() {
             .filter(Boolean)
             .some((v) => (v || "").toLowerCase().includes(q))
         : true;
-      const matchesStatus = statusFilter
-        ? r.status.toLowerCase().replace(/\s+/g, "_") ===
-          statusFilter.toLowerCase()
-        : true;
+
+      // Status filtering (support multiple statuses)
+      const matchesStatus =
+        selectedStatuses.length > 0
+          ? selectedStatuses.some(
+              (status) =>
+                r.status.toLowerCase().replace(/\s+/g, "_") ===
+                status.toLowerCase()
+            )
+          : statusFilter
+          ? r.status.toLowerCase().replace(/\s+/g, "_") ===
+            statusFilter.toLowerCase()
+          : true;
+
+      // Date filtering
       const matchesDate = date ? r.date === date : true;
-      return matchesQuery && matchesStatus && matchesDate;
+
+      // Date range filtering
+      const matchesDateRange = (() => {
+        if (!dateFrom && !dateTo) return true;
+        const rowDate = new Date(r.date);
+        if (dateFrom && rowDate < new Date(dateFrom)) return false;
+        if (dateTo && rowDate > new Date(dateTo)) return false;
+        return true;
+      })();
+
+      // Origin filtering
+      const matchesOrigin = originFilter
+        ? r.origin.toLowerCase().includes(originFilter.toLowerCase())
+        : true;
+
+      // Destination filtering
+      const matchesDestination = destinationFilter
+        ? r.destination.toLowerCase().includes(destinationFilter.toLowerCase())
+        : true;
+
+      return (
+        matchesQuery &&
+        matchesStatus &&
+        matchesDate &&
+        matchesDateRange &&
+        matchesOrigin &&
+        matchesDestination
+      );
     });
-  }, [rows, query, statusFilter, date]);
+  }, [
+    rows,
+    query,
+    statusFilter,
+    date,
+    bulkSearchQuery,
+    selectedStatuses,
+    dateFrom,
+    dateTo,
+    originFilter,
+    destinationFilter,
+  ]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [query, statusFilter, date]);
+  }, [
+    query,
+    statusFilter,
+    date,
+    bulkSearchQuery,
+    selectedStatuses,
+    dateFrom,
+    dateTo,
+    originFilter,
+    destinationFilter,
+  ]);
+
+  // Handler functions for new features
+  function handleBulkSearch() {
+    setBulkSearchOpen(true);
+  }
+
+  function handleApplyBulkSearch() {
+    setQuery(""); // Clear regular search when using bulk search
+    setBulkSearchOpen(false);
+  }
+
+  function handleClearBulkSearch() {
+    setBulkSearchQuery("");
+    setBulkSearchOpen(false);
+  }
+
+  function handleAdvancedFilters() {
+    setAdvancedFiltersOpen(true);
+  }
+
+  function handleApplyAdvancedFilters() {
+    setAdvancedFiltersOpen(false);
+  }
+
+  function handleClearAdvancedFilters() {
+    setDateFrom("");
+    setDateTo("");
+    setSelectedStatuses([]);
+    setOriginFilter("");
+    setDestinationFilter("");
+    setAdvancedFiltersOpen(false);
+  }
+
+  function toggleStatus(status: string) {
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  }
 
   const totalCount = rows.length;
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
@@ -162,6 +291,45 @@ export default function TrackDeliveriesPage() {
     window.location.href = `/client/delivery/${deliveryId}`;
   }
 
+  function exportCsv() {
+    const headers = [
+      "Tracking ID",
+      "Customer",
+      "Email",
+      "Status",
+      "Origin",
+      "Destination",
+      "Date",
+    ];
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const lines = [headers.join(",")].concat(
+      filteredRows.map((r) =>
+        [
+          r.trackingId,
+          r.customerName,
+          r.customerEmail,
+          r.status,
+          r.origin,
+          r.destination,
+          r.date,
+        ]
+          .map(escape)
+          .join(",")
+      )
+    );
+    const csv = lines.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const today = new Date().toISOString().slice(0, 10);
+    a.download = `deliveries_${today}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -194,9 +362,25 @@ export default function TrackDeliveriesPage() {
           />
           <div className="flex gap-2 md:justify-end">
             <Button leftIcon={<SearchIcon size={16} />}>Search</Button>
-            <Button variant="secondary">Bulk Search</Button>
-            <Button variant="secondary">Advanced Filters</Button>
-            <Button variant="gradient" leftIcon={<UploadIcon size={16} />}>
+            <Button
+              variant="secondary"
+              leftIcon={<ListIcon size={16} />}
+              onClick={handleBulkSearch}
+            >
+              Bulk Search
+            </Button>
+            <Button
+              variant="secondary"
+              leftIcon={<FilterIcon size={16} />}
+              onClick={handleAdvancedFilters}
+            >
+              Advanced Filters
+            </Button>
+            <Button
+              variant="gradient"
+              leftIcon={<UploadIcon size={16} />}
+              onClick={exportCsv}
+            >
               Export
             </Button>
           </div>
@@ -422,6 +606,140 @@ export default function TrackDeliveriesPage() {
         ) : (
           <div className="text-sm text-slate-500">Loading…</div>
         )}
+      </Modal>
+
+      {/* Bulk Search Modal */}
+      <Modal
+        open={bulkSearchOpen}
+        onClose={() => setBulkSearchOpen(false)}
+        title="Bulk Search Tracking IDs"
+        widthClassName="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Enter tracking IDs (one per line or comma/space separated)
+            </label>
+            <textarea
+              className="w-full h-32 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-[#0EA5E9]"
+              placeholder="SH-001&#10;SH-002&#10;SH-003&#10;&#10;Or: SH-001, SH-002, SH-003"
+              value={bulkSearchQuery}
+              onChange={(e) => setBulkSearchQuery(e.target.value)}
+            />
+            <div className="mt-2 text-xs text-slate-500">
+              {
+                bulkSearchQuery
+                  .split(/[\n,\s]+/)
+                  .filter((id) => id.trim().length > 0).length
+              }{" "}
+              tracking IDs detected
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={handleClearBulkSearch}>
+              Clear & Close
+            </Button>
+            <Button onClick={handleApplyBulkSearch}>Apply Search</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Advanced Filters Modal */}
+      <Modal
+        open={advancedFiltersOpen}
+        onClose={() => setAdvancedFiltersOpen(false)}
+        title="Advanced Filters"
+        widthClassName="max-w-2xl"
+      >
+        <div className="space-y-6">
+          {/* Date Range */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <CalendarIcon size={16} className="inline mr-1" />
+              Date Range
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">
+                  From
+                </label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">To</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Multiple Status Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Status (multiple selection)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: "delivered", label: "Delivered" },
+                { value: "in_transit", label: "In Transit" },
+                { value: "pending", label: "Pending" },
+                { value: "assigned", label: "Assigned" },
+                { value: "returned", label: "Returned" },
+              ].map((status) => (
+                <label
+                  key={status.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(status.value)}
+                    onChange={() => toggleStatus(status.value)}
+                    className="h-4 w-4 rounded border-slate-300 text-[#0EA5E9] focus:ring-[#0EA5E9]"
+                  />
+                  <span className="text-sm text-slate-700">{status.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Location Filters */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Origin Filter
+              </label>
+              <Input
+                placeholder="Filter by origin address..."
+                value={originFilter}
+                onChange={(e) => setOriginFilter(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Destination Filter
+              </label>
+              <Input
+                placeholder="Filter by destination address..."
+                value={destinationFilter}
+                onChange={(e) => setDestinationFilter(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
+            <Button variant="secondary" onClick={handleClearAdvancedFilters}>
+              Clear All
+            </Button>
+            <Button onClick={handleApplyAdvancedFilters}>Apply Filters</Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

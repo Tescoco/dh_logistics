@@ -13,6 +13,9 @@ import {
   TruckIcon,
   CheckIcon,
   RefreshIcon,
+  DownloadIcon,
+  LinkIcon,
+  TrashIcon,
 } from "@/components/icons";
 
 type ReportRow = {
@@ -255,9 +258,52 @@ export default function CodReportPage() {
                   </td>
                   <td className="px-6 py-3 text-[#0EA5E9]">
                     <div className="flex items-center gap-3">
-                      <IconButton label="Download">⬇️</IconButton>
-                      <IconButton label="Open">🔗</IconButton>
-                      <IconButton label="Delete">🗑️</IconButton>
+                      <IconButton
+                        label="Download"
+                        onClick={() =>
+                          window.open(
+                            `/api/reports/cod?name=${encodeURIComponent(
+                              r.name
+                            )}&format=${r.format}&type=download`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <DownloadIcon size={16} />
+                      </IconButton>
+                      <IconButton
+                        label="Open"
+                        onClick={() =>
+                          window.open(
+                            `/api/reports/cod?name=${encodeURIComponent(
+                              r.name
+                            )}&format=${r.format}&type=view`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <LinkIcon size={16} />
+                      </IconButton>
+                      <IconButton
+                        label="Delete"
+                        onClick={async () => {
+                          const ok = confirm("Delete this report?");
+                          if (!ok) return;
+                          try {
+                            await fetch(
+                              `/api/reports/cod?name=${encodeURIComponent(
+                                r.name
+                              )}`,
+                              { method: "DELETE" }
+                            );
+                            setHistory((prev) =>
+                              prev.filter((h) => h.name !== r.name)
+                            );
+                          } catch {}
+                        }}
+                      >
+                        <TrashIcon size={16} />
+                      </IconButton>
                     </div>
                   </td>
                 </tr>
@@ -281,15 +327,18 @@ export default function CodReportPage() {
 function IconButton({
   label,
   children,
+  onClick,
 }: {
   label: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <button
       aria-label={label}
       title={label}
       className="h-8 w-8 inline-grid place-items-center rounded-md text-[#0EA5E9] hover:bg-sky-50"
+      onClick={onClick}
     >
       {children}
     </button>

@@ -5,6 +5,8 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { PlusIcon } from "@/components/icons";
 
 // metadata is set at a parent server component level
 
@@ -87,12 +89,18 @@ export default function CreateDeliveryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <a
-          href="/admin/deliveries"
+        <Link
+          href="/client/delivery/bulk"
+          className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+        >
+          <PlusIcon size={16} /> Bulk Add Deliveries
+        </Link>
+        <Link
+          href="/client/track"
           className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
         >
           ← Back to Deliveries
-        </a>
+        </Link>
       </div>
 
       <Card padded={false}>
