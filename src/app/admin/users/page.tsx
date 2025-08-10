@@ -132,7 +132,7 @@ export default function UsersPage() {
               Drivers
             </button>
           </div>
-          <div className="ml-auto w-80">
+          <div className="ml-auto w-80 hidden md:block">
             <Input
               leftIcon={<SearchIcon size={16} />}
               placeholder="Search users..."
