@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SearchIcon, UserIcon, BellIcon } from "@/components/icons";
+import { SearchIcon, UserIcon, BellIcon, PlusIcon } from "@/components/icons";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -27,6 +27,8 @@ const navigation = [
     name: "Daily Parcels",
     href: "/client/daily-parcels",
     helperText: "Manage and track all your daily parcels efficiently",
+    search: true,
+    add: true,
   },
   {
     name: "COD Report",
@@ -42,7 +44,7 @@ const navigation = [
 
 export default function ClientHeader() {
   const pathname = usePathname();
-
+  const [search, setSearch] = useState("");
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl h-20 flex items-center">
       <div className="w-72 border-r border-slate-200/60 h-full flex items-center px-6">
@@ -65,6 +67,24 @@ export default function ClientHeader() {
           </p>
         </div>
       </div>
+      {navigation.find(
+        (item) => item.search && pathname === "/client/daily-parcels"
+      ) && (
+        <div className="flex items-center gap-3">
+          <Input
+            className="w-72"
+            leftIcon={<SearchIcon size={16} />}
+            placeholder="Search parcels..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {navigation.find((item) => item.add) && (
+            <Link href="/client/delivery/add">
+              <Button leftIcon={<PlusIcon size={18} />}>Add Parcel</Button>
+            </Link>
+          )}
+        </div>
+      )}
     </header>
   );
 }
