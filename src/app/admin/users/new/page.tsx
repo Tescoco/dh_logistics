@@ -193,9 +193,7 @@ export default function CreateUserPage() {
                       setRole((e.target as HTMLSelectElement).value)
                     }
                   >
-                    <option value="driver">Delivery Driver</option>
                     <option value="admin">Admin</option>
-                    <option value="manager">Manager</option>
                     <option value="customer">Customer</option>
                   </Select>
                 </div>

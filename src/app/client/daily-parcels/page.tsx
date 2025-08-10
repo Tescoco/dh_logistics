@@ -42,38 +42,7 @@ type DeliveryApiLite = {
   createdAt?: string | Date;
 };
 
-const INITIAL_ROWS: ParcelRow[] = [
-  {
-    id: "PKG-2025-001",
-    title: "Electronics Package",
-    receiverName: "John Smith",
-    receiverAddress: "123 Main St, City",
-    receiverPhone: "+1 234 567 8900",
-    amount: 89.99,
-    status: "Delivered",
-    date: "2025-01-18",
-  },
-  {
-    id: "PKG-2025-002",
-    title: "Clothing Items",
-    receiverName: "Sarah Johnson",
-    receiverAddress: "456 Oak Ave, Town",
-    receiverPhone: "+1 234 567 8901",
-    amount: 45.5,
-    status: "In Transit",
-    date: "2025-01-18",
-  },
-  {
-    id: "PKG-2025-003",
-    title: "Books & Stationery",
-    receiverName: "Mike Wilson",
-    receiverAddress: "789 Pine St, Village",
-    receiverPhone: "+1 234 567 8902",
-    amount: 23.75,
-    status: "Pending",
-    date: "2025-01-18",
-  },
-];
+// All rows are fetched from the database via /api/deliveries
 
 export default function DailyParcelsPage() {
   const [search, setSearch] = useState("");
@@ -82,16 +51,26 @@ export default function DailyParcelsPage() {
   const [dateTo, setDateTo] = useState("");
   const [amountBand, setAmountBand] = useState("");
   const [pageSize, setPageSize] = useState("10");
-  const [rows, setRows] = useState(INITIAL_ROWS);
+  const [rows, setRows] = useState<ParcelRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [topStats, setTopStats] = useState({
+    total: 0,
+    delivered: 0,
+    inTransit: 0,
+    pending: 0,
+  });
 
   useEffect(() => {
-    fetch("/api/deliveries")
-      .then((r) => r.json())
-      .then((d) => {
+    setLoading(true);
+    Promise.all([
+      fetch("/api/deliveries").then((r) => r.json()),
+      fetch("/api/deliveries/stats").then((r) => r.json()),
+    ])
+      .then(([d, stats]) => {
         const serverRows: ParcelRow[] = (
           (d.deliveries || []) as DeliveryApiLite[]
         )
-          .slice(0, 20)
+          .slice(0, 100)
           .map((it: DeliveryApiLite, i: number) => ({
             id: it.reference || `PKG-${i}`,
             title: it.packageType || it.description || "Parcel",
@@ -113,9 +92,19 @@ export default function DailyParcelsPage() {
               .toISOString()
               .slice(0, 10),
           }));
-        if (serverRows.length) setRows(serverRows);
+        setRows(serverRows);
+        setTopStats({
+          total: stats.total ?? 0,
+          delivered: stats.deliveredToday ?? 0,
+          inTransit: stats.inTransit ?? 0,
+          pending: stats.pendingAssignment ?? 0,
+        });
       })
-      .catch(() => {});
+      .catch(() => {
+        setRows([]);
+        setTopStats({ total: 0, delivered: 0, inTransit: 0, pending: 0 });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredRows = useMemo(() => {
@@ -150,34 +139,34 @@ export default function DailyParcelsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top stats */}
+      {/* Top stats (DB-backed) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             label: "Total Parcels",
-            value: 247,
-            change: "+12% from yesterday",
+            value: topStats.total,
+            change: "",
             Icon: PackageIcon,
             color: "bg-blue-100 text-blue-600",
           },
           {
             label: "Delivered",
-            value: 189,
-            change: "+8% from yesterday",
+            value: topStats.delivered,
+            change: "",
             Icon: CheckIcon,
             color: "bg-emerald-100 text-emerald-600",
           },
           {
             label: "In Transit",
-            value: 42,
-            change: "+3% from yesterday",
+            value: topStats.inTransit,
+            change: "",
             Icon: TruckIcon,
             color: "bg-amber-100 text-amber-600",
           },
           {
             label: "Pending",
-            value: 16,
-            change: "-2% from yesterday",
+            value: topStats.pending,
+            change: "",
             Icon: ClockIcon,
             color: "bg-rose-100 text-rose-600",
           },
@@ -187,7 +176,9 @@ export default function DailyParcelsPage() {
               <div>
                 <p className="text-sm font-medium text-slate-600">{label}</p>
                 <p className="text-2xl font-bold text-slate-900">{value}</p>
-                <p className="text-xs text-slate-500 mt-2">{change}</p>
+                {change ? (
+                  <p className="text-xs text-slate-500 mt-2">{change}</p>
+                ) : null}
               </div>
               <div
                 className={`h-10 w-10 rounded-xl flex items-center justify-center ${color}`}
@@ -335,6 +326,12 @@ export default function DailyParcelsPage() {
               ))}
             </tbody>
           </table>
+          {!loading && rows.length === 0 && (
+            <div className="p-6 text-sm text-slate-500">No parcels found.</div>
+          )}
+          {loading && (
+            <div className="p-6 text-sm text-slate-500">Loading…</div>
+          )}
         </div>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">

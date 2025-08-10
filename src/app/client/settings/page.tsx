@@ -1,18 +1,71 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { UserIcon } from "@/components/icons";
 
 export default function ClientSettingsPage() {
-  const [firstName, setFirstName] = useState("Admin");
-  const [lastName, setLastName] = useState("User");
-  const [email, setEmail] = useState("admin@shipz.com");
-  const [phone, setPhone] = useState("+1 (555) 123-4567");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!mounted) return;
+        const u = d.user || {};
+        setFirstName(u.firstName || "");
+        setLastName(u.lastName || "");
+        setEmail(u.email || "");
+        setPhone(u.phone || "");
+        setAvatarUrl(u.avatarUrl);
+      })
+      .catch(() => {})
+      .finally(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function handleSaveProfile() {
+    setSaving(true);
+    try {
+      await fetch("/api/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, phone, avatarUrl }),
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUploadAvatar(file: File) {
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/me/avatar", { method: "POST", body: form });
+      if (res.ok) {
+        const d = await res.json();
+        setAvatarUrl(d.avatarUrl);
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -27,12 +80,19 @@ export default function ClientSettingsPage() {
       <Card>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full overflow-hidden">
-              <img
-                src="https://i.pravatar.cc/100?img=12"
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
+            <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-200 grid place-items-center">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-slate-500 text-xs">
+                  <UserIcon size={24} />
+                </span>
+              )}
             </div>
             <div>
               <div className="font-semibold">Profile</div>
@@ -41,7 +101,25 @@ export default function ClientSettingsPage() {
               </div>
             </div>
           </div>
-          <Button className="md:w-auto">Change Photo</Button>
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUploadAvatar(f);
+              }}
+            />
+            <Button
+              className="md:w-auto"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Change Photo"}
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -65,6 +143,7 @@ export default function ClientSettingsPage() {
           <div className="md:col-span-2">
             <div className="text-[12px] text-slate-500 mb-1">Email Address</div>
             <Input
+              disabled={true}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +155,9 @@ export default function ClientSettingsPage() {
           </div>
         </div>
         <div className="mt-4 flex justify-end">
-          <Button>Save Changes</Button>
+          <Button onClick={handleSaveProfile} disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </Card>
 

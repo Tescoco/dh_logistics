@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   DashboardIcon,
   PackageIcon,
@@ -28,6 +28,26 @@ const items: NavItem[] = [
 
 export default function ClientSidebar() {
   const pathname = usePathname();
+  const [me, setMe] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    avatarUrl?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!mounted) return;
+        setMe(d.user ?? null);
+      })
+      .catch(() => setMe(null));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-slate-200/60 px-6 py-6 hidden md:flex flex-col">
@@ -64,12 +84,24 @@ export default function ClientSidebar() {
       </nav>
       <div className="mt-auto">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-          <div className="h-10 w-10 rounded-full bg-slate-200 grid place-items-center">
-            <UserIcon size={20} className="text-slate-600" />
-          </div>
+          {me?.avatarUrl ? (
+            <img
+              src={me.avatarUrl}
+              alt="Avatar"
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-slate-200 grid place-items-center">
+              <UserIcon size={20} className="text-slate-600" />
+            </div>
+          )}
           <div>
-            <div className="text-sm font-semibold text-slate-900">John Doe</div>
-            <div className="text-xs text-slate-500">john.doe@example.com</div>
+            <div className="text-sm font-semibold text-slate-900">
+              {me?.firstName || me?.lastName
+                ? `${me?.firstName ?? ""} ${me?.lastName ?? ""}`.trim()
+                : "—"}
+            </div>
+            <div className="text-xs text-slate-500">{me?.email ?? "—"}</div>
           </div>
         </div>
       </div>

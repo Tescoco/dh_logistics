@@ -29,12 +29,7 @@ export default function ClientDashboard() {
     inTransit: 0,
     returned: 0,
   });
-  const [changes, setChanges] = useState({
-    totalPct: 0,
-    deliveredPct: 0,
-    inTransitPct: 0,
-    returnedPct: 0,
-  });
+  // per-user changes available from API but not displayed; using admin-based changes below
   const [adminChanges, setAdminChanges] = useState({
     totalPct: 0,
     deliveredPct: 0,
@@ -71,12 +66,6 @@ export default function ClientDashboard() {
           delivered: d.delivered ?? 0,
           inTransit: d.inTransit ?? 0,
           returned: d.returned ?? 0,
-        });
-        setChanges({
-          totalPct: d.changes?.totalPct ?? 0,
-          deliveredPct: d.changes?.deliveredPct ?? 0,
-          inTransitPct: d.changes?.inTransitPct ?? 0,
-          returnedPct: d.changes?.returnedPct ?? 0,
         });
         setAdminChanges({
           totalPct: d.adminChanges?.totalPct ?? 0,

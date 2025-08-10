@@ -11,6 +11,7 @@ export interface UserDocument {
   role: UserRole;
   isActive: boolean;
   passwordHash: string;
+  avatarUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ const userSchema = new Schema<UserDocument>(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true, index: true },
     phone: { type: String },
+    avatarUrl: { type: String },
     role: {
       type: String,
       enum: ["admin", "driver", "manager", "customer"],

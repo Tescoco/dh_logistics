@@ -34,54 +34,24 @@ type DeliveryApiLite = {
   createdAt?: string | Date;
 };
 
-const INITIAL_ROWS: DeliveryRow[] = [
-  {
-    trackingId: "SH2025 001",
-    customerName: "John Smith",
-    customerEmail: "john@example.com",
-    status: "Delivered",
-    origin: "New York, NY",
-    destination: "Boston, MA",
-    date: "2025-01-15",
-    avatarHue: 210,
-  },
-  {
-    trackingId: "SH2025 002",
-    customerName: "Sarah Johnson",
-    customerEmail: "sarah@example.com",
-    status: "In Transit",
-    origin: "Chicago, IL",
-    destination: "Detroit, MI",
-    date: "2025-01-16",
-    avatarHue: 260,
-  },
-  {
-    trackingId: "SH2025 003",
-    customerName: "Mike Wilson",
-    customerEmail: "mike@example.com",
-    status: "Pending",
-    origin: "Los Angeles, CA",
-    destination: "San Francisco, CA",
-    date: "2025-01-17",
-    avatarHue: 30,
-  },
-];
-
 export default function TrackDeliveriesPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [date, setDate] = useState<string>("");
-  const [rows, setRows] = useState<DeliveryRow[]>(INITIAL_ROWS);
+  const [rows, setRows] = useState<DeliveryRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // Pull from deliveries API for real data when available
-    fetch("/api/deliveries")
+    setLoading(true);
+    const url = new URL("/api/deliveries", window.location.origin);
+    if (statusFilter) url.searchParams.set("status", statusFilter);
+    fetch(url.toString())
       .then((r) => r.json())
       .then((d) => {
         const serverRows: DeliveryRow[] = (
           (d.deliveries || []) as DeliveryApiLite[]
         )
-          .slice(0, 20)
+          .slice(0, 100)
           .map((it: DeliveryApiLite, i: number) => ({
             trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
             customerName: it.customerName || "—",
@@ -105,10 +75,11 @@ export default function TrackDeliveriesPage() {
               .slice(0, 10),
             avatarHue: (i * 47) % 360,
           }));
-        if (serverRows.length) setRows(serverRows);
+        setRows(serverRows);
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [statusFilter]);
 
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -282,6 +253,14 @@ export default function TrackDeliveriesPage() {
               ))}
             </tbody>
           </table>
+          {!loading && rows.length === 0 && (
+            <div className="p-6 text-sm text-slate-500">
+              No deliveries found.
+            </div>
+          )}
+          {loading && (
+            <div className="p-6 text-sm text-slate-500">Loading…</div>
+          )}
         </div>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">

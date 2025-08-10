@@ -2,7 +2,7 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
-import { GoogleIcon } from "./social";
+import { GoogleIcon, AppleIcon, MicrosoftIcon } from "@/components/icons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -60,6 +60,7 @@ export default function AdminLoginPage() {
               </label>
               <Input
                 type="email"
+                disabled={true}
                 placeholder="admin@shipz.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -100,12 +101,10 @@ export default function AdminLoginPage() {
               <GoogleIcon />
             </button>
             <button className="h-10 rounded-md border border-slate-200 bg-white">
-              {/* Placeholder for Microsoft */}
-              <span className="text-sm">MS</span>
+              <MicrosoftIcon />
             </button>
             <button className="h-10 rounded-md border border-slate-200 bg-white">
-              {/* Placeholder for Apple */}
-              <span className="text-sm"></span>
+              <AppleIcon />
             </button>
           </div>
           <div className="mt-6 rounded-md bg-slate-50 p-3 text-[13px] text-slate-600">
