@@ -12,6 +12,7 @@ export default function Card({
   padded = true,
   className = "",
   children,
+  style = {},
   ...props
 }: CardProps) {
   return (
@@ -20,6 +21,7 @@ export default function Card({
         "rounded-xl border border-slate-200 bg-white shadow-xs",
         className,
       ].join(" ")}
+      style={style}
       {...props}
     >
       {header ? (

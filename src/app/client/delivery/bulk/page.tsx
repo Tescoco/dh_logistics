@@ -12,10 +12,21 @@ import {
   CalendarIcon,
   XIcon,
 } from "@/components/icons";
-
+import { useRouter } from "next/navigation";
 export default function BulkDeliveriesUploadPage() {
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  type PreviewRow = {
+    index: number;
+    raw: string;
+    valid: boolean;
+    reason?: string;
+    values: string[];
+  };
+  const [rows, setRows] = useState<PreviewRow[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
+  const [parseError, setParseError] = useState<string | null>(null);
   const [validAddress, setValidAddress] = useState(true);
   const [checkDuplicate, setCheckDuplicate] = useState(true);
   const [skipInvalid, setSkipInvalid] = useState(false);
@@ -28,11 +39,138 @@ export default function BulkDeliveriesUploadPage() {
   const [mode, setMode] = useState("Process Immediately");
   const [uploading, setUploading] = useState(false);
 
-  const canStart = useMemo(() => !!file, [file]);
+  const canStart = useMemo(
+    () => !!file && rows.some((r) => r.valid),
+    [file, rows]
+  );
+
+  async function handleFileChange(f: File | null) {
+    setFile(f);
+    setRows([]);
+    setParseError(null);
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      if (lines.length === 0) {
+        setParseError("CSV is empty");
+        return;
+      }
+      let startIdx = 0;
+      const headerLower = lines[0].toLowerCase();
+      let headerUsed = false;
+
+      // Check if first line looks like headers (contains common delivery fields)
+      const commonFields = [
+        "reference",
+        "customer",
+        "phone",
+        "address",
+        "package",
+        "description",
+      ];
+      const hasCommonFields = commonFields.some((field) =>
+        headerLower.includes(field)
+      );
+
+      if (hasCommonFields) {
+        startIdx = 1;
+        headerUsed = true;
+      } else {
+        // If first line doesn't look like headers, check if it has data-like content
+        const firstLineParts = lines[0].split(",").map((p) => p.trim());
+        if (
+          firstLineParts.length > 3 &&
+          firstLineParts.every((part) => part.length > 0)
+        ) {
+          // Assume first line is data, create generic headers
+          startIdx = 0;
+          headerUsed = false;
+        } else {
+          // Assume first line is headers
+          startIdx = 1;
+          headerUsed = true;
+        }
+      }
+      if (headerUsed) {
+        const headerParts = lines[0].split(",").map((p) => p.trim());
+        setColumns(headerParts);
+      } else {
+        const sampleParts = lines[startIdx].split(",").map((p) => p.trim());
+        setColumns(sampleParts.map((_, i) => `col${i + 1}`));
+      }
+      const parsed: PreviewRow[] = [];
+      for (let i = startIdx; i < lines.length; i++) {
+        const raw = lines[i];
+        const parts = raw.split(",").map((p) => p.trim());
+
+        // Basic validation for delivery data
+        let valid = true;
+        let reason = "";
+
+        if (parts.length < 3) {
+          valid = false;
+          reason =
+            "Minimum 3 columns required (reference, customer name, phone)";
+        } else {
+          // Check for required fields (assuming first few columns are reference, customer, phone)
+          const reference = parts[0] ?? "";
+          const customerName = parts[1] ?? "";
+          const customerPhone = parts[2] ?? "";
+
+          const missingFields = [];
+          if (!reference.trim()) missingFields.push("reference");
+          if (!customerName.trim()) missingFields.push("customer name");
+          if (!customerPhone.trim()) missingFields.push("customer phone");
+
+          if (missingFields.length > 0) {
+            valid = false;
+            reason = `Missing required fields: ${missingFields.join(", ")}`;
+          }
+
+          // Basic phone validation
+          if (
+            customerPhone &&
+            !/^[+]?[0-9\s\-()]{7,15}$/.test(customerPhone.trim())
+          ) {
+            valid = false;
+            reason = reason
+              ? `${reason}; invalid phone format`
+              : "Invalid phone format";
+          }
+
+          //   if priority is not express or standard, set it to standard
+          if (priority !== "express" && priority !== "standard") {
+            parts[6] = "standard";
+          }
+        }
+
+        parsed.push({
+          valid,
+          index: i - startIdx + 1,
+          raw,
+          reason: valid ? undefined : reason,
+          values: parts,
+        });
+      }
+      if (parsed.length === 0) {
+        setParseError(
+          "No valid delivery data found. Expected columns: reference, customer name, phone, address, etc."
+        );
+        return;
+      }
+      setRows(parsed);
+    } catch (e) {
+      setParseError("Failed to read CSV file");
+    }
+  }
 
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,deliveryAddress,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes",
+      "reference,customerName,customerPhone,originAddress,deliveryAddress,packageType,description,priority,deliveryFee,codAmount,notes",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -55,12 +193,12 @@ export default function BulkDeliveriesUploadPage() {
         method: "POST",
         body: form,
       });
-      const d = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(d?.error ?? "Upload failed");
+        const error = await res.json();
+        alert(error.error);
         return;
       }
-      alert(`Processed ${d.processed}, Updated ${d.updated}`);
+      router.push("/client/track");
       setFile(null);
     } finally {
       setUploading(false);
@@ -128,7 +266,7 @@ export default function BulkDeliveriesUploadPage() {
               type="file"
               accept=".csv"
               hidden
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
             />
             <Button
               leftIcon={<UploadIcon size={16} />}
@@ -141,9 +279,80 @@ export default function BulkDeliveriesUploadPage() {
                 Selected: {file.name}
               </div>
             )}
+            {parseError && (
+              <div className="mt-2 text-sm text-rose-600">{parseError}</div>
+            )}
           </div>
         </div>
       </Card>
+
+      {rows.length > 0 && (
+        <Card
+          header={<div className="font-semibold ">Preview Data</div>}
+          padded={false}
+          className="overflow-hidden max-w-full"
+        >
+          <div className="px-6 py-3 text-[13px] text-slate-600">
+            Showing first {Math.min(rows.length, 20)} of {rows.length} row(s).
+            Valid: {rows.filter((r) => r.valid).length}, Invalid:{" "}
+            {rows.filter((r) => !r.valid).length}
+          </div>
+          <div className="overflow-x-auto w-full max-w-full min-w-0">
+            <table className="min-w-max table-auto">
+              <thead>
+                <tr className="text-left text-[13px] text-slate-500">
+                  <th className="px-4 py-3 font-medium whitespace-nowrap min-w-[80px]">
+                    Valid
+                  </th>
+                  {columns.map((col, idx) => (
+                    <th
+                      key={idx}
+                      className="px-4 py-3 font-medium whitespace-nowrap min-w-[120px]"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 20).map((r, idx) => (
+                  <tr key={idx} className="border-t border-slate-100">
+                    <td className="px-4 py-3">
+                      <div className="relative group">
+                        <span
+                          className={
+                            "inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium cursor-help whitespace-nowrap " +
+                            (r.valid
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                              : "bg-rose-50 text-rose-700 ring-1 ring-rose-200")
+                          }
+                        >
+                          {r.valid ? "Valid" : "Invalid"}
+                        </span>
+                        {!r.valid && r.reason && (
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 max-w-xs">
+                            {r.reason}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    {r.values.map((value, colIdx) => (
+                      <td
+                        key={colIdx}
+                        className="px-4 py-3 text-slate-800 whitespace-nowrap max-w-[200px] truncate"
+                        title={value}
+                      >
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {/* Validation Options */}
       <Card header={<div className="font-semibold">Validation Options</div>}>
@@ -249,9 +458,10 @@ export default function BulkDeliveriesUploadPage() {
           </div>
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <Button variant="secondary">Preview Data</Button>
+          <Button variant="secondary" disabled>
+            Preview Data
+          </Button>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="secondary">Save as Draft</Button>
             <Button
               variant="gradient"
               onClick={startUpload}
@@ -264,7 +474,7 @@ export default function BulkDeliveriesUploadPage() {
       </Card>
 
       {/* Recent Uploads */}
-      <Card header={<div className="font-semibold">Recent Uploads</div>}>
+      {/* <Card header={<div className="font-semibold">Recent Uploads</div>}>
         <div className="space-y-2 text-sm">
           {[1, 2, 3].map((i) => (
             <div
@@ -288,7 +498,7 @@ export default function BulkDeliveriesUploadPage() {
             </div>
           ))}
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 }

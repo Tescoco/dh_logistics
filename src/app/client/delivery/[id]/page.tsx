@@ -339,7 +339,7 @@ export default function EditDeliveryPage() {
                   }
                 >
                   <option value="prepaid">Prepaid</option>
-                  <option value="cod">COD</option>
+                  <option value="cod">Cash on Delivery</option>
                 </Select>
               </div>
             </div>

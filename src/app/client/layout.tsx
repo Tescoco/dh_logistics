@@ -11,7 +11,14 @@ export default function ClientLayout({
       <ClientHeader />
       <div className="flex">
         <ClientSidebar />
-        <main className="flex-1 md:ml-72 p-8">{children}</main>
+        <main
+          style={{
+            maxWidth: `calc(100vw - 280px)`,
+          }}
+          className="flex-1 md:ml-72 p-8  "
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

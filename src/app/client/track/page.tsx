@@ -23,7 +23,7 @@ type DeliveryRow = {
   deliveryId: string;
   trackingId: string;
   customerName: string;
-  customerEmail: string;
+  customerPhone: string;
   status: "Delivered" | "In Transit" | "Pending" | "Returned" | "Assigned";
   origin: string;
   destination: string;
@@ -35,6 +35,7 @@ type DeliveryApiLite = {
   _id?: string;
   reference?: string;
   customerName?: string;
+  customerPhone?: string;
   status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
   senderAddress?: string;
   deliveryAddress?: string;
@@ -77,9 +78,7 @@ export default function TrackDeliveriesPage() {
             deliveryId: String(it._id || ""),
             trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
             customerName: it.customerName || "—",
-            customerEmail: `${(it.customerName || "user")
-              .split(" ")[0]
-              .toLowerCase()}@example.com`,
+            customerPhone: it.customerPhone || "—",
             status:
               it.status === "delivered"
                 ? "Delivered"
@@ -124,7 +123,7 @@ export default function TrackDeliveriesPage() {
         ? [
             r.trackingId,
             r.customerName,
-            r.customerEmail,
+            r.customerPhone,
             r.origin,
             r.destination,
             r.status,
@@ -307,7 +306,7 @@ export default function TrackDeliveriesPage() {
         [
           r.trackingId,
           r.customerName,
-          r.customerEmail,
+          r.customerPhone,
           r.status,
           r.origin,
           r.destination,
@@ -454,7 +453,7 @@ export default function TrackDeliveriesPage() {
                           {r.customerName}
                         </div>
                         <div className="text-[12px] text-slate-500">
-                          {r.customerEmail}
+                          {r.customerPhone}
                         </div>
                       </div>
                     </div>
