@@ -36,13 +36,21 @@ type CODDelivery = {
   codAmount: number;
   deliveryFee: number;
   status: string;
-  assignedDriver: string;
   createdAt: string;
 };
 
 export default function CodReportPage() {
-  const [fromDate, setFromDate] = useState("2025-01-01");
-  const [toDate, setToDate] = useState("2025-01-31");
+  // 30 days range from now
+  const [fromDate, setFromDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() - 30))
+      .toISOString()
+      .split("T")[0]
+  );
+  const [toDate, setToDate] = useState(
+    new Date(new Date().setDate(new Date().getDate()))
+      .toISOString()
+      .split("T")[0]
+  );
   const [format, setFormat] = useState<ReportRow["format"]>("PDF");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState({
@@ -53,7 +61,9 @@ export default function CodReportPage() {
   });
   const [history, setHistory] = useState<ReportRow[]>([]);
   const [generating, setGenerating] = useState(false);
-
+  const [clickedFrom, setClickedFrom] = useState<"preview" | "generate">(
+    "generate"
+  );
   // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<CODDelivery[]>([]);
@@ -136,8 +146,23 @@ export default function CodReportPage() {
     const dates = rangeString.split(" - ");
     if (dates.length === 2) {
       try {
-        const from = new Date(dates[0]).toISOString().split("T")[0];
-        const to = new Date(dates[1]).toISOString().split("T")[0];
+        const fromDateObj = new Date(dates[0]);
+        const toDateObj = new Date(dates[1]);
+
+        // Format as YYYY-MM-DD without timezone conversion
+        const from =
+          fromDateObj.getFullYear() +
+          "-" +
+          String(fromDateObj.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(fromDateObj.getDate()).padStart(2, "0");
+        const to =
+          toDateObj.getFullYear() +
+          "-" +
+          String(toDateObj.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(toDateObj.getDate()).padStart(2, "0");
+
         return { from, to };
       } catch (error) {
         // Fallback to current dates if parsing fails
@@ -145,6 +170,20 @@ export default function CodReportPage() {
       }
     }
     return { from: fromDate, to: toDate };
+  }
+
+  async function downloadReport() {
+    const { from, to } = extractDatesFromRange(
+      `${new Date(fromDate).toLocaleDateString()} - ${new Date(
+        toDate
+      ).toLocaleDateString()}`
+    );
+    const link = document.createElement("a");
+    link.href = `/api/cod?from=${from}&to=${to}&format=${format}&download=true`;
+    link.download = `COD_Report_${from}_to_${to}.${format.toLowerCase()}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   return (
@@ -192,7 +231,10 @@ export default function CodReportPage() {
             <Button
               variant="secondary"
               loading={previewLoading}
-              onClick={handlePreview}
+              onClick={() => {
+                setClickedFrom("preview");
+                handlePreview();
+              }}
             >
               Preview
             </Button>
@@ -332,6 +374,7 @@ export default function CodReportPage() {
                         label="View"
                         onClick={async () => {
                           // Show the report data in preview modal using the report's actual date range
+                          setClickedFrom("generate");
                           setPreviewLoading(true);
                           try {
                             const { from, to } = extractDatesFromRange(r.range);
@@ -448,7 +491,6 @@ export default function CodReportPage() {
                   <th className="px-3 py-2 font-medium">COD Amount</th>
                   <th className="px-3 py-2 font-medium">Delivery Fee</th>
                   <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Driver</th>
                   <th className="px-3 py-2 font-medium">Date</th>
                 </tr>
               </thead>
@@ -490,7 +532,6 @@ export default function CodReportPage() {
                         {delivery.status.replace("_", " ").toUpperCase()}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2">{delivery.assignedDriver}</td>
                     <td className="px-3 py-2">
                       {new Date(delivery.createdAt).toLocaleDateString()}
                     </td>
@@ -509,14 +550,25 @@ export default function CodReportPage() {
             <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
               Close
             </Button>
-            <Button
-              onClick={() => {
-                setPreviewOpen(false);
-                handleGenerate();
-              }}
-            >
-              Generate Report
-            </Button>
+            {clickedFrom === "preview" ? (
+              <Button
+                onClick={() => {
+                  setPreviewOpen(false);
+                  handleGenerate();
+                }}
+              >
+                Generate Report
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setPreviewOpen(false);
+                  downloadReport();
+                }}
+              >
+                Download Report
+              </Button>
+            )}
           </div>
         </div>
       </Modal>

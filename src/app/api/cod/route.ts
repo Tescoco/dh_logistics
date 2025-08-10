@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { getAuthUser } from "@/lib/session";
@@ -25,13 +27,49 @@ export async function GET(req: NextRequest) {
   const format = url.searchParams.get("format");
   const download = url.searchParams.get("download") === "true";
   const start = from ? new Date(from) : new Date(0);
-  const end = to ? new Date(to) : new Date();
+  const end = to
+    ? new Date(new Date(to).setHours(23, 59, 59, 999))
+    : new Date();
 
   type MatchFilter = {
     paymentMethod: "cod";
     createdAt: { $gte: Date; $lte: Date };
     createdById?: string;
   };
+  // Cache for arabic font bytes across requests
+  let cachedArabicFontBytes: Uint8Array | null = null;
+
+  async function loadArabicFontBytes(): Promise<Uint8Array> {
+    if (cachedArabicFontBytes) return cachedArabicFontBytes;
+    // Try local font first: public/fonts/NotoNaskhArabic-Regular.ttf
+    const localFontPath = path.join(
+      process.cwd(),
+      "public",
+      "fonts",
+      "NotoNaskhArabic-Regular.ttf"
+    );
+    try {
+      const bytes = await fs.readFile(localFontPath);
+      cachedArabicFontBytes = new Uint8Array(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength
+      );
+      return cachedArabicFontBytes;
+    } catch {
+      // Fallback to remote URL if local font is not present
+    }
+    const fontUrl =
+      process.env.ARABIC_FONT_URL ||
+      "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf";
+    const res = await fetch(fontUrl);
+    if (!res.ok) {
+      throw new Error(`Failed to download Arabic font from ${fontUrl}`);
+    }
+    const arrayBuf = await res.arrayBuffer();
+    cachedArabicFontBytes = new Uint8Array(arrayBuf);
+    return cachedArabicFontBytes;
+  }
   const match: MatchFilter = {
     paymentMethod: "cod",
     createdAt: { $gte: start, $lte: end },
@@ -52,6 +90,20 @@ export async function GET(req: NextRequest) {
     return undefined;
   }
 
+  type Delivery = {
+    _id: string;
+    reference: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    codAmount: number;
+    deliveryFee: number;
+    status: string;
+    assignedDriverId: string;
+    createdAt: Date;
+    assignedDriver?: string;
+  };
+
   const processedDeliveries = deliveriesData.map((d) => ({
     _id: d._id,
     reference: d.reference,
@@ -61,10 +113,19 @@ export async function GET(req: NextRequest) {
     codAmount: d.codAmount,
     deliveryFee: d.deliveryFee,
     status: d.status,
-    assignedDriver:
-      extractAssignedDriverName(d.assignedDriverId) ?? "Unassigned",
+    assignedDriver: "",
+    assignedDriverId: d.assignedDriverId,
     createdAt: d.createdAt,
   }));
+
+  // if the role is admin add assigned driver name to the processed deliveries
+  if (auth.role === "admin") {
+    processedDeliveries.forEach((d) => {
+      d.assignedDriver =
+        extractAssignedDriverName(d.assignedDriverId) ?? "Unassigned";
+      delete d.assignedDriverId;
+    });
+  }
 
   // Handle download requests
   if (download && format) {
@@ -81,7 +142,7 @@ export async function GET(req: NextRequest) {
         "COD Amount",
         "Delivery Fee",
         "Status",
-        "Assigned Driver",
+        auth.role === "admin" ? "Assigned Driver" : "",
         "Created Date",
       ];
 
@@ -93,7 +154,7 @@ export async function GET(req: NextRequest) {
         d.codAmount || 0,
         d.deliveryFee || 0,
         d.status,
-        d.assignedDriver,
+        auth.role === "admin" ? d.assignedDriver : "",
         new Date(d.createdAt).toLocaleDateString(),
       ]);
 
@@ -126,7 +187,9 @@ export async function GET(req: NextRequest) {
         { header: "COD Amount", key: "codAmount", width: 14 },
         { header: "Delivery Fee", key: "deliveryFee", width: 14 },
         { header: "Status", key: "status", width: 14 },
-        { header: "Assigned Driver", key: "assignedDriver", width: 20 },
+        auth.role === "admin"
+          ? { header: "Assigned Driver", key: "assignedDriver", width: 20 }
+          : {},
         { header: "Created Date", key: "createdAt", width: 16 },
       ];
 
@@ -139,7 +202,7 @@ export async function GET(req: NextRequest) {
           codAmount: d.codAmount || 0,
           deliveryFee: d.deliveryFee || 0,
           status: d.status,
-          assignedDriver: d.assignedDriver,
+          assignedDriver: auth.role === "admin" ? d.assignedDriver : "",
           createdAt: new Date(d.createdAt).toLocaleDateString(),
         });
       });
@@ -165,11 +228,19 @@ export async function GET(req: NextRequest) {
     // PDF (using pdf-lib to avoid filesystem font lookups)
     if (format.toLowerCase() === "pdf") {
       const pdfDoc = await PDFLibDocument.create();
+      // Register fontkit to support custom TTF fonts
+      const fontkit = (await import("@pdf-lib/fontkit")).default;
+      pdfDoc.registerFontkit(fontkit);
       const pageSize = { width: 595.28, height: 841.89 }; // A4 in points
       let page = pdfDoc.addPage([pageSize.width, pageSize.height]);
 
       const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      // Arabic-capable font for Arabic text
+      const arabicFontBytes = await loadArabicFontBytes();
+      const arabicFont = await pdfDoc.embedFont(arabicFontBytes, {
+        subset: true,
+      });
 
       const margin = 40;
       const lineHeight = 16;
@@ -185,11 +256,18 @@ export async function GET(req: NextRequest) {
         y: number,
         options?: { size?: number; font?: PDFFont; color?: RGB }
       ) => {
+        const useFont = options?.font
+          ? options.font
+          : /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(
+              text
+            )
+          ? arabicFont
+          : helvetica;
         page.drawText(text, {
           x,
           y,
           size: options?.size ?? textFontSize,
-          font: options?.font ?? helvetica,
+          font: useFont,
           color: options?.color ?? rgb(0, 0, 0),
         });
       };
@@ -222,7 +300,7 @@ export async function GET(req: NextRequest) {
         "COD",
         "Fee",
         "Status",
-        "Driver",
+        auth.role === "admin" ? "Driver" : "",
         "Date",
       ];
       const columnWidths = [90, 120, 80, 60, 60, 70, 90, 70];
@@ -263,7 +341,8 @@ export async function GET(req: NextRequest) {
         align: "left" | "right" = "left"
       ) => {
         const cellWidth = columnWidths[idx] ?? 80;
-        const font = helvetica;
+        const hasArabic = /[\u0600-\u06FF]/.test(text);
+        const font = hasArabic ? arabicFont : helvetica;
         const size = textFontSize;
         let x = columnX[idx];
         if (align === "right") {
@@ -295,7 +374,11 @@ export async function GET(req: NextRequest) {
         drawCell(String((d.codAmount || 0).toLocaleString()), 3, y, "right");
         drawCell(String((d.deliveryFee || 0).toLocaleString()), 4, y, "right");
         drawCell(String(d.status ?? "").toUpperCase(), 5, y);
-        drawCell(String(d.assignedDriver ?? ""), 6, y);
+        drawCell(
+          auth.role === "admin" ? String(d.assignedDriver ?? "") : "",
+          6,
+          y
+        );
         drawCell(new Date(d.createdAt).toLocaleDateString(), 7, y);
         cursorY -= lineHeight;
       }
@@ -313,7 +396,7 @@ export async function GET(req: NextRequest) {
       ensureSpace(lineHeight * 2);
       // Place totals at left margin
       drawText(
-        `Total COD: ₹${totalCOD.toLocaleString()}`,
+        `Total COD: INR ${totalCOD.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {
@@ -322,7 +405,7 @@ export async function GET(req: NextRequest) {
       );
       cursorY -= lineHeight;
       drawText(
-        `Total Delivery Fees: ₹${totalFee.toLocaleString()}`,
+        `Total Delivery Fees: INR ${totalFee.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {

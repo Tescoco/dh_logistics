@@ -17,83 +17,123 @@ export async function GET() {
   const previousWindowStart = new Date(
     now.getTime() - 60 * 24 * 60 * 60 * 1000
   );
+  // Inclusive window ends (subtract 1ms from boundary so we can use $lte)
+  const currentWindowEndInclusive = new Date(now.getTime());
+  const previousWindowEndInclusive = new Date(currentWindowStart.getTime() - 1);
 
-  const [activeDeliveries, delivered, returned, users, inTransit, deliveredPrev30, deliveredLast30, returnedPrev30, returnedLast30, inTransitPrevWindow, inTransitLastWindow, deliveredPrev30Global, deliveredLast30Global, returnedPrev30Global, returnedLast30Global, inTransitPrevWindowGlobal, inTransitLastWindowGlobal] =
-    await Promise.all([
-      // current snapshots
-      Delivery.countDocuments({
-        ...scope,
-        status: { $in: ["assigned", "in_transit"] },
-      }),
-      Delivery.countDocuments({ ...scope, status: "delivered" }),
-      Delivery.countDocuments({ ...scope, status: "returned" }),
-      User.countDocuments({}),
-      Delivery.countDocuments({ ...scope, status: "in_transit" }),
-      // windowed counts for % change calculations
-      Delivery.countDocuments({
-        ...scope,
-        status: "delivered",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        ...scope,
-        status: "delivered",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-      Delivery.countDocuments({
-        ...scope,
-        status: "returned",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        ...scope,
-        status: "returned",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-      Delivery.countDocuments({
-        ...scope,
-        status: "in_transit",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        ...scope,
-        status: "in_transit",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-      // global windowed counts for admin-wide changes (unscoped)
-      Delivery.countDocuments({
-        status: "delivered",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        status: "delivered",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-      Delivery.countDocuments({
-        status: "returned",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        status: "returned",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-      Delivery.countDocuments({
-        status: "in_transit",
-        updatedAt: { $gte: previousWindowStart, $lt: currentWindowStart },
-      }),
-      Delivery.countDocuments({
-        status: "in_transit",
-        updatedAt: { $gte: currentWindowStart, $lt: now },
-      }),
-    ]);
+  const [
+    activeDeliveries,
+    delivered,
+    returned,
+    users,
+    inTransit,
+    deliveredPrev30,
+    deliveredLast30,
+    returnedPrev30,
+    returnedLast30,
+    inTransitPrevWindow,
+    inTransitLastWindow,
+    deliveredPrev30Global,
+    deliveredLast30Global,
+    returnedPrev30Global,
+    returnedLast30Global,
+    inTransitPrevWindowGlobal,
+    inTransitLastWindowGlobal,
+  ] = await Promise.all([
+    // current snapshots
+    Delivery.countDocuments({
+      ...scope,
+      status: { $in: ["assigned", "in_transit"] },
+    }),
+    Delivery.countDocuments({ ...scope, status: "delivered" }),
+    Delivery.countDocuments({ ...scope, status: "returned" }),
+    User.countDocuments({}),
+    Delivery.countDocuments({ ...scope, status: "in_transit" }),
+    // windowed counts for % change calculations
+    Delivery.countDocuments({
+      ...scope,
+      status: "delivered",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      ...scope,
+      status: "delivered",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+    Delivery.countDocuments({
+      ...scope,
+      status: "returned",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      ...scope,
+      status: "returned",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+    Delivery.countDocuments({
+      ...scope,
+      status: "in_transit",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      ...scope,
+      status: "in_transit",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+    // global windowed counts for admin-wide changes (unscoped)
+    Delivery.countDocuments({
+      status: "delivered",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      status: "delivered",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+    Delivery.countDocuments({
+      status: "returned",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      status: "returned",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+    Delivery.countDocuments({
+      status: "in_transit",
+      updatedAt: {
+        $gte: previousWindowStart,
+        $lte: previousWindowEndInclusive,
+      },
+    }),
+    Delivery.countDocuments({
+      status: "in_transit",
+      updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
+    }),
+  ]);
 
   function percentChange(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0;
     return Math.round(((current - previous) / previous) * 100);
   }
 
-  const totalLastWindow = deliveredLast30 + returnedLast30 + inTransitLastWindow;
-  const totalPrevWindow = deliveredPrev30 + returnedPrev30 + inTransitPrevWindow;
+  const totalLastWindow =
+    deliveredLast30 + returnedLast30 + inTransitLastWindow;
+  const totalPrevWindow =
+    deliveredPrev30 + returnedPrev30 + inTransitPrevWindow;
   const totalLastWindowGlobal =
     deliveredLast30Global + returnedLast30Global + inTransitLastWindowGlobal;
   const totalPrevWindowGlobal =

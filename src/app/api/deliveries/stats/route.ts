@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
     now.getMonth(),
     now.getDate() + 1
   );
+  // Make the end bound inclusive by moving back 1 ms
+  const endOfTodayInclusive = new Date(endOfToday.getTime() - 1);
 
   const [total, pendingAssignment, inTransit, assigned, deliveredToday] =
     await Promise.all([
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
         ...paymentFilter,
         ...ownerFilter,
         status: "delivered",
-        updatedAt: { $gte: startOfToday, $lt: endOfToday },
+        updatedAt: { $gte: startOfToday, $lte: endOfTodayInclusive },
       }),
     ]);
 

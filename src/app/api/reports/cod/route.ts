@@ -19,9 +19,12 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+  // add random 4 alphanumeric characters to the name
   const name = `COD_Report_${new Date(from).toLocaleString("en-US", {
     month: "short",
-  })}_${new Date(from).getFullYear()}`.replace(/\s+/g, "_");
+  })}_${new Date(from).getFullYear()}_${Math.random()
+    .toString(36)
+    .substring(2, 6)}`.replace(/\s+/g, "_");
   const report = await CodReport.create({
     name,
     from: new Date(from),
@@ -60,4 +63,18 @@ export async function GET(req: NextRequest) {
       url: r.url,
     })),
   });
+}
+
+export async function DELETE(req: NextRequest) {
+  await connectToDatabase();
+  const auth = await getAuthUser(req);
+  if (!auth)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const url = new URL(req.url);
+  const name = url.searchParams.get("name");
+  if (!name) {
+    return NextResponse.json({ error: "Missing name" }, { status: 400 });
+  }
+  await CodReport.findOneAndDelete({ name });
+  return NextResponse.json({ message: "Report deleted" });
 }

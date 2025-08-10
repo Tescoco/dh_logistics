@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
       packageType: string;
       description: string;
       priority: string;
+      paymentMethod: string;
       deliveryFee: number;
       codAmount: number;
       notes: string;
@@ -111,9 +112,10 @@ export async function POST(req: NextRequest) {
       const packageType = parts[5] ?? "Package";
       const description = parts[6] ?? "";
       const priority = parts[7] ?? "standard";
-      const deliveryFee = parseFloat(parts[8]) || 0;
-      const codAmount = parseFloat(parts[9]) || 0;
-      const notes = parts[10] ?? "";
+      const paymentMethod = parts[8] ?? "prepaid";
+      const deliveryFee = parseFloat(parts[9]) || 0;
+      const codAmount = parseFloat(parts[10]) || 0;
+      const notes = parts[12] ?? "";
 
       // Validate required fields
       if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
         packageType: packageType.trim(),
         description: description.trim(),
         priority: priority.trim(),
+        paymentMethod: paymentMethod.trim(),
         deliveryFee,
         codAmount,
         notes: notes.trim(),
