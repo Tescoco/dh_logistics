@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { UserIcon, EyeIcon } from "@/components/icons";
+import Image from "next/image";
 
 export default function ClientLoginPage() {
   const [email, setEmail] = useState("");
@@ -52,8 +53,15 @@ export default function ClientLoginPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo and Header */}
         <div className="flex justify-center items-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">S</span>
+          <div className="h-10 w-10 flex items-center justify-center">
+            {/* <span className="text-white font-bold text-lg">S</span> */}
+            <Image
+              src="/favicon.ico"
+              alt="Shipz Logo"
+              width={32}
+              height={32}
+              className="text-white font-bold text-lg"
+            />
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Shipz Portal</h1>

@@ -10,7 +10,7 @@ import {
   SettingsIcon,
   UserIcon,
 } from "@/components/icons";
-
+import Image from "next/image";
 type NavItem = {
   href: string;
   label: string;
@@ -76,8 +76,15 @@ export default function ClientSidebar({
         aria-hidden={!mobileOpen}
       >
         <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg grid place-items-center">
-            <span className="text-white font-bold text-lg">S</span>
+          <div className="h-10 w-10 flex items-center justify-center">
+            {/* <span className="text-white font-bold text-lg">S</span> */}
+            <Image
+              src="/favicon.ico"
+              alt="Shipz Logo"
+              width={32}
+              height={32}
+              className="text-white font-bold text-lg"
+            />
           </div>
           <div>
             <div className="font-semibold text-lg text-slate-900">Shipz</div>

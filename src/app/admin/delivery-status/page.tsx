@@ -11,10 +11,11 @@ import { useRouter } from "next/navigation";
 export default function DeliveryStatusPage() {
   const router = useRouter();
   // Independent filters for bulk update vs list view
-  const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("");
+  const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
   const [id, setId] = useState<string>("");
   const [listStatusFilter, setListStatusFilter] = useState<string>("");
   const [query, setQuery] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const [rows, setRows] = useState<
     {
       _id: string;
@@ -60,7 +61,7 @@ export default function DeliveryStatusPage() {
     return () => {
       mounted = false;
     };
-  }, [listStatusFilter]);
+  }, [listStatusFilter, refreshKey]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -87,7 +88,7 @@ export default function DeliveryStatusPage() {
     });
     if (res.ok) {
       // refresh list
-      setListStatusFilter((s: string) => s);
+      setRefreshKey((k) => k + 1);
     } else {
       const data = await res.json().catch(() => ({}));
       alert(data?.error ?? "Failed to update");
@@ -102,7 +103,7 @@ export default function DeliveryStatusPage() {
       body: form,
     });
     if (res.ok) {
-      setListStatusFilter((s: string) => s);
+      setRefreshKey((k) => k + 1);
     } else {
       const data = await res.json().catch(() => ({}));
       alert(data?.error ?? "Upload failed");
@@ -263,7 +264,7 @@ export default function DeliveryStatusPage() {
         return;
       }
       // Refresh the page data
-      setListStatusFilter((s: string) => s);
+      setRefreshKey((k) => k + 1);
       setCsvFile(null);
       setPreviewRows([]);
       setParseError(null);
@@ -452,7 +453,6 @@ export default function DeliveryStatusPage() {
               setBulkStatusFilter((e.target as HTMLSelectElement).value)
             }
           >
-            <option value="">All</option>
             <option value="pending">Pending</option>
             <option value="in_transit">In Transit</option>
             <option value="delivered">Delivered</option>
