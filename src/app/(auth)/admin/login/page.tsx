@@ -60,7 +60,6 @@ export default function AdminLoginPage() {
               </label>
               <Input
                 type="email"
-                disabled={true}
                 placeholder="admin@shipz.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

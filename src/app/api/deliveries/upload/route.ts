@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       customerPhone: string;
       senderName: string;
       senderPhone: string;
-      originAddress: string;
+      senderAddress: string;
       deliveryAddress: string;
       packageType: string;
       description: string;
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       const paymentMethod = parts[8] ?? "prepaid";
       const deliveryFee = parseFloat(parts[9]) || 0;
       const codAmount = parseFloat(parts[10]) || 0;
-      const notes = parts[12] ?? "";
+      const notes = parts[11] ?? "";
 
       // Validate required fields
       if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
         customerPhone: customerPhone.trim(),
         senderName: senderName,
         senderPhone: senderPhone,
-        originAddress: originAddress.trim(),
+        senderAddress: originAddress.trim(),
         deliveryAddress: deliveryAddress.trim(),
         packageType: packageType.trim(),
         description: description.trim(),

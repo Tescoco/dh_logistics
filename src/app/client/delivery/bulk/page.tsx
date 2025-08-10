@@ -144,17 +144,17 @@ export default function BulkDeliveriesUploadPage() {
 
           //   if priority is not express or standard, set it to standard
           if (
-            parts[6] &&
-            parts[6].toLowerCase() !== "express" &&
-            parts[6].toLowerCase() !== "standard"
+            parts[7] &&
+            parts[7].trim().toLowerCase() !== "express" &&
+            parts[7].trim().toLowerCase() !== "standard"
           ) {
-            parts[6] = "standard";
+            parts[7] = "standard";
           }
 
           if (
-            parts[7] &&
-            parts[7].toLowerCase() !== "cod" &&
-            parts[7].toLowerCase() !== "prepaid"
+            parts[8] &&
+            parts[8].trim().toLowerCase() !== "cod" &&
+            parts[8].trim().toLowerCase() !== "prepaid"
           ) {
             valid = false;
             reason = reason
@@ -410,7 +410,7 @@ export default function BulkDeliveriesUploadPage() {
       {/* Processing Options */}
       <Card header={<div className="font-semibold">Processing Options</div>}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
+          {/* <div>
             <div className="text-[12px] text-slate-500 mb-1">
               Default Service Type
             </div>
@@ -427,7 +427,7 @@ export default function BulkDeliveriesUploadPage() {
                 ▾
               </span>
             </div>
-          </div>
+          </div> */}
           <div>
             <div className="text-[12px] text-slate-500 mb-1">
               Default Priority
@@ -453,7 +453,7 @@ export default function BulkDeliveriesUploadPage() {
               onChange={(e) => setBatchName(e.target.value)}
             />
           </div>
-          <div>
+          {/* <div>
             <div className="text-[12px] text-slate-500 mb-1">
               Processing Mode
             </div>
@@ -470,12 +470,12 @@ export default function BulkDeliveriesUploadPage() {
                 ▾
               </span>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <Button variant="secondary" disabled>
+          {/* <Button variant="secondary" disabled>
             Preview Data
-          </Button>
+          </Button> */}
           <div className="ml-auto flex items-center gap-2">
             <Button
               variant="gradient"
