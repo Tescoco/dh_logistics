@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { getAuthUser } from "@/lib/session";
+import {
+  PDFDocument as PDFLibDocument,
+  StandardFonts,
+  rgb,
+  type PDFFont,
+  type RGB,
+} from "pdf-lib";
 
 export const runtime = "nodejs";
 
@@ -155,112 +162,178 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // PDF
+    // PDF (using pdf-lib to avoid filesystem font lookups)
     if (format.toLowerCase() === "pdf") {
-      const { default: PDFDocument } = await import("pdfkit");
-      const pdfBuffer: Buffer = await new Promise((resolve, reject) => {
-        try {
-          const doc = new PDFDocument({ size: "A4", margin: 40 });
-          const buffers: Buffer[] = [];
-          doc.on("data", (chunk: unknown) => buffers.push(chunk as Buffer));
-          doc.on("end", () => resolve(Buffer.concat(buffers)));
+      const pdfDoc = await PDFLibDocument.create();
+      const pageSize = { width: 595.28, height: 841.89 }; // A4 in points
+      let page = pdfDoc.addPage([pageSize.width, pageSize.height]);
 
-          // Title
-          doc
-            .fontSize(18)
-            .text("Cash on Delivery (COD) Report", { align: "center" });
-          doc.moveDown(0.5);
-          doc
-            .fontSize(11)
-            .text(
-              `Date Range: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
-              { align: "center" }
-            );
-          doc.moveDown(1);
+      const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-          // Table Header
-          const header = [
-            "Reference",
-            "Customer",
-            "Phone",
-            "COD",
-            "Fee",
-            "Status",
-            "Driver",
-            "Date",
-          ];
+      const margin = 40;
+      const lineHeight = 16;
+      const headerLineHeight = 18;
+      const titleFontSize = 18;
+      const textFontSize = 11;
 
-          const columnWidths = [90, 120, 80, 60, 60, 70, 90, 70];
+      let cursorY = page.getHeight() - margin;
 
-          function drawRow(values: (string | number)[], isHeader = false) {
-            const startX = doc.x;
-            const startY = doc.y;
-            values.forEach((val, idx) => {
-              const width = columnWidths[idx] ?? 80;
-              const cellText = String(val ?? "");
-              const options = {
-                width,
-                continued: idx < values.length - 1,
-                align: idx === 3 || idx === 4 ? "right" : "left",
-              } as const;
-              if (isHeader) doc.font("Helvetica-Bold");
-              doc.text(cellText, options);
-              if (isHeader) doc.font("Helvetica");
-            });
-            doc.moveDown(0.4);
-            // draw a subtle line under header
-            if (isHeader) {
-              doc
-                .moveTo(startX, startY + 14)
-                .lineTo(
-                  startX + columnWidths.reduce((a, b) => a + b, 0),
-                  startY + 14
-                )
-                .strokeColor("#e5e7eb")
-                .stroke();
-              doc.moveDown(0.2);
-            }
-          }
+      const drawText = (
+        text: string,
+        x: number,
+        y: number,
+        options?: { size?: number; font?: PDFFont; color?: RGB }
+      ) => {
+        page.drawText(text, {
+          x,
+          y,
+          size: options?.size ?? textFontSize,
+          font: options?.font ?? helvetica,
+          color: options?.color ?? rgb(0, 0, 0),
+        });
+      };
 
-          drawRow(header, true);
+      // Title
+      const title = "Cash on Delivery (COD) Report";
+      const titleWidth = helvetica.widthOfTextAtSize(title, titleFontSize);
+      drawText(
+        title,
+        (page.getWidth() - titleWidth) / 2,
+        cursorY - titleFontSize,
+        { size: titleFontSize, font: helveticaBold }
+      );
+      cursorY -= titleFontSize + 6;
 
-          processedDeliveries.forEach((d) => {
-            drawRow([
-              d.reference,
-              d.customerName,
-              d.customerPhone,
-              (d.codAmount || 0).toLocaleString(),
-              (d.deliveryFee || 0).toLocaleString(),
-              String(d.status).toUpperCase(),
-              d.assignedDriver,
-              new Date(d.createdAt).toLocaleDateString(),
-            ]);
+      const subTitle = `Date Range: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+      const subTitleWidth = helvetica.widthOfTextAtSize(subTitle, textFontSize);
+      drawText(
+        subTitle,
+        (page.getWidth() - subTitleWidth) / 2,
+        cursorY - textFontSize
+      );
+      cursorY -= textFontSize + 14;
+
+      // Table
+      const header = [
+        "Reference",
+        "Customer",
+        "Phone",
+        "COD",
+        "Fee",
+        "Status",
+        "Driver",
+        "Date",
+      ];
+      const columnWidths = [90, 120, 80, 60, 60, 70, 90, 70];
+      const startX = margin;
+
+      const columnX: number[] = [];
+      let accX = startX;
+      for (let i = 0; i < columnWidths.length; i += 1) {
+        columnX.push(accX);
+        accX += columnWidths[i];
+      }
+
+      const drawHeader = () => {
+        const y = cursorY;
+        header.forEach((text, idx) => {
+          drawText(text, columnX[idx], y - headerLineHeight, {
+            font: helveticaBold,
+            size: 12,
           });
+        });
+        // header underline
+        page.drawLine({
+          start: { x: startX, y: y - headerLineHeight - 2 },
+          end: {
+            x: startX + columnWidths.reduce((a, b) => a + b, 0),
+            y: y - headerLineHeight - 2,
+          },
+          thickness: 0.5,
+          color: rgb(0.9, 0.91, 0.92),
+        });
+        cursorY = y - headerLineHeight - 10;
+      };
 
-          // Totals
-          const totalCOD = processedDeliveries.reduce(
-            (sum, d) => sum + (Number(d.codAmount) || 0),
-            0
-          );
-          const totalFee = processedDeliveries.reduce(
-            (sum, d) => sum + (Number(d.deliveryFee) || 0),
-            0
-          );
-          doc.moveDown(1);
-          doc
-            .font("Helvetica-Bold")
-            .text(`Total COD: ₹${totalCOD.toLocaleString()}`)
-            .text(`Total Delivery Fees: ₹${totalFee.toLocaleString()}`)
-            .font("Helvetica");
-
-          doc.end();
-        } catch (err) {
-          reject(err);
+      const drawCell = (
+        text: string,
+        idx: number,
+        y: number,
+        align: "left" | "right" = "left"
+      ) => {
+        const cellWidth = columnWidths[idx] ?? 80;
+        const font = helvetica;
+        const size = textFontSize;
+        let x = columnX[idx];
+        if (align === "right") {
+          const textWidth = font.widthOfTextAtSize(text, size);
+          x = x + cellWidth - textWidth - 2;
         }
-      });
+        drawText(text, x, y - size, { font, size });
+      };
 
-      const pdfUint8 = new Uint8Array(pdfBuffer);
-      return new NextResponse(pdfUint8, {
+      const ensureSpace = (need: number) => {
+        if (cursorY - need < margin) {
+          page = pdfDoc.addPage([pageSize.width, pageSize.height]);
+          cursorY = page.getHeight() - margin;
+          // redraw header on new page
+          drawHeader();
+        }
+      };
+
+      // Header
+      drawHeader();
+
+      // Rows
+      for (const d of processedDeliveries) {
+        ensureSpace(lineHeight);
+        const y = cursorY;
+        drawCell(String(d.reference ?? ""), 0, y);
+        drawCell(String(d.customerName ?? ""), 1, y);
+        drawCell(String(d.customerPhone ?? ""), 2, y);
+        drawCell(String((d.codAmount || 0).toLocaleString()), 3, y, "right");
+        drawCell(String((d.deliveryFee || 0).toLocaleString()), 4, y, "right");
+        drawCell(String(d.status ?? "").toUpperCase(), 5, y);
+        drawCell(String(d.assignedDriver ?? ""), 6, y);
+        drawCell(new Date(d.createdAt).toLocaleDateString(), 7, y);
+        cursorY -= lineHeight;
+      }
+
+      // Totals
+      const totalCOD = processedDeliveries.reduce(
+        (sum, d) => sum + (Number(d.codAmount) || 0),
+        0
+      );
+      const totalFee = processedDeliveries.reduce(
+        (sum, d) => sum + (Number(d.deliveryFee) || 0),
+        0
+      );
+
+      ensureSpace(lineHeight * 2);
+      // Place totals at left margin
+      drawText(
+        `Total COD: ₹${totalCOD.toLocaleString()}`,
+        startX,
+        cursorY - textFontSize,
+        {
+          font: helveticaBold,
+        }
+      );
+      cursorY -= lineHeight;
+      drawText(
+        `Total Delivery Fees: ₹${totalFee.toLocaleString()}`,
+        startX,
+        cursorY - textFontSize,
+        {
+          font: helveticaBold,
+        }
+      );
+
+      const bytes = await pdfDoc.save();
+      const arrayBuffer = new ArrayBuffer(bytes.length);
+      new Uint8Array(arrayBuffer).set(bytes);
+      return new NextResponse(arrayBuffer, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",

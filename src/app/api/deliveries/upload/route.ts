@@ -71,10 +71,31 @@ export async function POST(req: NextRequest) {
     if (!sender) {
       return NextResponse.json({ error: "Sender not found" }, { status: 400 });
     }
-    const senderName = sender.firstName + " " + sender.lastName;
-    const senderPhone = sender.phone;
+    const senderName = `${sender.firstName ?? ""} ${
+      sender.lastName ?? ""
+    }`.trim();
+    const senderPhone: string = sender.phone ?? "";
 
-    const deliveries: any[] = [];
+    type NewDelivery = {
+      reference: string;
+      customerName: string;
+      customerPhone: string;
+      senderName: string;
+      senderPhone: string;
+      originAddress: string;
+      deliveryAddress: string;
+      packageType: string;
+      description: string;
+      priority: string;
+      deliveryFee: number;
+      codAmount: number;
+      notes: string;
+      status: string;
+      createdById: string | ObjectId;
+      createdAt: Date;
+    };
+
+    const deliveries: NewDelivery[] = [];
     for (let i = startIdx; i < lines.length; i++) {
       const raw = lines[i];
       const parts = raw.split(",").map((p) => p.trim());
@@ -155,29 +176,47 @@ export async function POST(req: NextRequest) {
         created: result.length,
         message: `Successfully created ${result.length} deliveries`,
       });
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       console.error("Database insertion error:", dbError);
 
       let specificError = "Failed to create deliveries.";
 
-      if (dbError.code === 11000) {
+      // Narrow error type when possible
+      const err = dbError as
+        | (Error & {
+            code?: number;
+            keyPattern?: Record<string, unknown>;
+            keyValue?: Record<string, unknown>;
+            errors?: Record<string, { message: string }>;
+            name?: string;
+            writeErrors?: Array<{
+              code?: number;
+              index: number;
+              keyPattern?: Record<string, unknown>;
+              keyValue?: Record<string, unknown>;
+              errmsg?: string;
+            }>;
+          })
+        | undefined;
+
+      if (err?.code === 11000) {
         // Duplicate key error
-        const duplicateField = dbError.keyPattern
-          ? Object.keys(dbError.keyPattern)[0]
+        const duplicateField = err.keyPattern
+          ? Object.keys(err.keyPattern)[0]
           : "unknown field";
-        const duplicateValue = dbError.keyValue
-          ? dbError.keyValue[duplicateField]
+        const duplicateValue = err.keyValue
+          ? err.keyValue[duplicateField]
           : "unknown value";
         specificError = `Duplicate ${duplicateField}: "${duplicateValue}" already exists. Please use unique values.`;
-      } else if (dbError.name === "ValidationError") {
+      } else if (err?.name === "ValidationError") {
         // Mongoose validation error
-        const validationErrors = Object.values(dbError.errors).map(
-          (err: any) => err.message
-        );
+        const validationErrors = err?.errors
+          ? Object.values(err.errors).map((e) => e.message)
+          : [];
         specificError = `Validation failed: ${validationErrors.join(", ")}`;
-      } else if (dbError.writeErrors && dbError.writeErrors.length > 0) {
+      } else if (err?.writeErrors && err.writeErrors.length > 0) {
         // Bulk write errors
-        const writeError = dbError.writeErrors[0];
+        const writeError = err.writeErrors[0];
         if (writeError.code === 11000) {
           const duplicateField = writeError.keyPattern
             ? Object.keys(writeError.keyPattern)[0]
@@ -193,9 +232,9 @@ export async function POST(req: NextRequest) {
             writeError.errmsg || "Invalid data format"
           }`;
         }
-      } else if (dbError.message) {
+      } else if (err?.message) {
         // Generic error with message
-        specificError = `Database error: ${dbError.message}`;
+        specificError = `Database error: ${err.message}`;
       }
 
       return NextResponse.json(
