@@ -31,7 +31,7 @@ export default function Card({
       {header ? (
         <div className="px-6 py-5 border-b border-slate-200/60 flex items-center justify-between">
           {header}
-          {twinContent}
+          {twin && twinContent}
         </div>
       ) : null}
       <div className={padded ? "p-6" : undefined}>{children}</div>
