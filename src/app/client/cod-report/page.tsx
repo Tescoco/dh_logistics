@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
+import Modal from "@/components/ui/Modal";
 import {
   SearchIcon,
   UploadIcon,
@@ -26,6 +27,19 @@ type ReportRow = {
   status: "Ready" | "Processing";
 };
 
+type CODDelivery = {
+  _id: string;
+  reference: string;
+  customerName: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  codAmount: number;
+  deliveryFee: number;
+  status: string;
+  assignedDriver: string;
+  createdAt: string;
+};
+
 export default function CodReportPage() {
   const [fromDate, setFromDate] = useState("2025-01-01");
   const [toDate, setToDate] = useState("2025-01-31");
@@ -39,6 +53,11 @@ export default function CodReportPage() {
   });
   const [history, setHistory] = useState<ReportRow[]>([]);
   const [generating, setGenerating] = useState(false);
+
+  // Preview modal state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<CODDelivery[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     const url = new URL("/api/cod", window.location.origin);
@@ -88,6 +107,30 @@ export default function CodReportPage() {
     }
   }
 
+  async function handlePreview() {
+    setPreviewLoading(true);
+    try {
+      const url = new URL("/api/cod", window.location.origin);
+      url.searchParams.set("from", fromDate);
+      url.searchParams.set("to", toDate);
+      url.searchParams.set("detailed", "true");
+
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        alert("Failed to load preview data");
+        return;
+      }
+
+      const data = await res.json();
+      setPreviewData(data.deliveries || []);
+      setPreviewOpen(true);
+    } catch (error) {
+      alert("Failed to load preview data");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Generate new report */}
@@ -132,12 +175,8 @@ export default function CodReportPage() {
             </Button>
             <Button
               variant="secondary"
-              onClick={() =>
-                window.open(
-                  `/api/reports/cod?from=${fromDate}&to=${toDate}`,
-                  "_blank"
-                )
-              }
+              loading={previewLoading}
+              onClick={handlePreview}
             >
               Preview
             </Button>
@@ -260,27 +299,50 @@ export default function CodReportPage() {
                     <div className="flex items-center gap-3">
                       <IconButton
                         label="Download"
-                        onClick={() =>
-                          window.open(
-                            `/api/reports/cod?name=${encodeURIComponent(
-                              r.name
-                            )}&format=${r.format}&type=download`,
-                            "_blank"
-                          )
-                        }
+                        onClick={() => {
+                          // Create a temporary download link
+                          const link = document.createElement("a");
+                          link.href = `/api/reports/cod?name=${encodeURIComponent(
+                            r.name
+                          )}&format=${r.format}&type=download`;
+                          link.download = `${r.name}.${r.format.toLowerCase()}`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
                       >
                         <DownloadIcon size={16} />
                       </IconButton>
                       <IconButton
-                        label="Open"
-                        onClick={() =>
-                          window.open(
-                            `/api/reports/cod?name=${encodeURIComponent(
-                              r.name
-                            )}&format=${r.format}&type=view`,
-                            "_blank"
-                          )
-                        }
+                        label="View"
+                        onClick={async () => {
+                          // Show the same report data in preview modal
+                          setPreviewLoading(true);
+                          try {
+                            // Extract date range from report name or use current dates
+                            const url = new URL(
+                              "/api/cod",
+                              window.location.origin
+                            );
+                            url.searchParams.set("from", fromDate);
+                            url.searchParams.set("to", toDate);
+                            url.searchParams.set("detailed", "true");
+
+                            const res = await fetch(url.toString());
+                            if (!res.ok) {
+                              alert("Failed to load report data");
+                              return;
+                            }
+
+                            const data = await res.json();
+                            setPreviewData(data.deliveries || []);
+                            setPreviewOpen(true);
+                          } catch (error) {
+                            alert("Failed to load report data");
+                          } finally {
+                            setPreviewLoading(false);
+                          }
+                        }}
                       >
                         <LinkIcon size={16} />
                       </IconButton>
@@ -320,6 +382,129 @@ export default function CodReportPage() {
           </button>
         </div>
       </Card>
+
+      {/* Preview Modal */}
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={`COD Report Preview - ${new Date(
+          fromDate
+        ).toLocaleDateString()} to ${new Date(toDate).toLocaleDateString()}`}
+        widthClassName="max-w-6xl"
+      >
+        <div className="space-y-4">
+          {/* Summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-900">
+                {previewData.length}
+              </div>
+              <div className="text-sm text-slate-500">Total Deliveries</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-emerald-600">
+                ₹
+                {previewData
+                  .reduce((sum, d) => sum + (d.codAmount || 0), 0)
+                  .toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Total COD Amount</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                ₹
+                {previewData
+                  .reduce((sum, d) => sum + (d.deliveryFee || 0), 0)
+                  .toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Total Delivery Fees</div>
+            </div>
+          </div>
+
+          {/* Deliveries Table */}
+          <div className="overflow-x-auto max-h-96">
+            <table className="min-w-full">
+              <thead className="sticky top-0 bg-white border-b border-slate-200">
+                <tr className="text-left text-xs text-slate-500">
+                  <th className="px-3 py-2 font-medium">Reference</th>
+                  <th className="px-3 py-2 font-medium">Customer</th>
+                  <th className="px-3 py-2 font-medium">Phone</th>
+                  <th className="px-3 py-2 font-medium">Address</th>
+                  <th className="px-3 py-2 font-medium">COD Amount</th>
+                  <th className="px-3 py-2 font-medium">Delivery Fee</th>
+                  <th className="px-3 py-2 font-medium">Status</th>
+                  <th className="px-3 py-2 font-medium">Driver</th>
+                  <th className="px-3 py-2 font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {previewData.map((delivery) => (
+                  <tr
+                    key={delivery._id}
+                    className="border-t border-slate-100 text-sm"
+                  >
+                    <td className="px-3 py-2 font-medium text-blue-600">
+                      {delivery.reference}
+                    </td>
+                    <td className="px-3 py-2">{delivery.customerName}</td>
+                    <td className="px-3 py-2">{delivery.customerPhone}</td>
+                    <td
+                      className="px-3 py-2 max-w-xs truncate"
+                      title={delivery.deliveryAddress}
+                    >
+                      {delivery.deliveryAddress}
+                    </td>
+                    <td className="px-3 py-2 font-medium">
+                      ₹{delivery.codAmount?.toLocaleString() || "0"}
+                    </td>
+                    <td className="px-3 py-2">
+                      ₹{delivery.deliveryFee?.toLocaleString() || "0"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <Badge
+                        variant={
+                          delivery.status === "delivered"
+                            ? "success"
+                            : delivery.status === "in_transit"
+                            ? "info"
+                            : delivery.status === "pending"
+                            ? "warning"
+                            : "default"
+                        }
+                      >
+                        {delivery.status.replace("_", " ").toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2">{delivery.assignedDriver}</td>
+                    <td className="px-3 py-2">
+                      {new Date(delivery.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {previewData.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                No COD deliveries found for the selected date range.
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
+            <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setPreviewOpen(false);
+                handleGenerate();
+              }}
+            >
+              Generate Report
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
