@@ -2,6 +2,7 @@
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Switch from "@/components/ui/Switch";
 import Badge from "@/components/ui/Badge";
 import {
   PlusIcon,
@@ -47,14 +48,19 @@ export default function UsersPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return users.filter((u) =>
-      !q
-        ? true
-        : [u.firstName, u.lastName, u.email, u.role].some((x) =>
-            (x || "").toLowerCase().includes(q)
-          )
-    );
-  }, [users, query]);
+    return users.filter((u) => {
+      const matchesTab =
+        tab === "all" ||
+        (tab === "admins" && u.role === "admin") ||
+        (tab === "customers" && u.role === "customer") ||
+        (tab === "drivers" && u.role === "driver");
+      if (!matchesTab) return false;
+      if (!q) return true;
+      return [u.firstName, u.lastName, u.email, u.role].some((x) =>
+        (x || "").toLowerCase().includes(q)
+      );
+    });
+  }, [users, query, tab]);
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this user?")) return;
@@ -63,17 +69,52 @@ export default function UsersPage() {
   }
 
   const [viewUser, setViewUser] = useState<ApiUser | null>(null);
+  const [editDriverUser, setEditDriverUser] = useState<ApiUser | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editActive, setEditActive] = useState(false);
+  const [savingDriver, setSavingDriver] = useState(false);
+
+  function openEditDriver(u: ApiUser) {
+    setEditDriverUser(u);
+    setEditFirstName(u.firstName || "");
+    setEditLastName(u.lastName || "");
+    setEditPhone((u as unknown as { phone?: string }).phone || "");
+    setEditActive(Boolean(u.isActive));
+  }
+
+  async function saveDriverEdits() {
+    if (!editDriverUser) return;
+    setSavingDriver(true);
+    try {
+      const res = await fetch(`/api/users/${editDriverUser._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: editFirstName || undefined,
+          lastName: editLastName || undefined,
+          phone: editPhone || undefined,
+          isActive: editActive,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d?.error ?? "Failed to update driver");
+        return;
+      }
+      const { user: updated } = await res.json();
+      setUsers((prev) =>
+        prev.map((u) => (u._id === updated._id ? { ...u, ...updated } : u))
+      );
+      setEditDriverUser(null);
+    } finally {
+      setSavingDriver(false);
+    }
+  }
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Users Management
-          </h1>
-          <p className="text-slate-600 text-base mt-1">
-            Manage user accounts, roles, and permissions across your platform
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button
           onClick={() => {
             router.push("/admin/users/new");
@@ -214,7 +255,16 @@ export default function UsersPage() {
                         <EyeIcon size={16} />
                         <span className="text-sm font-medium">View</span>
                       </button>
-                      <button className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100">
+                      <button
+                        onClick={() => {
+                          if (user.role === "driver") {
+                            openEditDriver(user);
+                          } else {
+                            router.push(`/admin/users/${user._id}`);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100"
+                      >
                         <EditIcon size={16} />
                         <span className="text-sm font-medium">Edit</span>
                       </button>
@@ -270,6 +320,62 @@ export default function UsersPage() {
               <span className="font-medium">
                 {new Date(viewUser.createdAt).toLocaleString()}
               </span>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Driver Modal */}
+      <Modal
+        open={!!editDriverUser}
+        onClose={() => setEditDriverUser(null)}
+        title="Edit Driver"
+      >
+        {editDriverUser && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-[13px] text-slate-600">First Name</label>
+                <Input
+                  placeholder="First name"
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">Last Name</label>
+                <Input
+                  placeholder="Last name"
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">Phone</label>
+              <Input
+                placeholder="Phone number"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+              <div className="text-sm font-medium text-slate-700">Active</div>
+              <Switch
+                checked={editActive}
+                onCheckedChange={(v) => setEditActive(v)}
+              />
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="secondary"
+                onClick={() => setEditDriverUser(null)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={saveDriverEdits} loading={savingDriver}>
+                Save Changes
+              </Button>
             </div>
           </div>
         )}

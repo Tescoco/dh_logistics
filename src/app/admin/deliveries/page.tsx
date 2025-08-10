@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { PlusIcon, UploadIcon, SearchIcon } from "@/components/icons";
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const tabs = [
@@ -57,6 +57,16 @@ function CODTab() {
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  type DriverLite = {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    isActive?: boolean;
+    role?: string;
+  };
+  const [drivers, setDrivers] = useState<DriverLite[]>([]);
+  const [driversLoading, setDriversLoading] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
   const [counts, setCounts] = useState({
     total: 0,
     pendingAssignment: 0,
@@ -83,6 +93,18 @@ function CODTab() {
             deliveredToday: d.deliveredToday ?? 0,
           })
       );
+    // load active drivers for dropdown
+    setDriversLoading(true);
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((d: { users?: DriverLite[] }) => {
+        if (!mounted) return;
+        const list: DriverLite[] = (d.users || []).filter(
+          (u) => u.role === "driver" && u.isActive
+        );
+        setDrivers(list);
+      })
+      .finally(() => mounted && setDriversLoading(false));
     return () => {
       mounted = false;
     };
@@ -109,9 +131,6 @@ function CODTab() {
         >
           Add New Delivery
         </Button>
-        <Button variant="secondary" leftIcon={<UploadIcon size={18} />}>
-          Bulk Upload CSV
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -137,18 +156,6 @@ function CODTab() {
         </Card>
       </div>
 
-      <Card header={<div className="font-semibold">Bulk Delivery Upload</div>}>
-        <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50 p-10 text-center">
-          Drop your delivery CSV file here or click to browse
-          <div className="mt-4">
-            <Button leftIcon={<UploadIcon size={18} />}>Choose File</Button>
-          </div>
-        </div>
-        <div className="mt-3 flex justify-end">
-          <Button>Upload & Process Deliveries</Button>
-        </div>
-      </Card>
-
       <Card header={<div className="font-semibold">Quick Add Delivery</div>}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           <Input placeholder="Customer Name" />
@@ -157,8 +164,21 @@ function CODTab() {
           <Input className="md:col-span-2" placeholder="Delivery Address" />
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-5">
-          <Select className="md:col-span-2">
-            <option>Select COD Driver</option>
+          <Select
+            className="md:col-span-2"
+            value={selectedDriverId}
+            onChange={(e) =>
+              setSelectedDriverId((e.target as HTMLSelectElement).value)
+            }
+          >
+            <option value="" disabled>
+              {driversLoading ? "Loading drivers…" : "Select COD Driver"}
+            </option>
+            {drivers.map((d: DriverLite) => (
+              <option key={d._id} value={d._id}>
+                {[d.firstName, d.lastName].filter(Boolean).join(" ") || d._id}
+              </option>
+            ))}
           </Select>
           <div className="md:col-span-3 flex justify-end">
             <Button>Add Delivery</Button>

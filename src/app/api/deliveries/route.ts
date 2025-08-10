@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
+import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
 
 const CreateDeliverySchema = z.object({
@@ -23,6 +24,10 @@ const CreateDeliverySchema = z.object({
   specialInstructions: z.array(z.string()).optional(),
   notes: z.string().optional(),
   isDraft: z.boolean().optional(),
+  assignedDriverId: z
+    .string()
+    .regex(/^[a-f0-9]{24}$/i, { message: "Invalid driver id format" })
+    .optional(),
 });
 
 export const runtime = "nodejs";
@@ -58,6 +63,28 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const input = CreateDeliverySchema.parse(body);
+    // If a driver is specified, ensure it exists and has role 'driver'
+    if (input.assignedDriverId) {
+      const driver = await User.findById(input.assignedDriverId)
+        .select("_id role isActive")
+        .lean();
+      if (!driver) {
+        return NextResponse.json(
+          { error: "Selected driver not found" },
+          { status: 400 }
+        );
+      }
+      if (driver.role !== "driver") {
+        return NextResponse.json(
+          { error: "Selected user is not a driver" },
+          { status: 400 }
+        );
+      }
+      // Optionally ensure active
+      // if (driver.isActive === false) {
+      //   return NextResponse.json({ error: "Selected driver is inactive" }, { status: 400 });
+      // }
+    }
     const doc = await Delivery.create({ ...input, createdById: auth.userId });
     return NextResponse.json({ id: doc._id.toString() }, { status: 201 });
   } catch (err) {

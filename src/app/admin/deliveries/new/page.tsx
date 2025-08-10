@@ -3,7 +3,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 // metadata is set at a parent server component level
@@ -37,7 +37,34 @@ export default function CreateDeliveryPage() {
     deliveryFee: "",
     codAmount: "",
     notes: "",
+    assignedDriverId: "",
   });
+
+  type Driver = {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    role: string;
+  };
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+
+  useEffect(() => {
+    let aborted = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/users", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const allUsers: Driver[] = data?.users ?? [];
+        const onlyDrivers = allUsers.filter((u) => u.role === "driver");
+        if (!aborted) setDrivers(onlyDrivers);
+      } catch {}
+    })();
+    return () => {
+      aborted = true;
+    };
+  }, []);
 
   function update<K extends keyof typeof form>(
     key: K,
@@ -67,6 +94,7 @@ export default function CreateDeliveryPage() {
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
         isDraft,
+        assignedDriverId: form.assignedDriverId || undefined,
       };
       const res = await fetch("/api/deliveries", {
         method: "POST",
@@ -119,12 +147,23 @@ export default function CreateDeliveryPage() {
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
-                  Delivery Service
+                  Assign Driver
                 </label>
-                <Select>
-                  <option>Select Service</option>
-                  <option>COD</option>
-                  <option>Jeddah Operations</option>
+                <Select
+                  value={form.assignedDriverId}
+                  onChange={(e) =>
+                    update(
+                      "assignedDriverId",
+                      (e.target as HTMLSelectElement).value
+                    )
+                  }
+                >
+                  <option value="">Select Driver</option>
+                  {drivers.map((d) => (
+                    <option key={d._id} value={d._id}>
+                      {d.firstName} {d.lastName}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>

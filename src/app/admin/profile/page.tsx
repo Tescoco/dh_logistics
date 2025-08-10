@@ -66,15 +66,6 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Profile Settings
-        </h1>
-        <p className="text-slate-500 text-sm">
-          Manage your account settings and preferences
-        </p>
-      </div>
-
       <Card padded={false}>
         <div className="p-5 border-b border-slate-200">
           <div className="flex items-center justify-between">

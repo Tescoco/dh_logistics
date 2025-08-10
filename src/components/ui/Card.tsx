@@ -4,6 +4,8 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   padded?: boolean;
+  twin?: boolean;
+  twinContent?: React.ReactNode;
 }
 
 export default function Card({
@@ -13,6 +15,8 @@ export default function Card({
   className = "",
   children,
   style = {},
+  twin = false,
+  twinContent,
   ...props
 }: CardProps) {
   return (
@@ -25,7 +29,10 @@ export default function Card({
       {...props}
     >
       {header ? (
-        <div className="px-6 py-5 border-b border-slate-200/60">{header}</div>
+        <div className="px-6 py-5 border-b border-slate-200/60 flex items-center justify-between">
+          {header}
+          {twinContent}
+        </div>
       ) : null}
       <div className={padded ? "p-6" : undefined}>{children}</div>
       {footer ? (

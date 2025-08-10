@@ -89,14 +89,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          Settings
-        </h1>
-        <p className="text-slate-600 text-base mt-1">
-          Configure system preferences, security settings, and application
-          behavior
-        </p>
+      <div className="flex items-center justify-end ">
         <div className="mt-4">
           <Button onClick={handleSave} loading={saving}>
             Save Changes
