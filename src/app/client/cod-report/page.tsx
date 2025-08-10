@@ -131,6 +131,22 @@ export default function CodReportPage() {
     }
   }
 
+  function extractDatesFromRange(rangeString: string) {
+    // Extract dates from format "MM/DD/YYYY - MM/DD/YYYY"
+    const dates = rangeString.split(" - ");
+    if (dates.length === 2) {
+      try {
+        const from = new Date(dates[0]).toISOString().split("T")[0];
+        const to = new Date(dates[1]).toISOString().split("T")[0];
+        return { from, to };
+      } catch (error) {
+        // Fallback to current dates if parsing fails
+        return { from: fromDate, to: toDate };
+      }
+    }
+    return { from: fromDate, to: toDate };
+  }
+
   return (
     <div className="space-y-6">
       {/* Generate new report */}
@@ -300,11 +316,10 @@ export default function CodReportPage() {
                       <IconButton
                         label="Download"
                         onClick={() => {
-                          // Create a temporary download link
+                          // Extract date range from the report and use COD API for download
+                          const { from, to } = extractDatesFromRange(r.range);
                           const link = document.createElement("a");
-                          link.href = `/api/reports/cod?name=${encodeURIComponent(
-                            r.name
-                          )}&format=${r.format}&type=download`;
+                          link.href = `/api/cod?from=${from}&to=${to}&format=${r.format}&download=true`;
                           link.download = `${r.name}.${r.format.toLowerCase()}`;
                           document.body.appendChild(link);
                           link.click();
@@ -316,16 +331,16 @@ export default function CodReportPage() {
                       <IconButton
                         label="View"
                         onClick={async () => {
-                          // Show the same report data in preview modal
+                          // Show the report data in preview modal using the report's actual date range
                           setPreviewLoading(true);
                           try {
-                            // Extract date range from report name or use current dates
+                            const { from, to } = extractDatesFromRange(r.range);
                             const url = new URL(
                               "/api/cod",
                               window.location.origin
                             );
-                            url.searchParams.set("from", fromDate);
-                            url.searchParams.set("to", toDate);
+                            url.searchParams.set("from", from);
+                            url.searchParams.set("to", to);
                             url.searchParams.set("detailed", "true");
 
                             const res = await fetch(url.toString());

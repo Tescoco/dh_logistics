@@ -50,7 +50,7 @@ export default function AdminSidebar() {
 function AdminSidebarInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab");
+  const tab = searchParams?.get("tab");
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 w-[280px] border-r border-slate-200/60 bg-white/80 backdrop-blur-xl px-6 py-6">

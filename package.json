@@ -11,9 +11,11 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
+    "exceljs": "^4.4.0",
     "jose": "^6.0.12",
     "mongoose": "^8.17.1",
     "next": "15.4.6",
+    "pdfkit": "^0.17.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "zod": "^4.0.17"
@@ -23,6 +25,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

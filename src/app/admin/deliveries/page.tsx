@@ -25,7 +25,7 @@ export default function DeliveriesPage() {
 function DeliveriesInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") || "cod";
+  const tab = searchParams?.get("tab") || "cod";
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

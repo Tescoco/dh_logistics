@@ -32,7 +32,7 @@ type DeliveryResponse = {
 export default function EditDeliveryPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const deliveryId = params.id;
+  const deliveryId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
