@@ -1,27 +1,43 @@
 "use client";
+
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-// metadata is set at a parent server component level
+type DeliveryResponse = {
+  delivery: {
+    _id: string;
+    reference: string;
+    senderName?: string;
+    senderPhone?: string;
+    senderAddress?: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    weightKg?: number;
+    dimensions?: string;
+    packageType?: string;
+    description?: string;
+    priority?: "standard" | "express";
+    paymentMethod?: "prepaid" | "cod";
+    deliveryFee?: number;
+    codAmount?: number;
+    notes?: string;
+  };
+};
 
-export default function CreateDeliveryPage() {
+export default function EditDeliveryPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const deliveryId = params.id;
+
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  function generateReference(): string {
-    const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    const letters = Array.from({ length: 3 })
-      .map(() =>
-        String.fromCharCode("A".charCodeAt(0) + Math.floor(Math.random() * 26))
-      )
-      .join("");
-    return `SHIPZ-${digits}-${letters}`;
-  }
   const [form, setForm] = useState({
-    reference: typeof window === "undefined" ? "" : generateReference(),
+    reference: "",
     senderName: "",
     senderPhone: "",
     senderAddress: "",
@@ -32,8 +48,8 @@ export default function CreateDeliveryPage() {
     dimensions: "",
     packageType: "",
     description: "",
-    priority: "standard",
-    paymentMethod: "prepaid",
+    priority: "standard" as "standard" | "express",
+    paymentMethod: "prepaid" as "prepaid" | "cod",
     deliveryFee: "",
     codAmount: "",
     notes: "",
@@ -46,11 +62,47 @@ export default function CreateDeliveryPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function submit(isDraft: boolean) {
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const res = await fetch(`/api/deliveries/${deliveryId}`);
+        if (!res.ok) throw new Error("Failed to load delivery");
+        const data: DeliveryResponse = await res.json();
+        if (!mounted) return;
+        const d = data.delivery;
+        setForm({
+          reference: d.reference,
+          senderName: d.senderName || "",
+          senderPhone: d.senderPhone || "",
+          senderAddress: d.senderAddress || "",
+          customerName: d.customerName || "",
+          customerPhone: d.customerPhone || "",
+          deliveryAddress: d.deliveryAddress || "",
+          weightKg: d.weightKg != null ? String(d.weightKg) : "",
+          dimensions: d.dimensions || "",
+          packageType: d.packageType || "",
+          description: d.description || "",
+          priority: d.priority || "standard",
+          paymentMethod: d.paymentMethod || "prepaid",
+          deliveryFee: d.deliveryFee != null ? String(d.deliveryFee) : "",
+          codAmount: d.codAmount != null ? String(d.codAmount) : "",
+          notes: d.notes || "",
+        });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [deliveryId]);
+
+  async function submit() {
     setSubmitting(true);
     try {
       const payload = {
-        reference: form.reference || generateReference(),
         senderName: form.senderName || undefined,
         senderPhone: form.senderPhone || undefined,
         senderAddress: form.senderAddress || undefined,
@@ -61,21 +113,20 @@ export default function CreateDeliveryPage() {
         dimensions: form.dimensions || undefined,
         packageType: form.packageType || undefined,
         description: form.description || undefined,
-        priority: form.priority as "standard" | "express",
-        paymentMethod: form.paymentMethod as "prepaid" | "cod",
+        priority: form.priority,
+        paymentMethod: form.paymentMethod,
         deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
-        isDraft,
       };
-      const res = await fetch("/api/deliveries", {
-        method: "POST",
+      const res = await fetch(`/api/deliveries/${deliveryId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to save delivery");
+        alert(data?.error ?? "Failed to update delivery");
         return;
       }
       router.push("/client/track");
@@ -84,11 +135,15 @@ export default function CreateDeliveryPage() {
     }
   }
 
+  if (loading) {
+    return <div className="p-6 text-slate-500">Loading delivery…</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <a
-          href="/admin/deliveries"
+          href="/client/track"
           className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
         >
           ← Back to Deliveries
@@ -107,12 +162,12 @@ export default function CreateDeliveryPage() {
                   Reference Number
                 </label>
                 <Input
-                  placeholder="SHIPZ-2025-001"
+                  placeholder="SHIPZ-0000-ABC"
                   value={form.reference}
-                  onChange={(e) => update("reference", e.target.value)}
+                  disabled
                 />
                 <div className="text-[11px] text-slate-500 mt-1">
-                  Format: SHIPZ-0000-ABC
+                  Reference cannot be changed
                 </div>
               </div>
             </div>
@@ -229,10 +284,10 @@ export default function CreateDeliveryPage() {
                     update("packageType", (e.target as HTMLSelectElement).value)
                   }
                 >
-                  <option>Select Type</option>
-                  <option>Document</option>
-                  <option>Parcel</option>
-                  <option>Other</option>
+                  <option value="">Select Type</option>
+                  <option value="Document">Document</option>
+                  <option value="Parcel">Parcel</option>
+                  <option value="Other">Other</option>
                 </Select>
               </div>
             </div>
@@ -258,7 +313,12 @@ export default function CreateDeliveryPage() {
                 <Select
                   value={form.priority}
                   onChange={(e) =>
-                    update("priority", (e.target as HTMLSelectElement).value)
+                    update(
+                      "priority",
+                      (e.target as HTMLSelectElement).value as
+                        | "standard"
+                        | "express"
+                    )
                   }
                 >
                   <option value="standard">Standard</option>
@@ -274,7 +334,7 @@ export default function CreateDeliveryPage() {
                   onChange={(e) =>
                     update(
                       "paymentMethod",
-                      (e.target as HTMLSelectElement).value
+                      (e.target as HTMLSelectElement).value as "prepaid" | "cod"
                     )
                   }
                 >
@@ -308,21 +368,7 @@ export default function CreateDeliveryPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-[15px] font-semibold text-slate-900">
-              Special Instructions
-            </h2>
-            <div className="grid gap-3">
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Fragile - Handle
-                with care
-              </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Signature required
-              </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Insurance required
-              </label>
-            </div>
+            <h2 className="text-[15px] font-semibold text-slate-900">Notes</h2>
             <div>
               <label className="text-[13px] text-slate-600">
                 Additional Notes
@@ -337,18 +383,17 @@ export default function CreateDeliveryPage() {
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
           <Button
-            disabled={submitting}
             variant="secondary"
-            onClick={() => submit(true)}
+            onClick={() => router.push("/client/track")}
           >
-            {submitting ? "Saving..." : "Save as Draft"}
+            Cancel
           </Button>
           <Button
             disabled={submitting}
             variant="gradient"
-            onClick={() => submit(false)}
+            onClick={() => submit()}
           >
-            {submitting ? "Submitting..." : "Create Delivery"}
+            {submitting ? "Saving..." : "Update Delivery"}
           </Button>
         </div>
       </Card>

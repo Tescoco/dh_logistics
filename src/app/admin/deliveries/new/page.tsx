@@ -11,8 +11,17 @@ import { useRouter } from "next/navigation";
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  function generateReference(): string {
+    const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    const letters = Array.from({ length: 3 })
+      .map(() =>
+        String.fromCharCode("A".charCodeAt(0) + Math.floor(Math.random() * 26))
+      )
+      .join("");
+    return `SHIPZ-${digits}-${letters}`;
+  }
   const [form, setForm] = useState({
-    reference: "",
+    reference: typeof window === "undefined" ? "" : generateReference(),
     senderName: "",
     senderPhone: "",
     senderAddress: "",
@@ -41,7 +50,7 @@ export default function CreateDeliveryPage() {
     setSubmitting(true);
     try {
       const payload = {
-        reference: form.reference || `REF-${Date.now()}`,
+        reference: form.reference || generateReference(),
         senderName: form.senderName || undefined,
         senderPhone: form.senderPhone || undefined,
         senderAddress: form.senderAddress || undefined,
@@ -289,7 +298,7 @@ export default function CreateDeliveryPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
-                  Delivery Fee ($)
+                  Delivery Fee (₹)
                 </label>
                 <Input
                   placeholder="25.00"
@@ -299,7 +308,7 @@ export default function CreateDeliveryPage() {
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
-                  COD Amount ($)
+                  COD Amount (₹)
                 </label>
                 <Input
                   placeholder="0.00"

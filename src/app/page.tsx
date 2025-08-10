@@ -9,9 +9,6 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="flex justify-center items-center gap-3 mb-6">
-            <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284c7] shadow-lg flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">S</span>
-            </div>
             <div>
               <h1 className="text-4xl font-bold text-slate-900">Shipz</h1>
               <p className="text-lg text-slate-600">
@@ -26,7 +23,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-4xl mx-auto">
           {/* Client Portal */}
           <Card className="p-8 text-center hover:shadow-hover transition-shadow">
             <div className="h-16 w-16 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-6">
@@ -55,40 +52,6 @@ export default function Home() {
                 <li>• Real-time package tracking</li>
                 <li>• Shipping history & reports</li>
                 <li>• 24/7 customer support</li>
-              </ul>
-            </div>
-          </Card>
-
-          {/* Admin Portal */}
-          <Card className="p-8 text-center hover:shadow-hover transition-shadow">
-            <div className="h-16 w-16 rounded-xl bg-orange-100 flex items-center justify-center mx-auto mb-6">
-              <TruckIcon size={32} className="text-orange-600" />
-            </div>
-            <h2 className="text-2xl font-semibold text-slate-900 mb-4">
-              Admin Portal
-            </h2>
-            <p className="text-slate-600 mb-6">
-              Comprehensive administration dashboard for managing deliveries,
-              users, and system operations.
-            </p>
-            <div className="space-y-3">
-              <Link href="/admin">
-                <Button variant="secondary" fullWidth>
-                  Access Admin Portal
-                </Button>
-              </Link>
-              <Link href="/admin/login">
-                <Button variant="ghost" fullWidth>
-                  Admin Login
-                </Button>
-              </Link>
-            </div>
-            <div className="mt-6 text-sm text-slate-500">
-              <p>Features:</p>
-              <ul className="mt-2 space-y-1">
-                <li>• Delivery management</li>
-                <li>• User administration</li>
-                <li>• Analytics & reporting</li>
               </ul>
             </div>
           </Card>

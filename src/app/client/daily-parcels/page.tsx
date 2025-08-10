@@ -7,6 +7,8 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
+import Modal from "@/components/ui/Modal";
+import { useRouter } from "next/navigation";
 import {
   PackageIcon,
   CheckIcon,
@@ -19,6 +21,7 @@ import {
 } from "@/components/icons";
 
 type ParcelRow = {
+  deliveryId: string; // DB _id
   id: string; // REF code
   title: string;
   receiverName: string;
@@ -30,6 +33,7 @@ type ParcelRow = {
 };
 
 type DeliveryApiLite = {
+  _id?: string;
   reference?: string;
   packageType?: string;
   description?: string;
@@ -45,12 +49,14 @@ type DeliveryApiLite = {
 // All rows are fetched from the database via /api/deliveries
 
 export default function DailyParcelsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [amountBand, setAmountBand] = useState("");
   const [pageSize, setPageSize] = useState("10");
+  const [currentPage, setCurrentPage] = useState(1);
   const [rows, setRows] = useState<ParcelRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [topStats, setTopStats] = useState({
@@ -59,6 +65,26 @@ export default function DailyParcelsPage() {
     inTransit: 0,
     pending: 0,
   });
+  const [viewOpen, setViewOpen] = useState(false);
+  type ViewData = {
+    reference?: string;
+    customerName?: string;
+    customerPhone?: string;
+    deliveryAddress?: string;
+    status?: string;
+    codAmount?: number;
+    deliveryFee?: number;
+    createdAt?: string | Date;
+  } | null;
+  const [viewData, setViewData] = useState<ViewData>(null);
+
+  useEffect(() => {
+    // reflect local search back to URL
+    const url = new URL(window.location.href);
+    if (search) url.searchParams.set("q", search);
+    else url.searchParams.delete("q");
+    window.history.replaceState(null, "", url.pathname + url.search);
+  }, [search]);
 
   useEffect(() => {
     setLoading(true);
@@ -72,6 +98,7 @@ export default function DailyParcelsPage() {
         )
           .slice(0, 100)
           .map((it: DeliveryApiLite, i: number) => ({
+            deliveryId: String(it._id || ""),
             id: it.reference || `PKG-${i}`,
             title: it.packageType || it.description || "Parcel",
             receiverName: it.customerName || "—",
@@ -136,6 +163,49 @@ export default function DailyParcelsPage() {
       );
     });
   }, [rows, search, status, dateFrom, dateTo, amountBand]);
+
+  // Reset to first page when filters or page size change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status, dateFrom, dateTo, amountBand, pageSize]);
+
+  const pageSizeNum = Number(pageSize);
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSizeNum));
+  const clampedPage = Math.min(currentPage, totalPages);
+  const pageStart = (clampedPage - 1) * pageSizeNum;
+  const pageEnd = pageStart + pageSizeNum;
+  const paginatedRows = filteredRows.slice(pageStart, pageEnd);
+
+  function goToPage(p: number) {
+    setCurrentPage(Math.max(1, Math.min(totalPages, p)));
+  }
+
+  function renderPageButtons() {
+    const buttons: number[] = [];
+    const maxButtons = 5;
+    let start = Math.max(1, clampedPage - Math.floor(maxButtons / 2));
+    let end = start + maxButtons - 1;
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - maxButtons + 1);
+    }
+    for (let i = start; i <= end; i += 1) buttons.push(i);
+    return buttons;
+  }
+
+  async function handleView(deliveryId: string) {
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}`);
+      if (!res.ok) return;
+      const d = await res.json();
+      setViewData(d.delivery);
+      setViewOpen(true);
+    } catch {}
+  }
+
+  function handleEdit(deliveryId: string) {
+    router.push(`/client/delivery/${deliveryId}`);
+  }
 
   return (
     <div className="space-y-6">
@@ -221,9 +291,9 @@ export default function DailyParcelsPage() {
             onChange={(e) => setAmountBand(e.currentTarget.value)}
           >
             <option value="">All Amounts</option>
-            <option value="lt50">Below $50</option>
-            <option value="50to100">$50 - $100</option>
-            <option value="gt100">Above $100</option>
+            <option value="lt50">Below ₹50</option>
+            <option value="50to100">₹50 - ₹100</option>
+            <option value="gt100">Above ₹100</option>
           </Select>
           <div className="flex items-center justify-end gap-4">
             <button
@@ -287,7 +357,7 @@ export default function DailyParcelsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.slice(0, Number(pageSize)).map((r) => (
+              {paginatedRows.map((r) => (
                 <tr key={r.id} className="border-t border-slate-100">
                   <td className="px-6 py-4 align-top">
                     <div className="font-semibold text-slate-800">
@@ -307,7 +377,7 @@ export default function DailyParcelsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 align-top font-semibold text-slate-800">
-                    ${r.amount.toFixed(2)}
+                    ₹{r.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 align-top">
                     <StatusBadge status={r.status} />
@@ -315,10 +385,14 @@ export default function DailyParcelsPage() {
                   <td className="px-6 py-4 align-top">
                     <div className="flex items-center gap-3 text-[#0EA5E9]">
                       <IconButton label="View">
-                        <EyeIcon size={16} />
+                        <button onClick={() => handleView(r.deliveryId)}>
+                          <EyeIcon size={16} />
+                        </button>
                       </IconButton>
                       <IconButton label="Edit">
-                        <EditIcon size={16} />
+                        <button onClick={() => handleEdit(r.deliveryId)}>
+                          <EditIcon size={16} />
+                        </button>
                       </IconButton>
                     </div>
                   </td>
@@ -336,28 +410,95 @@ export default function DailyParcelsPage() {
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
           <div className="text-[12px] text-slate-500">
-            Showing 1 to {Math.min(filteredRows.length, Number(pageSize))} of{" "}
-            {filteredRows.length} results
+            Showing {filteredRows.length === 0 ? 0 : pageStart + 1} to{" "}
+            {Math.min(pageEnd, filteredRows.length)} of {filteredRows.length}{" "}
+            results
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => goToPage(clampedPage - 1)}
+              disabled={clampedPage === 1}
+            >
               Previous
             </Button>
-            <button className="h-9 w-9 rounded-md bg-[#0EA5E9] text-white text-sm font-medium">
-              1
-            </button>
-            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
-              2
-            </button>
-            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
-              3
-            </button>
-            <Button variant="secondary" size="sm">
+            {renderPageButtons().map((p) => (
+              <button
+                key={p}
+                className={
+                  "h-9 w-9 rounded-md text-sm font-medium " +
+                  (p === clampedPage
+                    ? "bg-[#0EA5E9] text-white"
+                    : "border border-slate-200")
+                }
+                onClick={() => goToPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => goToPage(clampedPage + 1)}
+              disabled={clampedPage === totalPages}
+            >
               Next
             </Button>
           </div>
         </div>
       </Card>
+
+      <Modal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Parcel Details"
+      >
+        {viewData ? (
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-slate-500">Reference:</span>{" "}
+              <span className="font-medium">{viewData.reference}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Customer:</span>{" "}
+              <span className="font-medium">{viewData.customerName}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Phone:</span>{" "}
+              <span className="font-medium">{viewData.customerPhone}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Address:</span>{" "}
+              <span className="font-medium">{viewData.deliveryAddress}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Status:</span>{" "}
+              <span className="font-medium">{viewData.status}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">COD Amount:</span>{" "}
+              <span className="font-medium">
+                ₹{Number(viewData.codAmount || 0).toFixed(2)}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Delivery Fee:</span>{" "}
+              <span className="font-medium">
+                ₹{Number(viewData.deliveryFee || 0).toFixed(2)}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Created:</span>{" "}
+              <span className="font-medium">
+                {new Date(viewData.createdAt ?? Date.now()).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-slate-500">Loading…</div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -385,12 +526,12 @@ function IconButton({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <div
       aria-label={label}
       title={label}
       className="h-8 w-8 inline-grid place-items-center rounded-md text-[#0EA5E9] hover:bg-sky-50"
     >
       {children}
-    </button>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
+import Modal from "@/components/ui/Modal";
 import {
   SearchIcon,
   UploadIcon,
@@ -15,6 +16,7 @@ import {
 } from "@/components/icons";
 
 type DeliveryRow = {
+  deliveryId: string;
   trackingId: string;
   customerName: string;
   customerEmail: string;
@@ -26,6 +28,7 @@ type DeliveryRow = {
 };
 
 type DeliveryApiLite = {
+  _id?: string;
   reference?: string;
   customerName?: string;
   status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
@@ -40,6 +43,8 @@ export default function TrackDeliveriesPage() {
   const [date, setDate] = useState<string>("");
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setLoading(true);
@@ -53,6 +58,7 @@ export default function TrackDeliveriesPage() {
         )
           .slice(0, 100)
           .map((it: DeliveryApiLite, i: number) => ({
+            deliveryId: String(it._id || ""),
             trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
             customerName: it.customerName || "—",
             customerEmail: `${(it.customerName || "user")
@@ -105,7 +111,56 @@ export default function TrackDeliveriesPage() {
     });
   }, [rows, query, statusFilter, date]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, statusFilter, date]);
+
   const totalCount = rows.length;
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const clampedPage = Math.min(currentPage, totalPages);
+  const start = (clampedPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageRows = filteredRows.slice(start, end);
+
+  const [viewOpen, setViewOpen] = useState(false);
+  type ViewData = {
+    reference?: string;
+    customerName?: string;
+    customerPhone?: string;
+    deliveryAddress?: string;
+    status?: string;
+    codAmount?: number;
+    deliveryFee?: number;
+    createdAt?: string | Date;
+  } | null;
+  const [viewData, setViewData] = useState<ViewData>(null);
+
+  async function handleView(deliveryId: string) {
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}`);
+      if (!res.ok) return;
+      const d = await res.json();
+      setViewData(d.delivery);
+      setViewOpen(true);
+    } catch {}
+  }
+
+  async function handleDelete(deliveryId: string) {
+    const ok = confirm("Delete this delivery?");
+    if (!ok) return;
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setRows((prev) => prev.filter((r) => r.deliveryId !== deliveryId));
+      }
+    } catch {}
+  }
+
+  function handleEdit(deliveryId: string) {
+    window.location.href = `/client/delivery/${deliveryId}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -178,7 +233,7 @@ export default function TrackDeliveriesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.trackingId} className="border-t border-slate-100">
                   <td className="px-6 py-3 align-middle">
                     <input
@@ -238,13 +293,22 @@ export default function TrackDeliveriesPage() {
                   </td>
                   <td className="px-6 py-3 align-middle text-[#0EA5E9]">
                     <div className="flex items-center gap-3">
-                      <IconButton label="View">
+                      <IconButton
+                        label="View"
+                        onClick={() => handleView(r.deliveryId)}
+                      >
                         <EyeIcon size={16} />
                       </IconButton>
-                      <IconButton label="Edit">
+                      <IconButton
+                        label="Edit"
+                        onClick={() => handleEdit(r.deliveryId)}
+                      >
                         <EditIcon size={16} />
                       </IconButton>
-                      <IconButton label="Delete">
+                      <IconButton
+                        label="Delete"
+                        onClick={() => handleDelete(r.deliveryId)}
+                      >
                         <TrashIcon size={16} />
                       </IconButton>
                     </div>
@@ -265,28 +329,100 @@ export default function TrackDeliveriesPage() {
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
           <div className="text-[12px] text-slate-500">
-            Showing 1 to {Math.min(filteredRows.length, 10)} of{" "}
-            {filteredRows.length} results
+            Showing {filteredRows.length === 0 ? 0 : start + 1} to{" "}
+            {Math.min(end, filteredRows.length)} of {filteredRows.length}{" "}
+            results
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, clampedPage - 1))}
+              disabled={clampedPage === 1}
+            >
               Previous
             </Button>
-            <button className="h-9 w-9 rounded-md bg-[#0EA5E9] text-white text-sm font-medium">
-              1
-            </button>
-            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
-              2
-            </button>
-            <button className="h-9 w-9 rounded-md border border-slate-200 text-sm font-medium">
-              3
-            </button>
-            <Button variant="secondary" size="sm">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const p = i + 1;
+              return (
+                <button
+                  key={p}
+                  className={
+                    "h-9 w-9 rounded-md text-sm font-medium " +
+                    (p === clampedPage
+                      ? "bg-[#0EA5E9] text-white"
+                      : "border border-slate-200")
+                  }
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              );
+            })}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, clampedPage + 1))
+              }
+              disabled={clampedPage === totalPages}
+            >
               Next
             </Button>
           </div>
         </div>
       </Card>
+
+      <Modal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Delivery Details"
+      >
+        {viewData ? (
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-slate-500">Reference:</span>{" "}
+              <span className="font-medium">{viewData.reference}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Customer:</span>{" "}
+              <span className="font-medium">{viewData.customerName}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Phone:</span>{" "}
+              <span className="font-medium">{viewData.customerPhone}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Address:</span>{" "}
+              <span className="font-medium">{viewData.deliveryAddress}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Status:</span>{" "}
+              <span className="font-medium">{viewData.status}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">COD Amount:</span>{" "}
+              <span className="font-medium">
+                ₹{Number(viewData.codAmount || 0).toFixed(2)}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Delivery Fee:</span>{" "}
+              <span className="font-medium">
+                ₹{Number(viewData.deliveryFee || 0).toFixed(2)}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Created:</span>{" "}
+              <span className="font-medium">
+                {new Date(viewData.createdAt ?? Date.now()).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-slate-500">Loading…</div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -309,15 +445,18 @@ function StatusBadge({ status }: { status: DeliveryRow["status"] }) {
 function IconButton({
   label,
   children,
+  onClick,
 }: {
   label: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <button
       aria-label={label}
       title={label}
       className="h-8 w-8 inline-grid place-items-center rounded-md text-[#0EA5E9] hover:bg-sky-50"
+      onClick={onClick}
     >
       {children}
     </button>
