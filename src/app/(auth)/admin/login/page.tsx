@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
         <div className="mb-5 flex items-center gap-2">
           <div className="h-9 w-9 rounded-md bg-[#0EA5E9]" />
           <div>
-            <div className="text-[18px] font-semibold">Shipz</div>
+            <div className="text-[18px] font-semibold">Shipz Solutions</div>
             <div className="text-[12px] text-slate-500">Admin Portal</div>
           </div>
         </div>

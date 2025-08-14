@@ -97,7 +97,9 @@ function AdminSidebarInner({
             />
           </div>
           <div>
-            <div className="font-semibold text-lg text-slate-900">Shipz</div>
+            <div className="font-semibold text-lg text-slate-900">
+              Shipz Solutions
+            </div>
             <div className="text-xs text-slate-500 font-medium">
               Admin Portal
             </div>

@@ -87,7 +87,9 @@ export default function ClientSidebar({
             />
           </div>
           <div>
-            <div className="font-semibold text-lg text-slate-900">Shipz</div>
+            <div className="font-semibold text-lg text-slate-900">
+              Shipz Solutions
+            </div>
             <div className="text-xs text-slate-500 font-medium">
               Client Portal
             </div>
