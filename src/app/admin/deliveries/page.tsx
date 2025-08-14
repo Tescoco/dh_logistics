@@ -654,7 +654,17 @@ function InternalTab() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data?.error ?? "Failed to update status");
+        if (data?.error.fieldErrors) {
+          const fieldErrors = Object.values(data.error.fieldErrors);
+          const errorMessage = fieldErrors.map((error) => {
+            return Object.entries(error as Record<string, string>)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join("\n");
+          });
+          alert(errorMessage.join("\n"));
+        } else {
+          alert("Failed to update status");
+        }
         return;
       }
       setRows((prev) =>

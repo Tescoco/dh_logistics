@@ -72,7 +72,7 @@ export default function CreateDeliveryPage() {
       form.assignedDriverId === restrictedDriverId &&
       form.paymentMethod !== "cod"
     ) {
-      update("paymentMethod", "cod");
+      setForm((f) => ({ ...f, paymentMethod: "cod" }));
     }
   }, [form.assignedDriverId, form.paymentMethod]);
 
@@ -84,6 +84,30 @@ export default function CreateDeliveryPage() {
   }
 
   async function submit(isDraft: boolean) {
+    // Client-side validation
+    const problems: string[] = [];
+    if (!form.assignedDriverId) {
+      problems.push("Driver is required");
+    }
+    if (!form.description || form.description.trim().length < 5) {
+      problems.push("Description must be at least 5 characters");
+    }
+    if (!form.customerPhone || form.customerPhone.trim().length < 5) {
+      problems.push("Receiver phone must be at least 5 characters");
+    }
+    if (!form.senderPhone || form.senderPhone.trim().length < 5) {
+      problems.push("Sender phone must be at least 5 characters");
+    }
+    if (
+      form.paymentMethod === "cod" &&
+      (form.codAmount === "" || String(form.codAmount).trim().length === 0)
+    ) {
+      problems.push("COD amount is required when payment method is COD");
+    }
+    if (problems.length > 0) {
+      alert(problems.join("\n"));
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
@@ -113,7 +137,18 @@ export default function CreateDeliveryPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to save delivery");
+        if (data?.error.fieldErrors) {
+          const fieldErrors = Object.values(data.error.fieldErrors);
+          // map the fieldErrors to a string of the keys and values
+          const errorMessage = fieldErrors.map((error) => {
+            return Object.entries(error as Record<string, string>)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join("\n");
+          });
+          alert(errorMessage.join("\n"));
+        } else {
+          alert("Failed to save delivery");
+        }
         return;
       }
       router.push("/admin/deliveries");

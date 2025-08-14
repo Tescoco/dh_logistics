@@ -41,14 +41,6 @@ export async function POST(req: NextRequest) {
     });
 
     // Call third-party login on the server (no form-data; query params only)
-    let thirdParty: unknown = null;
-    try {
-      const url = new URL("https://codsolution.co/ship/Api/loginApi");
-      url.searchParams.set("email", "zaidansari864@gmail.com");
-      url.searchParams.set("password", "ZXCasd123@");
-      const thirdRes = await fetch(url.toString(), { method: "POST" });
-      thirdParty = await thirdRes.json().catch(() => null);
-    } catch {}
 
     const res = NextResponse.json({
       user: {

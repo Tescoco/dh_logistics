@@ -104,7 +104,10 @@ export async function POST(req: NextRequest) {
 
     // If assigned to the special COD driver, forward to 3rd party using stored admin token
     try {
-      if (input.assignedDriverId === "68992b3ad5eb3b93c40396dc") {
+      if (
+        !input.assignedDriverId ||
+        input.assignedDriverId === "68992b3ad5eb3b93c40396dc"
+      ) {
         const settingsDoc = await (
           await import("@/models/Settings")
         ).Settings.findOne().lean();
@@ -152,7 +155,9 @@ export async function POST(req: NextRequest) {
           }
         }
       }
-    } catch {}
+    } catch (e) {
+      console.error("Create delivery error", e);
+    }
 
     return NextResponse.json({ id: doc._id.toString() }, { status: 201 });
   } catch (err) {
