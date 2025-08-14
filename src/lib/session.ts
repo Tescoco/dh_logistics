@@ -30,3 +30,16 @@ export async function getAuthUser(req: NextRequest): Promise<AuthUser | null> {
     return null;
   }
 }
+
+export function isThirdPartyTokenValid(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    const raw = localStorage.getItem("third_party_auth");
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { token?: string; expiresAt?: number };
+    if (!parsed?.token || !parsed?.expiresAt) return false;
+    return Date.now() < parsed.expiresAt;
+  } catch {
+    return false;
+  }
+}

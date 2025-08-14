@@ -40,6 +40,7 @@ export default function ClientLoginPage() {
         setLoading(false);
         return;
       }
+      // No client-side 3rd-party login persistence; backend handles token refresh via cron
       router.push("/client");
     } catch (err) {
       setError("Something went wrong. Please try again.");

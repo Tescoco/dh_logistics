@@ -154,12 +154,12 @@ export default function BulkDeliveriesUploadPage() {
           if (
             parts[8] &&
             parts[8].trim().toLowerCase() !== "cod" &&
-            parts[8].trim().toLowerCase() !== "prepaid"
+            parts[8].trim().toLowerCase() !== "cash on delivery"
           ) {
             valid = false;
             reason = reason
-              ? `${reason}; invalid payment method its should be cod or prepaid`
-              : "Invalid payment method its should be cod or prepaid";
+              ? `${reason}; invalid payment method its should be cash on delivery`
+              : "Invalid payment method its should be cash on delivery";
           }
         }
 
@@ -185,7 +185,7 @@ export default function BulkDeliveriesUploadPage() {
 
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,originAddress,deliveryAddress,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes",
+      "reference,customerName,customerPhone,originAddress,deliveryAddress,packageType,description,priority,paymentMethod,codAmount,notes",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

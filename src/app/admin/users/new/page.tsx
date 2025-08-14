@@ -3,20 +3,25 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 // metadata is set by a parent server component
 
 export default function CreateUserPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("driver");
+  const [role, setRole] = useState(() => {
+    const r = searchParams?.get("role");
+    return r === "admin" || r === "customer" ? r : "customer";
+  });
   const [submitting, setSubmitting] = useState(false);
 
   async function handleCreate() {
@@ -60,12 +65,12 @@ export default function CreateUserPage() {
             Add a new user to the Shipz delivery system
           </p>
         </div>
-        <a
+        <Link
           href="/admin/users"
           className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
         >
           ← Back to Users
-        </a>
+        </Link>
       </div>
 
       <Card padded={false}>
@@ -193,8 +198,8 @@ export default function CreateUserPage() {
                       setRole((e.target as HTMLSelectElement).value)
                     }
                   >
-                    <option value="admin">Admin</option>
                     <option value="customer">Customer</option>
+                    <option value="admin">Admin</option>
                   </Select>
                 </div>
                 <div>

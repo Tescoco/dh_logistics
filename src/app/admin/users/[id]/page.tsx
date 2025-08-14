@@ -138,7 +138,6 @@ export default function EditUserPage() {
                 onChange={(e) => setRole((e.target as HTMLSelectElement).value)}
               >
                 <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
                 <option value="customer">Customer</option>
                 <option value="driver">Driver</option>
               </Select>

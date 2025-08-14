@@ -12,6 +12,7 @@ export interface UserDocument {
   isActive: boolean;
   passwordHash: string;
   avatarUrl?: string;
+  deliveryFee: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,7 +20,7 @@ export interface UserDocument {
 const userSchema = new Schema<UserDocument>(
   {
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: { type: String, required: false },
     email: { type: String, required: true, unique: true, index: true },
     phone: { type: String },
     avatarUrl: { type: String },
@@ -30,6 +31,7 @@ const userSchema = new Schema<UserDocument>(
     },
     isActive: { type: Boolean, default: true },
     passwordHash: { type: String, required: true },
+    deliveryFee: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

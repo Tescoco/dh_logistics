@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const restrictedDriverId = "68992b3ad5eb3b93c40396dc";
   function generateReference(): string {
     const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
     const letters = Array.from({ length: 3 })
@@ -65,6 +66,15 @@ export default function CreateDeliveryPage() {
       aborted = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (
+      form.assignedDriverId === restrictedDriverId &&
+      form.paymentMethod !== "cod"
+    ) {
+      update("paymentMethod", "cod");
+    }
+  }, [form.assignedDriverId, form.paymentMethod]);
 
   function update<K extends keyof typeof form>(
     key: K,
@@ -329,8 +339,14 @@ export default function CreateDeliveryPage() {
                     )
                   }
                 >
-                  <option value="prepaid">Prepaid</option>
-                  <option value="cod">Cash on Delivery</option>
+                  {form.assignedDriverId === restrictedDriverId ? (
+                    <option value="cod">Cash on Delivery</option>
+                  ) : (
+                    <>
+                      <option value="prepaid">Prepaid</option>
+                      <option value="cod">Cash on Delivery</option>
+                    </>
+                  )}
                 </Select>
               </div>
             </div>

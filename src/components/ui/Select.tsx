@@ -5,6 +5,7 @@ export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export default function Select({
+  style = {},
   className = "",
   children,
   ...props
@@ -18,6 +19,7 @@ export default function Select({
         "[background-position:calc(100%-20px)_calc(1em+2px),calc(100%-15px)_calc(1em+2px),calc(100%-2.5em)_0.5em] [background-size:5px_5px,5px_5px,1px_1.5em] [background-repeat:no-repeat]",
         className,
       ].join(" ")}
+      style={style}
       {...props}
     >
       {children}

@@ -19,7 +19,7 @@ export interface DeliveryDocument {
   weightKg?: number;
   dimensions?: string;
   packageType?: string;
-  description?: string;
+  description: string;
   priority?: "standard" | "express";
   paymentMethod?: "prepaid" | "cod";
   deliveryFee?: number;
@@ -30,6 +30,7 @@ export interface DeliveryDocument {
   status: DeliveryStatus;
   createdById?: Types.ObjectId;
   isDraft?: boolean;
+  thirdPartyShipmentNumber?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,7 +47,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     weightKg: Number,
     dimensions: String,
     packageType: String,
-    description: String,
+    description: { type: String, required: true },
     priority: {
       type: String,
       enum: ["standard", "express"],
@@ -70,6 +71,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     },
     createdById: { type: Schema.Types.ObjectId, ref: "User" },
     isDraft: { type: Boolean, default: false, index: true },
+    thirdPartyShipmentNumber: { type: String },
   },
   { timestamps: true }
 );

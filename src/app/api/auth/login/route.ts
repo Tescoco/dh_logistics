@@ -40,6 +40,16 @@ export async function POST(req: NextRequest) {
       email: user.email,
     });
 
+    // Call third-party login on the server (no form-data; query params only)
+    let thirdParty: unknown = null;
+    try {
+      const url = new URL("https://codsolution.co/ship/Api/loginApi");
+      url.searchParams.set("email", "zaidansari864@gmail.com");
+      url.searchParams.set("password", "ZXCasd123@");
+      const thirdRes = await fetch(url.toString(), { method: "POST" });
+      thirdParty = await thirdRes.json().catch(() => null);
+    } catch {}
+
     const res = NextResponse.json({
       user: {
         id: user._id.toString(),
@@ -54,7 +64,8 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      // expire in 1 day as requested
+      maxAge: 60 * 60 * 24,
     });
     return res;
   } catch (err: unknown) {

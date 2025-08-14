@@ -30,8 +30,8 @@ const topLevel: NavItem[] = [
     type: "group",
     href: "/admin/deliveries",
     children: [
-      { href: "/admin/deliveries?tab=cod    ", label: "COD Drivers" },
-      { href: "/admin/deliveries?tab=internal", label: "Internal Drivers" },
+      { href: "/admin/deliveries?tab=cod", label: "COD Deliveries" },
+      { href: "/admin/deliveries?tab=internal", label: "Internal Deliveries" },
     ],
   },
   { href: "/admin/delivery-status", label: "Delivery Status", icon: "package" },

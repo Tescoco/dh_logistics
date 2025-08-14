@@ -7,7 +7,7 @@ import { getAuthUser } from "@/lib/session";
 
 const CreateUserSchema = z.object({
   firstName: z.string().min(1),
-  lastName: z.string().min(1),
+  lastName: z.string().optional(),
   email: z.string().email(),
   phone: z.string().optional(),
   role: z.enum(["admin", "driver", "manager", "customer"]).default("driver"),
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await hashPassword(input.password);
     const user = await User.create({
       firstName: input.firstName,
-      lastName: input.lastName,
+      lastName: input?.lastName || " ",
       email: input.email,
       phone: input.phone,
       role: input.role,

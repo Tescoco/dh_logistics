@@ -36,7 +36,6 @@ export default function CreateDeliveryPage() {
     description: "",
     priority: "standard",
     paymentMethod: "prepaid",
-    deliveryFee: "",
     codAmount: "",
     notes: "",
   });
@@ -65,7 +64,6 @@ export default function CreateDeliveryPage() {
         description: form.description || undefined,
         priority: form.priority as "standard" | "express",
         paymentMethod: form.paymentMethod as "prepaid" | "cod",
-        deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
         isDraft,
@@ -286,22 +284,11 @@ export default function CreateDeliveryPage() {
                     )
                   }
                 >
-                  <option value="prepaid">Prepaid</option>
                   <option value="cod">Cash on Delivery</option>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Delivery Fee (₹)
-                </label>
-                <Input
-                  placeholder="25.00"
-                  value={form.deliveryFee}
-                  onChange={(e) => update("deliveryFee", e.target.value)}
-                />
-              </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   COD Amount (₹)

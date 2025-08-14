@@ -23,7 +23,6 @@ type DeliveryResponse = {
     description?: string;
     priority?: "standard" | "express";
     paymentMethod?: "prepaid" | "cod";
-    deliveryFee?: number;
     codAmount?: number;
     notes?: string;
   };
@@ -50,7 +49,6 @@ export default function EditDeliveryPage() {
     description: "",
     priority: "standard" as "standard" | "express",
     paymentMethod: "prepaid" as "prepaid" | "cod",
-    deliveryFee: "",
     codAmount: "",
     notes: "",
   });
@@ -85,7 +83,6 @@ export default function EditDeliveryPage() {
           description: d.description || "",
           priority: d.priority || "standard",
           paymentMethod: d.paymentMethod || "prepaid",
-          deliveryFee: d.deliveryFee != null ? String(d.deliveryFee) : "",
           codAmount: d.codAmount != null ? String(d.codAmount) : "",
           notes: d.notes || "",
         });
@@ -115,7 +112,6 @@ export default function EditDeliveryPage() {
         description: form.description || undefined,
         priority: form.priority,
         paymentMethod: form.paymentMethod,
-        deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
       };
@@ -338,22 +334,11 @@ export default function EditDeliveryPage() {
                     )
                   }
                 >
-                  <option value="prepaid">Prepaid</option>
                   <option value="cod">Cash on Delivery</option>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Delivery Fee (₹)
-                </label>
-                <Input
-                  placeholder="25.00"
-                  value={form.deliveryFee}
-                  onChange={(e) => update("deliveryFee", e.target.value)}
-                />
-              </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   COD Amount (₹)

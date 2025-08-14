@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button";
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [systemName, setSystemName] = useState("Shipz Logistics");
+  const [systemName, setSystemName] = useState("Shipz Solutions");
   const [timeZone, setTimeZone] = useState("UTC");
   const [defaultLanguage, setDefaultLanguage] = useState("English");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -33,7 +33,7 @@ export default function SettingsPage() {
       .then((d) => {
         if (!mounted) return;
         const s = d.settings || {};
-        setSystemName(s.systemName ?? "Shipz Logistics");
+        setSystemName(s.systemName ?? "Shipz Solutions");
         setTimeZone(s.timeZone ?? "UTC");
         setDefaultLanguage(s.defaultLanguage ?? "English");
         setMaintenanceMode(Boolean(s.maintenanceMode));
@@ -194,7 +194,6 @@ export default function SettingsPage() {
               >
                 <option value="customer">Customer</option>
                 <option value="driver">Driver</option>
-                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
               </Select>
             </div>

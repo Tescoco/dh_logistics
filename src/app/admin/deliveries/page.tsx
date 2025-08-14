@@ -1,6 +1,7 @@
 "use client";
 
 import Card from "@/components/ui/Card";
+import Modal from "@/components/ui/Modal";
 import Tabs from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -10,8 +11,8 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const tabs = [
-  { key: "cod", label: "COD Drivers" },
-  { key: "internal", label: "Internal Drivers" },
+  { key: "cod", label: "COD Deliveries" },
+  { key: "internal", label: "Internal Deliveries" },
 ];
 
 export default function DeliveriesPage() {
@@ -50,6 +51,7 @@ type DeliveryRow = {
   codAmount?: number;
   status: string;
   createdAt: string;
+  assignedDriverId?: string;
 };
 
 function CODTab() {
@@ -57,6 +59,15 @@ function CODTab() {
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  type DeliveryStatus =
+    | "pending"
+    | "assigned"
+    | "in_transit"
+    | "delivered"
+    | "returned";
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<DeliveryStatus | "">("");
+  const [bulkUpdating, setBulkUpdating] = useState(false);
   type DriverLite = {
     _id: string;
     firstName?: string;
@@ -74,14 +85,31 @@ function CODTab() {
     deliveredToday: 0,
   });
 
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewLoading, setViewLoading] = useState(false);
+  type DeliveryDetail = {
+    _id: string;
+    reference?: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    paymentMethod?: string;
+    codAmount?: number;
+    priority?: string;
+    status: string;
+    assignedDriverId?: string;
+    notes?: string;
+  };
+  const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
+
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    fetch("/api/deliveries?payment=cod")
+    fetch("/api/deliveries?tab=cod")
       .then((r) => r.json())
       .then((d) => mounted && setRows(d.deliveries ?? []))
       .finally(() => mounted && setLoading(false));
-    fetch("/api/deliveries/stats?payment=cod")
+    fetch("/api/deliveries/stats?tab=cod")
       .then((r) => r.json())
       .then(
         (d) =>
@@ -120,6 +148,84 @@ function CODTab() {
     );
   }, [rows, query]);
 
+  const allVisibleSelected = useMemo(
+    () => filtered.length > 0 && filtered.every((d) => selectedIds.has(d._id)),
+    [filtered, selectedIds]
+  );
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const ids = filtered.map((d) => d._id);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  function openViewDelivery(id: string) {
+    setViewOpen(true);
+    setViewLoading(true);
+    setViewDelivery(null);
+    fetch(`/api/deliveries/${id}`)
+      .then((r) => r.json())
+      .then((d) => setViewDelivery((d.delivery as DeliveryDetail) ?? null))
+      .finally(() => setViewLoading(false));
+  }
+
+  async function handleBulkUpdate() {
+    if (!bulkStatus || selectedIds.size === 0) return;
+    setBulkUpdating(true);
+    try {
+      const res = await fetch("/api/deliveries/bulk-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: Array.from(selectedIds),
+          status: bulkStatus,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.error ?? "Failed to update status");
+        return;
+      }
+      setRows((prev) =>
+        prev.map((r) =>
+          selectedIds.has(r._id) ? { ...r, status: bulkStatus } : r
+        )
+      );
+      setSelectedIds(new Set());
+      // Optionally refresh counts
+      fetch("/api/deliveries/stats?payment=cod")
+        .then((r) => r.json())
+        .then((d) =>
+          setCounts({
+            total: d.total ?? 0,
+            pendingAssignment: d.pendingAssignment ?? 0,
+            inTransit: d.inTransit ?? 0,
+            deliveredToday: d.deliveredToday ?? 0,
+          })
+        )
+        .catch(() => {});
+    } finally {
+      setBulkUpdating(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex gap-3">
@@ -156,7 +262,7 @@ function CODTab() {
         </Card>
       </div>
 
-      <Card header={<div className="font-semibold">Quick Add Delivery</div>}>
+      {/* <Card header={<div className="font-semibold">Quick Add Delivery</div>}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           <Input placeholder="Customer Name" />
           <Input placeholder="Customer Phone" />
@@ -184,28 +290,66 @@ function CODTab() {
             <Button>Add Delivery</Button>
           </div>
         </div>
-      </Card>
+      </Card> */}
 
       <Card
         header={<div className="font-semibold">COD Deliveries</div>}
         padded={false}
       >
-        <div className="p-5 flex items-center gap-4">
-          <Select className="w-40">
+        <div className="p-5 flex flex-col gap-3 md:flex-row md:items-center">
+          <Select className="w-full md:w-40">
             <option>All Statuses</option>
           </Select>
           <Input
-            className="ml-auto w-80"
+            className="w-full md:ml-auto md:w-80"
             leftIcon={<SearchIcon size={16} />}
             placeholder="Search deliveries..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <div className="flex items-center gap-2 md:ml-4 w-full md:w-auto">
+            <div className="text-[13px] text-slate-500 whitespace-nowrap">
+              {selectedIds.size} selected
+            </div>
+            <Select
+              className="w-full md:w-44"
+              value={bulkStatus}
+              onChange={(e) =>
+                setBulkStatus(
+                  (e.target as HTMLSelectElement).value as DeliveryStatus
+                )
+              }
+            >
+              <option value="" disabled>
+                Set status to…
+              </option>
+              <option value="pending">Pending</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="returned">Returned</option>
+            </Select>
+            <Button
+              disabled={!bulkStatus || selectedIds.size === 0 || bulkUpdating}
+              onClick={handleBulkUpdate}
+              className="w-full md:w-auto whitespace-nowrap"
+            >
+              {bulkUpdating ? "Updating…" : "Update Status"}
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
+                <th className="px-5 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    aria-label="Select all visible"
+                  />
+                </th>
                 {[
                   "Order ID",
                   "Customer",
@@ -224,13 +368,31 @@ function CODTab() {
             <tbody>
               {filtered.map((d) => (
                 <tr key={d._id} className="border-t border-slate-100">
+                  <td className="px-5 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(d._id)}
+                      onChange={() => toggleSelectOne(d._id)}
+                      aria-label={`Select ${d._id}`}
+                    />
+                  </td>
                   <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.customerPhone}</td>
                   <td className="px-5 py-3">
                     {d.codAmount ? `$${d.codAmount.toFixed(2)}` : "—"}
                   </td>
-                  <td className="px-5 py-3">—</td>
+                  <td className="px-5 py-3">
+                    {d.assignedDriverId
+                      ? drivers.find(
+                          (driver) => driver._id === d.assignedDriverId
+                        )?.firstName +
+                        " " +
+                        drivers.find(
+                          (driver) => driver._id === d.assignedDriverId
+                        )?.lastName
+                      : "—"}
+                  </td>
                   <td className="px-5 py-3">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset ${
@@ -244,7 +406,14 @@ function CODTab() {
                       {d.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-[#0EA5E9]">View</td>
+                  <td className="px-5 py-3">
+                    <button
+                      onClick={() => openViewDelivery(d._id)}
+                      className="text-[#0EA5E9] hover:underline"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -256,6 +425,91 @@ function CODTab() {
           )}
         </div>
       </Card>
+
+      <Modal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Delivery Details"
+        widthClassName="max-w-2xl"
+      >
+        {viewLoading ? (
+          <div className="text-sm text-slate-500">Loading…</div>
+        ) : viewDelivery ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-[12px] text-slate-500">Order ID</div>
+                <div className="font-medium">{String(viewDelivery._id)}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Reference</div>
+                <div className="font-medium">
+                  {viewDelivery.reference || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Customer</div>
+                <div className="font-medium">{viewDelivery.customerName}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Phone</div>
+                <div className="font-medium">{viewDelivery.customerPhone}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Delivery Address
+                </div>
+                <div className="font-medium">
+                  {viewDelivery.deliveryAddress}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Payment</div>
+                <div className="font-medium">{viewDelivery.paymentMethod}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">COD Amount</div>
+                <div className="font-medium">
+                  {viewDelivery.codAmount
+                    ? `$${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Priority</div>
+                <div className="font-medium">
+                  {viewDelivery.priority || "standard"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Status</div>
+                <div className="font-medium">{viewDelivery.status}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Assigned Driver
+                </div>
+                <div className="font-medium">
+                  {(() => {
+                    const drv = drivers.find(
+                      (x) => x._id === String(viewDelivery.assignedDriverId)
+                    );
+                    return drv
+                      ? `${drv.firstName || ""} ${drv.lastName || ""}`.trim()
+                      : "—";
+                  })()}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">Notes</div>
+                <div className="font-medium">{viewDelivery.notes || "—"}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-slate-500">Delivery not found</div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -275,10 +529,36 @@ function InternalTab() {
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  type DeliveryStatus =
+    | "pending"
+    | "assigned"
+    | "in_transit"
+    | "delivered"
+    | "returned";
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<DeliveryStatus | "">("");
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewLoading, setViewLoading] = useState(false);
+  type DeliveryDetail = {
+    _id: string;
+    reference?: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    paymentMethod?: string;
+    codAmount?: number;
+    priority?: string;
+    status: string;
+    assignedDriverId?: string;
+    notes?: string;
+  };
+  const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    fetch("/api/deliveries/stats?payment=prepaid")
+    fetch("/api/deliveries/stats?tab=internal")
       .then((r) => r.json())
       .then(
         (d) =>
@@ -302,7 +582,7 @@ function InternalTab() {
         setCounts((c) => ({ ...c, activeDrivers }));
       });
     const url = new URL("/api/deliveries", window.location.origin);
-    url.searchParams.set("payment", "prepaid");
+    url.searchParams.set("tab", "internal");
     if (statusFilter) url.searchParams.set("status", statusFilter);
     fetch(url.toString())
       .then((r) => r.json())
@@ -321,6 +601,84 @@ function InternalTab() {
         .some((v) => (v || "").toLowerCase().includes(q))
     );
   }, [rows, query]);
+
+  const allVisibleSelected = useMemo(
+    () => filtered.length > 0 && filtered.every((d) => selectedIds.has(d._id)),
+    [filtered, selectedIds]
+  );
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const ids = filtered.map((d) => d._id);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  function openViewDelivery(id: string) {
+    setViewOpen(true);
+    setViewLoading(true);
+    setViewDelivery(null);
+    fetch(`/api/deliveries/${id}`)
+      .then((r) => r.json())
+      .then((d) => setViewDelivery((d.delivery as DeliveryDetail) ?? null))
+      .finally(() => setViewLoading(false));
+  }
+
+  async function handleBulkUpdate() {
+    if (!bulkStatus || selectedIds.size === 0) return;
+    setBulkUpdating(true);
+    try {
+      const res = await fetch("/api/deliveries/bulk-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: Array.from(selectedIds),
+          status: bulkStatus,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.error ?? "Failed to update status");
+        return;
+      }
+      setRows((prev) =>
+        prev.map((r) =>
+          selectedIds.has(r._id) ? { ...r, status: bulkStatus } : r
+        )
+      );
+      setSelectedIds(new Set());
+      // Optionally refresh counts
+      fetch("/api/deliveries/stats?tab=internal")
+        .then((r) => r.json())
+        .then((d) =>
+          setCounts((c) => ({
+            ...c,
+            assigned: d.assigned ?? 0,
+            inTransit: d.inTransit ?? 0,
+            deliveredToday: d.deliveredToday ?? 0,
+          }))
+        )
+        .catch(() => {});
+    } finally {
+      setBulkUpdating(false);
+    }
+  }
 
   async function handleAddDriver() {
     if (!driverName || !driverPhone) {
@@ -383,7 +741,7 @@ function InternalTab() {
           </div>
         </Card>
       </div>
-      <Card
+      {/* <Card
         header={<div className="font-semibold">Add New Internal Driver</div>}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -421,15 +779,15 @@ function InternalTab() {
             {submitting ? "Adding…" : "Add Driver"}
           </Button>
         </div>
-      </Card>
+      </Card> */}
 
       <Card
         header={<div className="font-semibold">Internal Driver Deliveries</div>}
         padded={false}
       >
-        <div className="p-5 flex items-center gap-4">
+        <div className="p-5 flex flex-col gap-3 md:flex-row md:items-center">
           <Select
-            className="w-40"
+            className="w-full md:w-40"
             value={statusFilter}
             onChange={(e) =>
               setStatusFilter((e.target as HTMLSelectElement).value)
@@ -443,17 +801,55 @@ function InternalTab() {
             <option value="returned">Returned</option>
           </Select>
           <Input
-            className="ml-auto w-80"
+            className="w-full md:ml-auto md:w-80"
             leftIcon={<SearchIcon size={16} />}
             placeholder="Search by driver or order..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <div className="flex items-center gap-2 md:ml-4 w-full md:w-auto">
+            <div className="text-[13px] text-slate-500 whitespace-nowrap">
+              {selectedIds.size} selected
+            </div>
+            <Select
+              className="w-full md:w-44"
+              value={bulkStatus}
+              onChange={(e) =>
+                setBulkStatus(
+                  (e.target as HTMLSelectElement).value as DeliveryStatus
+                )
+              }
+            >
+              <option value="" disabled>
+                Set status to…
+              </option>
+              <option value="pending">Pending</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="returned">Returned</option>
+            </Select>
+            <Button
+              disabled={!bulkStatus || selectedIds.size === 0 || bulkUpdating}
+              onClick={handleBulkUpdate}
+              className="w-full md:w-auto whitespace-nowrap"
+            >
+              {bulkUpdating ? "Updating…" : "Update Status"}
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
+                <th className="px-5 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    aria-label="Select all visible"
+                  />
+                </th>
                 {[
                   "Order ID",
                   "Customer",
@@ -471,6 +867,14 @@ function InternalTab() {
             <tbody>
               {filtered.map((d) => (
                 <tr key={d._id} className="border-t border-slate-100">
+                  <td className="px-5 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(d._id)}
+                      onChange={() => toggleSelectOne(d._id)}
+                      aria-label={`Select ${d._id}`}
+                    />
+                  </td>
                   <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">—</td>
@@ -492,13 +896,96 @@ function InternalTab() {
                       {d.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-[#0EA5E9]">View</td>
+                  <td className="px-5 py-3">
+                    <button
+                      onClick={() => openViewDelivery(d._id)}
+                      className="text-[#0EA5E9] hover:underline"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+
+      <Modal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Delivery Details"
+        widthClassName="max-w-2xl"
+      >
+        {viewLoading ? (
+          <div className="text-sm text-slate-500">Loading…</div>
+        ) : viewDelivery ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-[12px] text-slate-500">Order ID</div>
+                <div className="font-medium">{String(viewDelivery._id)}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Reference</div>
+                <div className="font-medium">
+                  {viewDelivery.reference || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Customer</div>
+                <div className="font-medium">{viewDelivery.customerName}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Phone</div>
+                <div className="font-medium">{viewDelivery.customerPhone}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Delivery Address
+                </div>
+                <div className="font-medium">
+                  {viewDelivery.deliveryAddress}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Payment</div>
+                <div className="font-medium">{viewDelivery.paymentMethod}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">COD Amount</div>
+                <div className="font-medium">
+                  {viewDelivery.codAmount
+                    ? `$${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Priority</div>
+                <div className="font-medium">
+                  {viewDelivery.priority || "standard"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Status</div>
+                <div className="font-medium">{viewDelivery.status}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Assigned Driver
+                </div>
+                <div className="font-medium">—</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">Notes</div>
+                <div className="font-medium">{viewDelivery.notes || "—"}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-slate-500">Delivery not found</div>
+        )}
+      </Modal>
     </div>
   );
 }

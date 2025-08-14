@@ -4,12 +4,16 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Switch from "@/components/ui/Switch";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import {
   PlusIcon,
   EyeIcon,
   EditIcon,
   TrashIcon,
   SearchIcon,
+  TruckIcon,
+  UsersIcon,
+  UserIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -31,6 +35,17 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<ApiUser[]>([]);
   const router = useRouter();
+
+  const [showAddType, setShowAddType] = useState(false);
+  const [showAddDriver, setShowAddDriver] = useState(false);
+  const [selectedType, setSelectedType] = useState<
+    "admin" | "customer" | "driver" | null
+  >(null);
+  const [driverName, setDriverName] = useState("");
+  const [driverPhone, setDriverPhone] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [addingDriver, setAddingDriver] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -112,13 +127,54 @@ export default function UsersPage() {
       setSavingDriver(false);
     }
   }
+
+  async function handleAddDriver() {
+    if (!driverName || !driverPhone) {
+      alert("Driver name and phone are required");
+      return;
+    }
+    const parts = driverName.trim().split(/\s+/);
+    const firstName = parts.shift() || "";
+    const lastName = parts.join(" ");
+    setAddingDriver(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName: lastName,
+          phone: driverPhone,
+          email: `${Date.now()}+driver@placeholder.local`,
+          role: "driver",
+          password: Math.random().toString(36).slice(2, 10) + "A1",
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error ?? "Failed to add driver");
+        return;
+      }
+      setDriverName("");
+      setDriverPhone("");
+      setEmployeeId("");
+      setVehicleType("");
+      setShowAddDriver(false);
+      // refresh users list
+      setLoading(true);
+      fetch("/api/users")
+        .then((r) => r.json())
+        .then((d) => setUsers(d.users ?? []))
+        .finally(() => setLoading(false));
+    } finally {
+      setAddingDriver(false);
+    }
+  }
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-end">
         <Button
-          onClick={() => {
-            router.push("/admin/users/new");
-          }}
+          onClick={() => setShowAddType(true)}
           variant="gradient"
           leftIcon={<PlusIcon size={20} />}
           size="lg"
@@ -323,6 +379,170 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Add Type Modal */}
+      <Modal
+        open={showAddType}
+        onClose={() => setShowAddType(false)}
+        title="Add New User"
+      >
+        <div className="space-y-5">
+          <div className="text-sm font-medium text-slate-700">
+            Select User Type
+          </div>
+
+          <div className="space-y-3">
+            {/* Admin option */}
+            <button
+              type="button"
+              className={`w-full rounded-xl border px-4 py-3 text-left transition shadow-sm ${
+                selectedType === "admin"
+                  ? "border-blue-500 ring-2 ring-blue-100"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+              onClick={() => {
+                setShowAddType(false);
+                router.push(`/admin/users/new?role=admin`);
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center">
+                  <UsersIcon size={22} />
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900">Admin</div>
+                  <div className="text-sm text-slate-600">
+                    Full system access and management
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Client option */}
+            <button
+              type="button"
+              className={`w-full rounded-xl border px-4 py-3 text-left transition shadow-sm ${
+                selectedType === "customer"
+                  ? "border-blue-500 ring-2 ring-blue-100"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+              onClick={() => {
+                setShowAddType(false);
+                router.push(`/admin/users/new?role=customer`);
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 text-white flex items-center justify-center">
+                  <UserIcon size={22} />
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900">Client</div>
+                  <div className="text-sm text-slate-600">
+                    Order tracking and management
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Driver option */}
+            <button
+              type="button"
+              className={`w-full rounded-xl border px-4 py-3 text-left transition shadow-sm ${
+                selectedType === "driver"
+                  ? "border-blue-500 ring-2 ring-blue-100"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+              onClick={() => {
+                setShowAddType(false);
+                setShowAddDriver(true);
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center">
+                  <TruckIcon size={22} />
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900">Driver</div>
+                  <div className="text-sm text-slate-600">
+                    Internal delivery driver
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button variant="secondary" onClick={() => setShowAddType(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!selectedType}
+              onClick={() => {
+                if (!selectedType) return;
+                if (selectedType === "driver") {
+                  setShowAddType(false);
+                  setShowAddDriver(true);
+                } else {
+                  setShowAddType(false);
+                  router.push(`/admin/users/new?role=${selectedType}`);
+                }
+              }}
+            >
+              Continue
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Driver Modal */}
+      <Modal
+        open={showAddDriver}
+        onClose={() => setShowAddDriver(false)}
+        title="Add New Internal Driver"
+        widthClassName="max-w-3xl"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <Input
+              placeholder="Driver Name"
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
+            />
+            <Input
+              placeholder="Phone Number"
+              value={driverPhone}
+              onChange={(e) => setDriverPhone(e.target.value)}
+            />
+            <Input
+              placeholder="Employee ID"
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
+            />
+            <Select
+              value={vehicleType}
+              onChange={(e) =>
+                setVehicleType((e.target as HTMLSelectElement).value)
+              }
+            >
+              <option value="">Select vehicle type</option>
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="van">Van</option>
+              <option value="truck">Truck</option>
+              <option value="other">Other</option>
+            </Select>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button
+              onClick={handleAddDriver}
+              disabled={addingDriver}
+              loading={addingDriver}
+            >
+              {addingDriver ? "Adding…" : "Add Driver"}
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Edit Driver Modal */}

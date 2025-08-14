@@ -45,6 +45,8 @@ export default function AdminLoginPage() {
                   const data = await res.json().catch(() => ({}));
                   setError(data?.error ?? "Login failed");
                 } else {
+                  // Check internal token expiry via cookie maxAge already set to 1 day.
+                  // Optional: validate 3rd party token still valid before navigating.
                   router.push("/admin/dashboard");
                 }
               } catch {
@@ -90,22 +92,6 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="my-5 flex items-center gap-4 text-[13px] text-slate-500">
-            <div className="h-px flex-1 bg-slate-200" />
-            Or continue with
-            <div className="h-px flex-1 bg-slate-200" />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <button className="h-10 rounded-md border border-slate-200 bg-white">
-              <GoogleIcon />
-            </button>
-            <button className="h-10 rounded-md border border-slate-200 bg-white">
-              <MicrosoftIcon />
-            </button>
-            <button className="h-10 rounded-md border border-slate-200 bg-white">
-              <AppleIcon />
-            </button>
-          </div>
           <div className="mt-6 rounded-md bg-slate-50 p-3 text-[13px] text-slate-600">
             <div className="font-medium">Security Notice</div>
             This is a secure admin area for Shipz. All login attempts are

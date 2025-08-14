@@ -10,7 +10,9 @@ export default function Home() {
         <div className="text-center mb-16">
           <div className="flex justify-center items-center gap-3 mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">Shipz</h1>
+              <h1 className="text-4xl font-bold text-slate-900">
+                Shipz Solutions
+              </h1>
               <p className="text-lg text-slate-600">
                 Logistics Management Platform
               </p>

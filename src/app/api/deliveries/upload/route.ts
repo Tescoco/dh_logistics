@@ -7,7 +7,7 @@ import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
-// Expected CSV headers: reference,customerName,customerPhone,deliveryAddress,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes
+// Expected CSV headers: reference,customerName,customerPhone,deliveryAddress,packageType,description,priority,paymentMethod,codAmount,notes
 // Example:
 // REF001,John Doe,+1234567890,123 Main St,Package,Description,Standard,COD,10,50,Notes
 // REF002,Jane Smith,+9876543210,456 Oak Ave,Document,Important docs,Express,Prepaid,15,0,Handle with care
@@ -96,6 +96,9 @@ export async function POST(req: NextRequest) {
       createdAt: Date;
     };
 
+    // fetech delivery fee from user record
+    const deliveryFee = sender.deliveryFee;
+
     const deliveries: NewDelivery[] = [];
     for (let i = startIdx; i < lines.length; i++) {
       const raw = lines[i];
@@ -113,9 +116,8 @@ export async function POST(req: NextRequest) {
       const description = parts[6] ?? "";
       const priority = parts[7] ?? "standard";
       const paymentMethod = parts[8] ?? "prepaid";
-      const deliveryFee = parseFloat(parts[9]) || 0;
-      const codAmount = parseFloat(parts[10]) || 0;
-      const notes = parts[11] ?? "";
+      const codAmount = parseFloat(parts[9]) || 0;
+      const notes = parts[10] ?? "";
 
       // Validate required fields
       if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
@@ -139,7 +141,7 @@ export async function POST(req: NextRequest) {
         description: description.trim(),
         priority: priority.trim(),
         paymentMethod: paymentMethod.trim(),
-        deliveryFee,
+        deliveryFee: sender.deliveryFee,
         codAmount,
         notes: notes.trim(),
         status: "pending",

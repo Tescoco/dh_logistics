@@ -20,6 +20,8 @@ const SettingsSchema = z.object({
   maxDeliveryRadiusKm: z.number().int().min(1).max(10000),
   realTimeTracking: z.boolean(),
   autoAssignDrivers: z.boolean(),
+  thirdPartyBearerToken: z.string().optional(),
+  thirdPartyTokenUpdatedAt: z.string().datetime().optional(),
 });
 
 async function getSingletonSettingsDoc() {

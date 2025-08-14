@@ -16,13 +16,16 @@ export interface SettingsDocument extends Document {
   realTimeTracking: boolean;
   autoAssignDrivers: boolean;
 
+  thirdPartyBearerToken?: string;
+  thirdPartyTokenUpdatedAt?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
 const settingsSchema = new Schema<SettingsDocument>(
   {
-    systemName: { type: String, default: "Shipz Logistics" },
+    systemName: { type: String, default: "Shipz Solutions" },
     timeZone: { type: String, default: "UTC" },
     defaultLanguage: { type: String, default: "English" },
     maintenanceMode: { type: Boolean, default: false },
@@ -40,6 +43,9 @@ const settingsSchema = new Schema<SettingsDocument>(
     maxDeliveryRadiusKm: { type: Number, default: 50 },
     realTimeTracking: { type: Boolean, default: true },
     autoAssignDrivers: { type: Boolean, default: false },
+
+    thirdPartyBearerToken: { type: String },
+    thirdPartyTokenUpdatedAt: { type: Date },
   },
   { timestamps: true }
 );
