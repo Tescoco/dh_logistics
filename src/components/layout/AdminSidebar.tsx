@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import React from "react";
 import {
@@ -12,7 +12,7 @@ import {
   SettingsIcon,
   UserIcon,
 } from "@/components/icons";
-import Image from "next/image";
+// Image intentionally rendered with <img> for guaranteed visibility in sidebar header
 
 type NavItem = {
   href: string;
@@ -64,6 +64,15 @@ function AdminSidebarInner({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams?.get("tab");
+  const router = useRouter();
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    onClose?.();
+    router.push("/admin/login");
+  }
 
   return (
     <>
@@ -85,24 +94,19 @@ function AdminSidebarInner({
         ].join(" ")}
         aria-hidden={!mobileOpen}
       >
-        <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="h-10 w-10 flex items-center justify-center">
-            {/* <span className="text-white font-bold text-lg">S</span> */}
-            <Image
-              src="/favicon.ico"
-              alt="Shipz Logo"
-              width={32}
-              height={32}
-              className="text-white font-bold text-lg"
-            />
-          </div>
-          <div>
-            <div className="font-semibold text-lg text-slate-900">
+        <div className="mb-8 flex  px-2">
+          <img
+            src="/favicon.png"
+            alt="Shipz Logo"
+            className="h-20 w-20 object-contain"
+          />
+          <div className="flex items-baseline gap-2 whitespace-nowrap flex-col">
+            <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">
               Shipz Solutions
-            </div>
-            <div className="text-xs text-slate-500 font-medium">
+            </span>
+            <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
               Admin Portal
-            </div>
+            </span>
           </div>
         </div>
         <nav className="flex flex-col gap-2">
@@ -185,6 +189,14 @@ function AdminSidebarInner({
             })}
           </div>
         </nav>
+        <div className="mt-6 border-t border-slate-200/60 pt-4">
+          <button
+            onClick={handleLogout}
+            className="w-full rounded-xl px-4 py-3 text-[14px] font-medium text-white bg-red-600 hover:bg-red-700 hover:text-white transition-all"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
     </>
   );

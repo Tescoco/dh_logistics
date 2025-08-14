@@ -53,14 +53,14 @@ export default function ClientLoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo and Header */}
-        <div className="flex justify-center items-center gap-3 mb-8">
-          <div className="h-10 w-10 flex items-center justify-center">
+        <div className="flex justify-center gap-3 mb-8">
+          <div className="h-20 w-20 flex items-center justify-center">
             {/* <span className="text-white font-bold text-lg">S</span> */}
             <Image
-              src="/favicon.ico"
+              src="/favicon.png"
               alt="Shipz Logo"
-              width={32}
-              height={32}
+              width={80}
+              height={80}
               className="text-white font-bold text-lg"
             />
           </div>

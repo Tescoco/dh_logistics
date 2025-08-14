@@ -213,11 +213,16 @@ export default function AdminDashboardPage() {
         <Card
           className="rounded-2xl border border-slate-200/60 shadow-card"
           header={
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
               <h3 className="font-semibold text-lg text-slate-900">
                 Recent Activity
               </h3>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <button
+                onClick={() => {
+                  router.push("/admin/deliveries");
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
                 View all
               </button>
             </div>

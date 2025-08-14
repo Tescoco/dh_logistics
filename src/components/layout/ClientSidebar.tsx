@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
   DashboardIcon,
@@ -34,6 +34,7 @@ export default function ClientSidebar({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [me, setMe] = useState<{
     firstName?: string;
     lastName?: string;
@@ -75,23 +76,20 @@ export default function ClientSidebar({
         ].join(" ")}
         aria-hidden={!mobileOpen}
       >
-        <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="h-10 w-10 flex items-center justify-center">
-            {/* <span className="text-white font-bold text-lg">S</span> */}
-            <Image
-              src="/favicon.ico"
+        <div className="mb-2 flex items-center gap-3 px-2">
+          <div className="mb-2 flex  px-2">
+            <img
+              src="/favicon.png"
               alt="Shipz Logo"
-              width={32}
-              height={32}
-              className="text-white font-bold text-lg"
+              className="h-20 w-20 object-contain"
             />
-          </div>
-          <div>
-            <div className="font-semibold text-lg text-slate-900">
-              Shipz Solutions
-            </div>
-            <div className="text-xs text-slate-500 font-medium">
-              Client Portal
+            <div className="flex items-baseline gap-2 whitespace-nowrap flex-col">
+              <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">
+                Shipz Solutions
+              </span>
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
+                Client Portal
+              </span>
             </div>
           </div>
         </div>
@@ -138,6 +136,18 @@ export default function ClientSidebar({
               <div className="text-xs text-slate-500">{me?.email ?? "—"}</div>
             </div>
           </div>
+          <button
+            onClick={async () => {
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } catch {}
+              onClose?.();
+              router.push("/client/login");
+            }}
+            className="mt-3 w-full rounded-xl px-4 py-3 text-[14px] font-medium text-white bg-red-600 hover:bg-red-700 hover:text-white transition-all"
+          >
+            Logout
+          </button>
         </div>
       </aside>
     </>

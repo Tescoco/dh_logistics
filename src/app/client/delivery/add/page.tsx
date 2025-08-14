@@ -48,6 +48,24 @@ export default function CreateDeliveryPage() {
   }
 
   async function submit(isDraft: boolean) {
+    // Client-side validation
+    const problems: string[] = [];
+    if (!form.description || form.description.trim().length === 0) {
+      problems.push("Description is required");
+    }
+    if (!form.senderPhone || form.senderPhone.trim().length <= 5) {
+      problems.push("Sender phone must be greater than 5 characters");
+    }
+    if (!form.customerPhone || form.customerPhone.trim().length <= 5) {
+      problems.push("Receiver phone must be greater than 5 characters");
+    }
+    if (String(form.codAmount).trim().length === 0) {
+      problems.push("COD amount is required");
+    }
+    if (problems.length > 0) {
+      alert(problems.join("\n"));
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
