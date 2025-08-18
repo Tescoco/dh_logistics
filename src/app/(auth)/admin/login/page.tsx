@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import { EyeIcon } from "@/components/icons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // metadata is defined at layout level for server components only
 
@@ -19,7 +20,16 @@ export default function AdminLoginPage() {
     <div className="min-h-screen grid place-items-center bg-slate-50 px-4">
       <div className="w-full max-w-[420px]">
         <div className="mb-5 flex items-center gap-2">
-          <div className="h-9 w-9 rounded-md bg-[#0EA5E9]" />
+          <div className="h-10 w-10 flex items-center justify-center">
+            {/* <span className="text-white font-bold text-lg">S</span> */}
+            <Image
+              src="/favicon.png"
+              alt="Shipz Logo"
+              width={80}
+              height={80}
+              className="text-white font-bold text-lg"
+            />
+          </div>
           <div>
             <div className="text-[18px] font-semibold">Shipz Solutions</div>
             <div className="text-[12px] text-slate-500">Admin Portal</div>
