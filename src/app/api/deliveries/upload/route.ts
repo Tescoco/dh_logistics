@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
       const paymentMethod = parts[16] ?? "prepaid";
       const codAmount = parseFloat(parts[17]) || 0;
       const notes = parts[18] ?? "";
+      const deliveryFee = parseFloat(parts[19]) || sender.deliveryFee;
 
       // Validate required fields
       if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
         description: description.trim(),
         priority: priority.trim(),
         paymentMethod: paymentMethod.trim(),
-        deliveryFee: sender.deliveryFee,
+        deliveryFee,
         codAmount,
         notes: notes.trim(),
         status: "pending",

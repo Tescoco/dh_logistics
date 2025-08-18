@@ -202,9 +202,9 @@ export default function DeliveryStatusPage() {
           const description = parts[14] ?? "";
           let priority = parts[15] ?? "standard";
           let paymentMethod = parts[16] ?? "prepaid";
-          const deliveryFee = parseFloat(parts[17]) || 0;
-          const codAmount = parseFloat(parts[18]) || 0;
-          const notes = parts[19] ?? "";
+          const codAmount = parseFloat(parts[17]) || 0;
+          const notes = parts[18] ?? "";
+          const deliveryFee = parseFloat(parts[19]) || 0;
           const missing: string[] = [];
           if (!reference.trim()) missing.push("reference");
           if (!customerName.trim()) missing.push("customer name");
@@ -262,7 +262,7 @@ export default function DeliveryStatusPage() {
 
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
