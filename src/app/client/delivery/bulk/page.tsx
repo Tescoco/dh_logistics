@@ -122,6 +122,23 @@ export default function BulkDeliveriesUploadPage() {
           const reference = parts[0] ?? "";
           const customerName = parts[1] ?? "";
           const customerPhone = parts[2] ?? "";
+          const senderName = parts[3] ?? "";
+          const senderPhone = parts[4] ?? "";
+          const senderAddress = parts[5] ?? "";
+          const senderCity = parts[6] ?? "";
+          const senderDistrict = parts[7] ?? "";
+          const senderPostalCode = parts[8] ?? "";
+          const deliveryAddress = parts[9] ?? "";
+          const deliveryCity = parts[10] ?? "";
+          const deliveryDistrict = parts[11] ?? "";
+          const deliveryPostalCode = parts[12] ?? "";
+          const packageType = parts[13] ?? "Package";
+          const description = parts[14] ?? "";
+          let priority = parts[15] ?? "standard";
+          let paymentMethod = parts[16] ?? "prepaid";
+          const deliveryFee = parseFloat(parts[17]) || 0;
+          const codAmount = parseFloat(parts[18]) || 0;
+          const notes = parts[19] ?? "";
 
           const missingFields = [];
           if (!reference.trim()) missingFields.push("reference");
@@ -146,17 +163,17 @@ export default function BulkDeliveriesUploadPage() {
 
           //   if priority is not express or standard, set it to standard
           if (
-            parts[7] &&
-            parts[7].trim().toLowerCase() !== "express" &&
-            parts[7].trim().toLowerCase() !== "standard"
+            priority &&
+            priority.trim().toLowerCase() !== "express" &&
+            priority.trim().toLowerCase() !== "standard"
           ) {
-            parts[7] = "standard";
+            priority = "standard";
           }
 
           if (
-            parts[8] &&
-            parts[8].trim().toLowerCase() !== "cod" &&
-            parts[8].trim().toLowerCase() !== "cash on delivery"
+            paymentMethod &&
+            paymentMethod.trim().toLowerCase() !== "cod" &&
+            paymentMethod.trim().toLowerCase() !== "cash on delivery"
           ) {
             valid = false;
             reason = reason
