@@ -265,9 +265,6 @@ export default function AdminDashboardPage() {
               <p className="text-slate-600 font-medium">
                 Chart visualization would go here
               </p>
-              <p className="text-sm text-slate-500">
-                Integration with your favorite chart library
-              </p>
             </div>
           </div>
         </Card>
