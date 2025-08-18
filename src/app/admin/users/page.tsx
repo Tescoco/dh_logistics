@@ -40,9 +40,7 @@ export default function UsersPage() {
 
   const [showAddType, setShowAddType] = useState(false);
   const [showAddDriver, setShowAddDriver] = useState(false);
-  const [selectedType, setSelectedType] = useState<
-    "admin" | "customer" | "driver" | null
-  >(null);
+  const [selectedType] = useState<"admin" | "customer" | "driver" | null>(null);
   const [driverName, setDriverName] = useState("");
   const [driverPhone, setDriverPhone] = useState("");
   const [employeeId, setEmployeeId] = useState("");

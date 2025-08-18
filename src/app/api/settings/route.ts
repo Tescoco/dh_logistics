@@ -33,7 +33,7 @@ async function getSingletonSettingsDoc() {
   return doc;
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const doc = await getSingletonSettingsDoc();
   return NextResponse.json({ settings: doc });
 }

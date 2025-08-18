@@ -16,7 +16,6 @@ import {
   FilterIcon,
   ListIcon,
   CalendarIcon,
-  XIcon,
 } from "@/components/icons";
 
 type DeliveryRow = {
@@ -49,7 +48,7 @@ export default function TrackDeliveriesPage() {
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
 
   // Bulk search state
   const [bulkSearchOpen, setBulkSearchOpen] = useState(false);

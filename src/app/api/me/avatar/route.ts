@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       api_key: ENV.CLOUDINARY_API_KEY(),
       api_secret: ENV.CLOUDINARY_API_SECRET(),
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json(
       { error: "Cloudinary environment variables are not configured" },
       { status: 500 }
