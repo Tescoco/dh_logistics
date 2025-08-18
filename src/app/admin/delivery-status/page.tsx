@@ -243,31 +243,9 @@ export default function DeliveryStatusPage() {
     }
   }
 
-  /*
-     const reference = parts[0] ?? "";
-      const customerName = parts[1] ?? "";
-      const customerPhone = parts[2] ?? "";
-      const senderNameCsv = parts[3] ?? "";
-      const senderPhoneCsv = parts[4] ?? "";
-      const senderAddressCsv = parts[5] ?? "";
-      const senderCityCsv = parts[6] ?? "";
-      const senderDistrictCsv = parts[7] ?? "";
-      const senderPostalCodeCsv = parts[8] ?? "";
-      const deliveryAddress = parts[9] ?? "";
-      const deliveryCity = parts[10] ?? "";
-      const deliveryDistrict = parts[11] ?? "";
-      const deliveryPostalCode = parts[12] ?? "";
-      const packageType = parts[13] ?? "Package";
-      const description = parts[14] ?? "";
-      const priority = parts[15] ?? "standard";
-      const paymentMethod = parts[16] ?? "prepaid";
-      const codAmount = parseFloat(parts[17]) || 0;
-      const notes = parts[18] ?? "";
-      */
-
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
