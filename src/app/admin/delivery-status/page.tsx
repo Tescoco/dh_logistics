@@ -201,7 +201,7 @@ export default function DeliveryStatusPage() {
           const packageType = parts[13] ?? "Package";
           const description = parts[14] ?? "";
           let priority = parts[15] ?? "standard";
-          let paymentMethod = parts[16] ?? "prepaid";
+          const paymentMethod = parts[16] ?? "prepaid";
           const codAmount = parseFloat(parts[17]) || 0;
           const notes = parts[18] ?? "";
           const deliveryFee = parseFloat(parts[19]) || 0;
