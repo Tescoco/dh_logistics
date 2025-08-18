@@ -54,7 +54,7 @@ export default function ClientLoginPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo and Header */}
         <div className="flex justify-center gap-0 mb-0">
-          <div className="h-20 w-20 flex items-center justify-center">
+          <div className="h-10 w-10 flex items-center justify-center">
             {/* <span className="text-white font-bold text-lg">S</span> */}
             <Image
               src="/favicon.png"
@@ -64,7 +64,7 @@ export default function ClientLoginPage() {
               className="text-white font-bold text-lg"
             />
           </div>
-          <div className="text-center">
+          <div className="text-center ml-2 mb-2">
             <h1 className="text-2xl font-bold text-slate-900">
               Shipz Customer Portal
             </h1>
