@@ -179,7 +179,7 @@ export default function ProfilePage() {
             </label>
             <Input placeholder="Confirm new password" type="password" />
           </div>
-          <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
+          {/* <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
             <div>
               <div className="font-medium">
                 Enable two-factor authentication
@@ -189,7 +189,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <input type="checkbox" className="h-5 w-5" />
-          </div>
+          </div> */}
           <Button className="w-48" leftIcon={<span>🔑</span>} disabled>
             Update Password
           </Button>

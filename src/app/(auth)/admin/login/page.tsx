@@ -2,7 +2,9 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
-import { GoogleIcon, AppleIcon, MicrosoftIcon } from "@/components/icons";
+import {
+  EyeIcon,
+} from "@/components/icons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +15,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   return (
     <div className="min-h-screen grid place-items-center bg-slate-50 px-4">
@@ -71,10 +74,19 @@ export default function AdminLoginPage() {
             <div>
               <label className="text-[13px] text-slate-600">Password</label>
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-slate-400 hover:text-slate-600"
+                  >
+                    <EyeIcon size={16} />
+                  </button>
+                }
                 required
               />
             </div>
@@ -98,10 +110,6 @@ export default function AdminLoginPage() {
             monitored and logged for security purposes.
           </div>
         </Card>
-        <div className="mt-6 text-center text-[12px] text-slate-500">
-          © 2025 Shipz Admin Portal. All rights reserved. | Privacy Policy |
-          Terms of Service
-        </div>
       </div>
     </div>
   );

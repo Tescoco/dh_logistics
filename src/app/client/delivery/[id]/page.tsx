@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { SAUDI_CITIES } from "@/lib/cities";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
@@ -15,9 +16,15 @@ type DeliveryResponse = {
     senderName?: string;
     senderPhone?: string;
     senderAddress?: string;
+    senderCity?: string;
+    senderDistrict?: string;
+    senderPostalCode?: string;
     customerName: string;
     customerPhone: string;
     deliveryAddress: string;
+    deliveryCity?: string;
+    deliveryDistrict?: string;
+    deliveryPostalCode?: string;
     weightKg?: number;
     dimensions?: string;
     packageType?: string;
@@ -42,9 +49,15 @@ export default function EditDeliveryPage() {
     senderName: "",
     senderPhone: "",
     senderAddress: "",
+    senderCity: "",
+    senderDistrict: "",
+    senderPostalCode: "",
     customerName: "",
     customerPhone: "",
     deliveryAddress: "",
+    deliveryCity: "",
+    deliveryDistrict: "",
+    deliveryPostalCode: "",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -62,6 +75,14 @@ export default function EditDeliveryPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  function normalizePhone(value: string) {
+    return (value || "").replace(/\D/g, "");
+  }
+
+  function normalizeText(value: string) {
+    return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -76,9 +97,15 @@ export default function EditDeliveryPage() {
           senderName: d.senderName || "",
           senderPhone: d.senderPhone || "",
           senderAddress: d.senderAddress || "",
+          senderCity: d.senderCity || "",
+          senderDistrict: d.senderDistrict || "",
+          senderPostalCode: d.senderPostalCode || "",
           customerName: d.customerName || "",
           customerPhone: d.customerPhone || "",
           deliveryAddress: d.deliveryAddress || "",
+          deliveryCity: d.deliveryCity || "",
+          deliveryDistrict: d.deliveryDistrict || "",
+          deliveryPostalCode: d.deliveryPostalCode || "",
           weightKg: d.weightKg != null ? String(d.weightKg) : "",
           dimensions: d.dimensions || "",
           packageType: d.packageType || "",
@@ -99,15 +126,45 @@ export default function EditDeliveryPage() {
   }, [deliveryId]);
 
   async function submit() {
+    // Client-side validation
+    const problems: string[] = [];
+    const senderPhoneNorm = normalizePhone(form.senderPhone);
+    const receiverPhoneNorm = normalizePhone(form.customerPhone);
+    if (
+      senderPhoneNorm &&
+      receiverPhoneNorm &&
+      senderPhoneNorm === receiverPhoneNorm
+    ) {
+      problems.push("Sender and receiver phone cannot be the same");
+    }
+    const senderAddressNorm = normalizeText(form.senderAddress);
+    const deliveryAddressNorm = normalizeText(form.deliveryAddress);
+    if (
+      senderAddressNorm &&
+      deliveryAddressNorm &&
+      senderAddressNorm === deliveryAddressNorm
+    ) {
+      problems.push("Sender and receiver address cannot be the same");
+    }
+    if (problems.length > 0) {
+      showError("Validation Error", problems.join(" • "));
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
         senderName: form.senderName || undefined,
         senderPhone: form.senderPhone || undefined,
         senderAddress: form.senderAddress || undefined,
+        senderCity: form.senderCity || undefined,
+        senderDistrict: form.senderDistrict || undefined,
+        senderPostalCode: form.senderPostalCode || undefined,
         customerName: form.customerName,
         customerPhone: form.customerPhone,
         deliveryAddress: form.deliveryAddress,
+        deliveryCity: form.deliveryCity || undefined,
+        deliveryDistrict: form.deliveryDistrict || undefined,
+        deliveryPostalCode: form.deliveryPostalCode || undefined,
         weightKg: form.weightKg ? Number(form.weightKg) : undefined,
         dimensions: form.dimensions || undefined,
         packageType: form.packageType || undefined,
@@ -133,6 +190,8 @@ export default function EditDeliveryPage() {
       setSubmitting(false);
     }
   }
+
+  const totalAmount = Number(form.codAmount || 0) || 0;
 
   if (loading) {
     return <div className="p-6 text-slate-500">Loading delivery…</div>;
@@ -193,6 +252,8 @@ export default function EditDeliveryPage() {
                 </label>
                 <Input
                   placeholder="+1 234 567 8900"
+                  type="number"
+                  maxLength={11}
                   value={form.senderPhone}
                   onChange={(e) => update("senderPhone", e.target.value)}
                 />
@@ -203,9 +264,45 @@ export default function EditDeliveryPage() {
                 Sender Address
               </label>
               <Input
-                placeholder="123 Main Street, City, State, ZIP"
+                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.senderAddress}
                 onChange={(e) => update("senderAddress", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">Sender City</label>
+              <Select
+                value={form.senderCity}
+                onChange={(e) =>
+                  update("senderCity", (e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="">Select City</option>
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Sender District
+              </label>
+              <Input
+                placeholder="Al Arid Dist"
+                value={form.senderDistrict}
+                onChange={(e) => update("senderDistrict", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Sender Postal Code
+              </label>
+              <Input
+                placeholder="13337"
+                value={form.senderPostalCode}
+                onChange={(e) => update("senderPostalCode", e.target.value)}
               />
             </div>
           </section>
@@ -231,19 +328,51 @@ export default function EditDeliveryPage() {
                 </label>
                 <Input
                   placeholder="+1 234 567 8901"
+                  type="number"
+                  maxLength={11}
                   value={form.customerPhone}
                   onChange={(e) => update("customerPhone", e.target.value)}
                 />
               </div>
             </div>
             <div>
-              <label className="text-[13px] text-slate-600">
-                Delivery Address
-              </label>
+              <label className="text-[13px] text-slate-600">Address</label>
               <Input
-                placeholder="456 Oak Avenue, City, State, ZIP"
+                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.deliveryAddress}
                 onChange={(e) => update("deliveryAddress", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">City</label>
+              <Select
+                value={form.deliveryCity}
+                onChange={(e) =>
+                  update("deliveryCity", (e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="">Select City</option>
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">District</label>
+              <Input
+                placeholder="Al Arid Dist"
+                value={form.deliveryDistrict}
+                onChange={(e) => update("deliveryDistrict", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">Postal Code</label>
+              <Input
+                placeholder="13337"
+                value={form.deliveryPostalCode}
+                onChange={(e) => update("deliveryPostalCode", e.target.value)}
               />
             </div>
           </section>
@@ -352,6 +481,12 @@ export default function EditDeliveryPage() {
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
                 />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Total Amount (﷼)
+                </label>
+                <Input value={String(totalAmount)} disabled />
               </div>
             </div>
           </section>

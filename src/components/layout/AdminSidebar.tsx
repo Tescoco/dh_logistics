@@ -94,18 +94,15 @@ function AdminSidebarInner({
         ].join(" ")}
         aria-hidden={!mobileOpen}
       >
-        <div className="mb-8 flex  px-2">
+        <div className="mb-2 flex  items-center">
           <img
             src="/favicon.png"
             alt="Shipz Logo"
-            className="h-20 w-20 object-contain"
+            className="h-10 w-10 object-contain"
           />
-          <div className="flex items-baseline gap-2 whitespace-nowrap flex-col">
+          <div className="flex items-baseline gap-0 whitespace-nowrap flex-col ml-2">
             <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">
               Shipz Solutions
-            </span>
-            <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
-              Admin Portal
             </span>
           </div>
         </div>

@@ -125,7 +125,12 @@ export default function EditUserPage() {
           <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="text-[13px] text-slate-600">Phone</label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input
+                value={phone}
+                type="number"
+                maxLength={11}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Email</label>

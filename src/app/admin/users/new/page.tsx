@@ -25,6 +25,8 @@ export default function CreateUserPage() {
     return r === "admin" || r === "customer" ? r : "customer";
   });
   const [submitting, setSubmitting] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [returnOrderRate, setReturnOrderRate] = useState(0);
 
   async function handleCreate() {
     if (password !== confirmPassword) {
@@ -43,6 +45,8 @@ export default function CreateUserPage() {
           email,
           role,
           password,
+          deliveryFee,
+          returnOrderRate,
         }),
       });
       if (!res.ok) {
@@ -181,14 +185,35 @@ export default function CreateUserPage() {
               <h2 className="text-[15px] font-semibold">Delivery Settings</h2>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Delivery Rate (per delivery)
-                </label>
-                <Input placeholder="0.00" />
-                <p className="mt-1 text-[12px] text-slate-500">
-                  Amount paid to user per completed delivery
-                </p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-[13px] text-slate-600">
+                    Delivery Rate (per delivery)
+                  </label>
+                  <Input
+                    placeholder="0.00"
+                    type="number"
+                    value={deliveryFee}
+                    onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                  />
+                  <p className="mt-1 text-[12px] text-slate-500">
+                    Amount paid to user per completed delivery
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[13px] text-slate-600">
+                    Return Order Rate
+                  </label>
+                  <Input
+                    placeholder="0.00"
+                    type="number"
+                    value={returnOrderRate}
+                    onChange={(e) => setReturnOrderRate(Number(e.target.value))}
+                  />
+                  <p className="mt-1 text-[12px] text-slate-500">
+                    Amount paid to user per returned delivery
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
@@ -206,9 +231,7 @@ export default function CreateUserPage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-[13px] text-slate-600">
-                    Service Area
-                  </label>
+                  <label className="text-[13px] text-slate-600">States</label>
                   <Select>
                     <option>Downtown District</option>
                     <option>Uptown</option>

@@ -12,6 +12,8 @@ const CreateUserSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(["admin", "driver", "manager", "customer"]).default("driver"),
   password: z.string().min(8),
+  deliveryFee: z.number().optional(),
+  returnOrderRate: z.number().optional(),
 });
 
 export const runtime = "nodejs";
@@ -56,6 +58,8 @@ export async function POST(req: NextRequest) {
       phone: input.phone,
       role: input.role,
       passwordHash,
+      deliveryFee: input.deliveryFee,
+      returnOrderRate: input.returnOrderRate,
     });
     return NextResponse.json({ id: user._id.toString() }, { status: 201 });
   } catch (err) {

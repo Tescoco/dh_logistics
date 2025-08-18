@@ -290,9 +290,9 @@ export default function ClientDashboard() {
                   </div>
                 </div>
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${d.statusColor}`}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${d.statusColor}`}
                 >
-                  {d.status}
+                  {d.status.replace("_", " ")}
                 </span>
               </div>
             ))}

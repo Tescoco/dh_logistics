@@ -373,11 +373,11 @@ export default function CodReportPage() {
                   <td className="px-6 py-3 hidden sm:table-cell">
                     <Badge variant="neutral">{r.format}</Badge>
                   </td>
-                  <td className="px-6 py-3 hidden sm:table-cell">
+                  <td className="px-6 py-3 hidden sm:table-cell capitalize">
                     <Badge
                       variant={r.status === "Ready" ? "success" : "warning"}
                     >
-                      {r.status}
+                      {r.status.replace("_", " ")}
                     </Badge>
                   </td>
                   <td className="px-6 py-3 text-[#0EA5E9]">
@@ -476,7 +476,7 @@ export default function CodReportPage() {
                     <div className="text-xs text-slate-500">{r.range}</div>
                   </div>
                   <Badge variant={r.status === "Ready" ? "success" : "warning"}>
-                    {r.status}
+                    {r.status.replace("_", " ")}
                   </Badge>
                 </div>
 

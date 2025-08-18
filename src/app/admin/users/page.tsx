@@ -518,6 +518,8 @@ export default function UsersPage() {
             />
             <Input
               placeholder="Phone Number"
+              type="number"
+              maxLength={11}
               value={driverPhone}
               onChange={(e) => setDriverPhone(e.target.value)}
             />

@@ -194,6 +194,26 @@ function CODTab() {
       .finally(() => setViewLoading(false));
   }
 
+  function openEditDelivery(id: string) {
+    router.push(`/admin/deliveries/${id}`);
+  }
+
+  async function handleDeleteDelivery(id: string) {
+    if (!confirm("Are you sure you want to delete this delivery?")) return;
+    try {
+      const res = await fetch(`/api/deliveries/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showError("Delete Failed", data?.error ?? "Failed to delete");
+        return;
+      }
+      setRows((prev) => prev.filter((r) => r._id !== id));
+      showSuccess("Deleted", "Delivery deleted successfully");
+    } catch {
+      showError("Delete Failed", "Failed to delete");
+    }
+  }
+
   async function handleBulkUpdate() {
     if (!bulkStatus || selectedIds.size === 0) return;
     setBulkUpdating(true);
@@ -319,7 +339,7 @@ function CODTab() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <div className="flex items-center gap-2 md:ml-4 w-full md:w-auto">
+          {/* <div className="flex items-center gap-2 md:ml-4 w-full md:w-auto">
             <div className="text-[13px] text-slate-500 whitespace-nowrap">
               {selectedIds.size} selected
             </div>
@@ -348,7 +368,7 @@ function CODTab() {
             >
               {bulkUpdating ? "Updating…" : "Update Status"}
             </Button>
-          </div>
+          </div> */}
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -400,7 +420,7 @@ function CODTab() {
                   </td>
                   <td className="px-5 py-3">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${
                         d.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : d.status === "in_transit"
@@ -408,16 +428,30 @@ function CODTab() {
                           : "bg-amber-50 text-amber-700 ring-amber-200"
                       }`}
                     >
-                      {d.status}
+                      {d.status.replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <button
-                      onClick={() => openViewDelivery(d._id)}
-                      className="text-[#0EA5E9] hover:underline"
-                    >
-                      View
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openViewDelivery(d._id)}
+                        className="text-[#0EA5E9] hover:underline"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => openEditDelivery(d._id)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDelivery(d._id)}
+                        className="text-rose-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -488,7 +522,9 @@ function CODTab() {
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Status</div>
-                <div className="font-medium">{viewDelivery.status}</div>
+                <div className="font-medium capitalize">
+                  {viewDelivery.status.replace("_", " ")}
+                </div>
               </div>
               <div className="md:col-span-2">
                 <div className="text-[12px] text-slate-500">
@@ -514,6 +550,7 @@ function CODTab() {
 }
 
 function InternalTab() {
+  const router = useRouter();
   const { showError, showSuccess } = useToast();
   const [driverName, setDriverName] = useState("");
   const [driverPhone, setDriverPhone] = useState("");
@@ -641,6 +678,26 @@ function InternalTab() {
       .then((r) => r.json())
       .then((d) => setViewDelivery((d.delivery as DeliveryDetail) ?? null))
       .finally(() => setViewLoading(false));
+  }
+
+  function openEditDelivery(id: string) {
+    router.push(`/admin/deliveries/${id}`);
+  }
+
+  async function handleDeleteDelivery(id: string) {
+    if (!confirm("Are you sure you want to delete this delivery?")) return;
+    try {
+      const res = await fetch(`/api/deliveries/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showError("Delete Failed", data?.error ?? "Failed to delete");
+        return;
+      }
+      setRows((prev) => prev.filter((r) => r._id !== id));
+      showSuccess("Deleted", "Delivery deleted successfully");
+    } catch {
+      showError("Delete Failed", "Failed to delete");
+    }
   }
 
   async function handleBulkUpdate() {
@@ -917,12 +974,26 @@ function InternalTab() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <button
-                      onClick={() => openViewDelivery(d._id)}
-                      className="text-[#0EA5E9] hover:underline"
-                    >
-                      View
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openViewDelivery(d._id)}
+                        className="text-[#0EA5E9] hover:underline"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => openEditDelivery(d._id)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDelivery(d._id)}
+                        className="text-rose-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -988,7 +1059,9 @@ function InternalTab() {
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Status</div>
-                <div className="font-medium">{viewDelivery.status}</div>
+                <div className="font-medium capitalize">
+                  {viewDelivery.status.replace("_", " ")}
+                </div>
               </div>
               <div className="md:col-span-2">
                 <div className="text-[12px] text-slate-500">

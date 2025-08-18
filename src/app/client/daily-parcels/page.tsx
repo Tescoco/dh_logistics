@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
-import Link from "next/link";
+
 import Modal from "@/components/ui/Modal";
 import { useRouter } from "next/navigation";
 import {
@@ -14,8 +14,6 @@ import {
   CheckIcon,
   TruckIcon,
   ClockIcon,
-  SearchIcon,
-  PlusIcon,
   EyeIcon,
   EditIcon,
 } from "@/components/icons";
@@ -50,7 +48,7 @@ type DeliveryApiLite = {
 
 export default function DailyParcelsPage() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [status, setStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -70,7 +68,16 @@ export default function DailyParcelsPage() {
     reference?: string;
     customerName?: string;
     customerPhone?: string;
+    senderName?: string;
+    senderPhone?: string;
+    senderAddress?: string;
+    senderCity?: string;
+    senderDistrict?: string;
+    senderPostalCode?: string;
     deliveryAddress?: string;
+    deliveryCity?: string;
+    deliveryDistrict?: string;
+    deliveryPostalCode?: string;
     status?: string;
     codAmount?: number;
     deliveryFee?: number;
@@ -389,7 +396,9 @@ export default function DailyParcelsPage() {
                     ﷼{r.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 align-top capitalize">
-                    <StatusBadge status={r.status} />
+                    <StatusBadge
+                      status={r.status.replace("_", " ") as ParcelRow["status"]}
+                    />
                   </td>
                   <td className="px-6 py-4 align-top">
                     <div className="flex items-center gap-3 text-[#0EA5E9]">
@@ -479,10 +488,106 @@ export default function DailyParcelsPage() {
               <span className="text-slate-500">Phone:</span>{" "}
               <span className="font-medium">{viewData.customerPhone}</span>
             </div>
+            {(viewData.senderName ||
+              viewData.senderPhone ||
+              viewData.senderAddress) && (
+              <>
+                <div className="border-t border-slate-100 pt-2 mt-2">
+                  <span className="text-slate-500 text-xs uppercase tracking-wide">
+                    Sender Information
+                  </span>
+                </div>
+                {viewData.senderName && (
+                  <div>
+                    <span className="text-slate-500">Sender:</span>{" "}
+                    <span className="font-medium">{viewData.senderName}</span>
+                  </div>
+                )}
+                {viewData.senderPhone && (
+                  <div>
+                    <span className="text-slate-500">Sender Phone:</span>{" "}
+                    <span className="font-medium">{viewData.senderPhone}</span>
+                  </div>
+                )}
+                {viewData.senderAddress && (
+                  <div>
+                    <span className="text-slate-500">Sender Address:</span>{" "}
+                    <span className="font-medium">
+                      {viewData.senderAddress}
+                    </span>
+                  </div>
+                )}
+                {(viewData.senderCity ||
+                  viewData.senderDistrict ||
+                  viewData.senderPostalCode) && (
+                  <div className="pl-4 space-y-1 border-l-2 border-slate-100">
+                    {viewData.senderCity && (
+                      <div>
+                        <span className="text-slate-500">Sender City:</span>{" "}
+                        <span className="font-medium">
+                          {viewData.senderCity}
+                        </span>
+                      </div>
+                    )}
+                    {viewData.senderDistrict && (
+                      <div>
+                        <span className="text-slate-500">Sender District:</span>{" "}
+                        <span className="font-medium">
+                          {viewData.senderDistrict}
+                        </span>
+                      </div>
+                    )}
+                    {viewData.senderPostalCode && (
+                      <div>
+                        <span className="text-slate-500">
+                          Sender Postal Code:
+                        </span>{" "}
+                        <span className="font-medium">
+                          {viewData.senderPostalCode}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+            <div className="border-t border-slate-100 pt-2 mt-2">
+              <span className="text-slate-500 text-xs uppercase tracking-wide">
+                Delivery Information
+              </span>
+            </div>
             <div>
               <span className="text-slate-500">Address:</span>{" "}
               <span className="font-medium">{viewData.deliveryAddress}</span>
             </div>
+            {(viewData.deliveryCity ||
+              viewData.deliveryDistrict ||
+              viewData.deliveryPostalCode) && (
+              <div className="pl-4 space-y-1 border-l-2 border-slate-100">
+                {viewData.deliveryCity && (
+                  <div>
+                    <span className="text-slate-500">City:</span>{" "}
+                    <span className="font-medium">{viewData.deliveryCity}</span>
+                  </div>
+                )}
+                {viewData.deliveryDistrict && (
+                  <div>
+                    <span className="text-slate-500">District:</span>{" "}
+                    <span className="font-medium">
+                      {viewData.deliveryDistrict}
+                    </span>
+                  </div>
+                )}
+                {viewData.deliveryPostalCode && (
+                  <div>
+                    <span className="text-slate-500">Postal Code:</span>{" "}
+                    <span className="font-medium">
+                      {viewData.deliveryPostalCode}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <span className="text-slate-500">Status:</span>{" "}
               <span className="font-medium capitalize">

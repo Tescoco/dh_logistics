@@ -1,6 +1,7 @@
 "use client";
 
 import Card from "@/components/ui/Card";
+import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import {
@@ -33,8 +34,35 @@ export default function AdminDashboardPage() {
     returned: number;
   } | null>(null);
   const [recent, setRecent] = useState<
-    { _id: string; customerName: string; status: string; createdAt: string }[]
+    {
+      _id: string;
+      reference?: string;
+      customerName: string;
+      status: string;
+      createdAt: string;
+      assignedDriverId: { _id?: string; firstName?: string; lastName?: string };
+    }[]
   >([]);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "completed" | "pending"
+  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewLoading, setViewLoading] = useState(false);
+  type DeliveryDetail = {
+    _id: string;
+    reference?: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    paymentMethod?: string;
+    codAmount?: number;
+    priority?: string;
+    status: string;
+    assignedDriverId?: { firstName?: string; lastName?: string };
+    notes?: string;
+  };
+  const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -93,6 +121,39 @@ export default function AdminDashboardPage() {
     ],
     [stats]
   );
+
+  const filteredRecent = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const isActive = (s: string) => s === "in_transit";
+    const isCompleted = (s: string) => s === "delivered";
+    const isPending = (s: string) => s === "pending";
+    let rows = recent;
+    if (statusFilter === "active")
+      rows = rows.filter((r) => isActive(r.status));
+    if (statusFilter === "completed")
+      rows = rows.filter((r) => isCompleted(r.status));
+    if (statusFilter === "pending")
+      rows = rows.filter((r) => isPending(r.status));
+    if (query) {
+      rows = rows.filter(
+        (r) =>
+          r.customerName.toLowerCase().includes(query) ||
+          String(r._id).toLowerCase().includes(query)
+      );
+    }
+    return rows;
+  }, [recent, statusFilter, searchQuery]);
+  const COD_DRIVER_ID = "68992b3ad5eb3b93c40396dc";
+
+  function openViewDelivery(id: string) {
+    setViewOpen(true);
+    setViewLoading(true);
+    setViewDelivery(null);
+    fetch(`/api/deliveries/${id}`)
+      .then((r) => r.json())
+      .then((d) => setViewDelivery((d.delivery as DeliveryDetail) ?? null))
+      .finally(() => setViewLoading(false));
+  }
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-end md:justify-between">
@@ -181,9 +242,9 @@ export default function AdminDashboardPage() {
         <Card
           className="xl:col-span-2 rounded-2xl border border-slate-200/60 shadow-card"
           header={
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
               <h3 className="font-semibold text-lg text-slate-900">
-                Delivery Overview
+                Deliveries Overview
               </h3>
               <div className="flex items-center gap-2">
                 <select className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
@@ -263,7 +324,14 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900">
-                      {delivery.customerName}
+                      {`${
+                        delivery.assignedDriverId?._id === COD_DRIVER_ID
+                          ? "External"
+                          : "Internal"
+                      } delivery created { ${
+                        delivery.reference ||
+                        delivery._id.slice(-8).toUpperCase()
+                      } }`}
                     </p>
                     <p className="text-xs text-slate-500">
                       {new Date(delivery.createdAt).toLocaleString()}
@@ -279,11 +347,16 @@ export default function AdminDashboardPage() {
       <Card
         className="rounded-2xl border border-slate-200/60 shadow-card"
         header={
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <h3 className="font-semibold text-lg text-slate-900">
               Recent Deliveries
             </h3>
-            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <button
+              onClick={() => {
+                router.push("/admin/deliveries");
+              }}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
               View all deliveries
             </button>
           </div>
@@ -291,22 +364,57 @@ export default function AdminDashboardPage() {
         padded={false}
       >
         <div className="px-6 pb-4 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg">
+          <div className="flex items-center gap-2 ">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                statusFilter === "all"
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
               All
             </button>
-            <button className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+            <button
+              onClick={() => setStatusFilter("active")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                statusFilter === "active"
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
               Active
             </button>
-            <button className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+            <button
+              onClick={() => setStatusFilter("completed")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                statusFilter === "completed"
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
               Completed
             </button>
+            <button
+              onClick={() => setStatusFilter("pending")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                statusFilter === "pending"
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Pending
+            </button>
           </div>
-          <div className="ml-auto w-80">
+          <div className="ml-auto w-80 mt-2">
             <Input
               leftIcon={<SearchIcon size={16} />}
               placeholder="Search deliveries..."
               className="border-slate-200"
+              value={searchQuery}
+              onChange={(e) =>
+                setSearchQuery((e.target as HTMLInputElement).value)
+              }
             />
           </div>
         </div>
@@ -332,7 +440,7 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {recent.map((delivery) => (
+              {filteredRecent.map((delivery) => (
                 <tr
                   key={delivery._id}
                   className="hover:bg-slate-50/50 transition-colors"
@@ -344,20 +452,25 @@ export default function AdminDashboardPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {delivery.customerName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                        {delivery.reference?.slice(-2).toUpperCase() ||
+                          delivery._id.slice(-2).toUpperCase()}
                       </div>
                       <span className="font-medium text-slate-900">
-                        {delivery.customerName}
+                        {`${
+                          delivery.assignedDriverId?._id === COD_DRIVER_ID
+                            ? "External"
+                            : "Internal"
+                        } delivery created { ${
+                          delivery.reference ||
+                          delivery._id.slice(-8).toUpperCase()
+                        } }`}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${
                         delivery.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                           : delivery.status === "in_transit"
@@ -365,7 +478,7 @@ export default function AdminDashboardPage() {
                           : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
                       }`}
                     >
-                      {delivery.status}
+                      {delivery.status.replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-600">
@@ -373,11 +486,14 @@ export default function AdminDashboardPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={"text-slate-400 italic"}>
-                      Not assigned
+                      {delivery.assignedDriverId?.firstName || "Not assigned"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <button className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">
+                    <button
+                      onClick={() => openViewDelivery(delivery._id)}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
+                    >
                       View Details
                     </button>
                   </td>
@@ -387,6 +503,86 @@ export default function AdminDashboardPage() {
           </table>
         </div>
       </Card>
+      <Modal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Delivery Details"
+        widthClassName="max-w-2xl"
+      >
+        {viewLoading ? (
+          <div className="text-sm text-slate-500">Loading…</div>
+        ) : viewDelivery ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-[12px] text-slate-500">Order ID</div>
+                <div className="font-medium">{String(viewDelivery._id)}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Reference</div>
+                <div className="font-medium">
+                  {viewDelivery.reference || "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Customer</div>
+                <div className="font-medium">{viewDelivery.customerName}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Phone</div>
+                <div className="font-medium">{viewDelivery.customerPhone}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Delivery Address
+                </div>
+                <div className="font-medium">
+                  {viewDelivery.deliveryAddress}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Payment</div>
+                <div className="font-medium">{viewDelivery.paymentMethod}</div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">COD Amount</div>
+                <div className="font-medium">
+                  {viewDelivery.codAmount
+                    ? `$${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Priority</div>
+                <div className="font-medium">
+                  {viewDelivery.priority || "standard"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">Status</div>
+                <div className="font-medium capitalize text-slate-900">
+                  {viewDelivery.status.replace("_", " ")}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">
+                  Assigned Driver
+                </div>
+                <div className="font-medium">
+                  {viewDelivery.assignedDriverId?.firstName || "—"}{" "}
+                  {viewDelivery.assignedDriverId?.lastName || "—"}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-[12px] text-slate-500">Notes</div>
+                <div className="font-medium">{viewDelivery.notes || "—"}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-slate-500">Delivery not found</div>
+        )}
+      </Modal>
     </div>
   );
 }

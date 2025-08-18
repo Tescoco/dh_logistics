@@ -10,7 +10,7 @@ import {
   SettingsIcon,
   UserIcon,
 } from "@/components/icons";
-import Image from "next/image";
+
 type NavItem = {
   href: string;
   label: string;
@@ -76,19 +76,16 @@ export default function ClientSidebar({
         ].join(" ")}
         aria-hidden={!mobileOpen}
       >
-        <div className="mb-2 flex items-center gap-3 px-2">
-          <div className="mb-2 flex  px-2">
+        <div className="mb-2 flex gap-0">
+          <div className="mb-2 flex  items-center gap-0">
             <img
               src="/favicon.png"
               alt="Shipz Logo"
-              className="h-20 w-20 object-contain"
+              className="h-10 w-10 object-contain"
             />
-            <div className="flex items-baseline gap-2 whitespace-nowrap flex-col">
+            <div className="flex items-baseline gap-2 whitespace-nowrap flex-col ml-2">
               <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">
                 Shipz Solutions
-              </span>
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
-                Client Portal
               </span>
             </div>
           </div>

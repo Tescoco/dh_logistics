@@ -532,7 +532,7 @@ export default function DeliveryStatusPage() {
                   <td className="px-5 py-3">{d.deliveryAddress}</td>
                   <td className="px-5 py-3">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${
                         d.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : d.status === "in_transit"
@@ -544,7 +544,7 @@ export default function DeliveryStatusPage() {
                           : "bg-amber-50 text-amber-700 ring-amber-200"
                       }`}
                     >
-                      {d.status}
+                      {d.status.replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-5 py-3">

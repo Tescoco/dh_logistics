@@ -13,6 +13,10 @@ export interface UserDocument {
   passwordHash: string;
   avatarUrl?: string;
   deliveryFee: number;
+  address?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +36,10 @@ const userSchema = new Schema<UserDocument>(
     isActive: { type: Boolean, default: true },
     passwordHash: { type: String, required: true },
     deliveryFee: { type: Number, default: 0 },
+    address: { type: String },
+    city: { type: String },
+    district: { type: String },
+    postalCode: { type: String },
   },
   { timestamps: true }
 );

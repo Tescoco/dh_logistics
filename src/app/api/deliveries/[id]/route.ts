@@ -10,9 +10,15 @@ const UpdateDeliverySchema = z.object({
   customerName: z.string().min(1).optional(),
   customerPhone: z.string().min(3).optional(),
   deliveryAddress: z.string().min(3).optional(),
+  deliveryCity: z.string().optional(),
+  deliveryDistrict: z.string().optional(),
+  deliveryPostalCode: z.string().optional(),
   senderName: z.string().optional(),
   senderPhone: z.string().optional(),
   senderAddress: z.string().optional(),
+  senderCity: z.string().optional(),
+  senderDistrict: z.string().optional(),
+  senderPostalCode: z.string().optional(),
   weightKg: z.number().optional(),
   dimensions: z.string().optional(),
   packageType: z.string().optional(),
@@ -31,16 +37,19 @@ const UpdateDeliverySchema = z.object({
 type RouteParams = { params: { id: string } };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function GET(_req: NextRequest, { params }: any) {
+export async function GET(_req: NextRequest, context: any) {
   await connectToDatabase();
-  const delivery = await Delivery.findById(params.id).lean();
+  const { id } = await context.params;
+  const delivery = await Delivery.findById(id)
+    .populate("assignedDriverId", "firstName lastName")
+    .lean();
   if (!delivery)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ delivery });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function PATCH(req: NextRequest, { params }: any) {
+export async function PATCH(req: NextRequest, context: any) {
   await connectToDatabase();
   const auth = await getAuthUser(req);
   if (!auth)
@@ -49,8 +58,9 @@ export async function PATCH(req: NextRequest, { params }: any) {
   try {
     const body = await req.json();
     const input = UpdateDeliverySchema.parse(body);
+    const { id } = await context.params;
     const updated = await Delivery.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: input },
       { new: true }
     ).lean();
@@ -69,11 +79,12 @@ export async function PATCH(req: NextRequest, { params }: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function DELETE(req: NextRequest, { params }: any) {
+export async function DELETE(req: NextRequest, context: any) {
   await connectToDatabase();
   const auth = await getAuthUser(req);
   if (!auth)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  await Delivery.findByIdAndDelete(params.id);
+  const { id } = await context.params;
+  await Delivery.findByIdAndDelete(id);
   return NextResponse.json({ ok: true });
 }

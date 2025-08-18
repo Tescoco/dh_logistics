@@ -1,32 +1,94 @@
 "use client";
+
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusIcon } from "@/components/icons";
 import { useToast } from "@/contexts/ToastContext";
 
-// metadata is set at a parent server component level
+type DeliveryResponse = {
+  delivery: {
+    _id: string;
+    reference: string;
+    senderName?: string;
+    senderPhone?: string;
+    senderAddress?: string;
+    senderCity?: string;
+    senderDistrict?: string;
+    senderPostalCode?: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    deliveryCity?: string;
+    deliveryDistrict?: string;
+    deliveryPostalCode?: string;
+    weightKg?: number;
+    dimensions?: string;
+    packageType?: string;
+    description: string;
+    priority?: string;
+    paymentMethod?: string;
+    deliveryFee?: number;
+    codAmount?: number;
+    notes?: string;
+    assignedDriverId?: { _id: string; firstName: string; lastName: string };
+  };
+};
 
-export default function CreateDeliveryPage() {
+type ClientUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  deliveryFee: number;
+  address?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
+};
+
+export default function AdminEditDeliveryPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params?.id as string;
   const { showError, showSuccess } = useToast();
-  const [submitting, setSubmitting] = useState(false);
-  function generateReference(): string {
-    const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    const letters = Array.from({ length: 3 })
-      .map(() =>
-        String.fromCharCode("A".charCodeAt(0) + Math.floor(Math.random() * 26))
-      )
-      .join("");
-    return `SHIPZ-${digits}-${letters}`;
-  }
-  const [form, setForm] = useState({
-    reference: typeof window === "undefined" ? "" : generateReference(),
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [clients, setClients] = useState<ClientUser[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
+
+  const [form, setForm] = useState<{
+    reference: string;
+    selectedClientId: string;
+    senderName: string;
+    senderPhone: string;
+    senderAddress: string;
+    senderCity: string;
+    senderDistrict: string;
+    senderPostalCode: string;
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+    deliveryCity: string;
+    deliveryDistrict: string;
+    deliveryPostalCode: string;
+    weightKg: string;
+    dimensions: string;
+    packageType: string;
+    description: string;
+    priority: string;
+    paymentMethod: string;
+    deliveryFee: string;
+    codAmount: string;
+    notes: string;
+    assignedDriverId: string;
+  }>({
+    reference: "",
+    selectedClientId: "",
     senderName: "",
     senderPhone: "",
     senderAddress: "",
@@ -45,68 +107,118 @@ export default function CreateDeliveryPage() {
     description: "",
     priority: "standard",
     paymentMethod: "prepaid",
+    deliveryFee: "",
     codAmount: "",
     notes: "",
+    assignedDriverId: "",
   });
 
-  function update<K extends keyof typeof form>(
-    key: K,
-    value: (typeof form)[K]
-  ) {
+  function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  const totalAmount = Number(form.codAmount || 0) || 0;
+  // Fetch clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const res = await fetch("/api/users/clients");
+        if (res.ok) {
+          const data = await res.json();
+          setClients(data.clients || []);
+        } else {
+          showError("Failed to load clients", "Could not fetch client list");
+        }
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        showError("Failed to load clients", "Could not fetch client list");
+      } finally {
+        setLoadingClients(false);
+      }
+    };
 
-  function normalizePhone(value: string) {
-    return (value || "").replace(/\D/g, "");
+    fetchClients();
+  }, [showError]);
+
+  // Handle client selection and auto-populate sender fields
+  function handleClientSelection(clientId: string) {
+    const selectedClient = clients.find((c) => c._id === clientId);
+    if (selectedClient) {
+      setForm((prev) => ({
+        ...prev,
+        selectedClientId: clientId,
+        senderName:
+          `${selectedClient.firstName} ${selectedClient.lastName}`.trim(),
+        senderPhone: selectedClient.phone || "",
+        senderAddress: selectedClient.address || "",
+        senderCity: selectedClient.city || "",
+        senderDistrict: selectedClient.district || "",
+        senderPostalCode: selectedClient.postalCode || "",
+        deliveryFee: String(selectedClient.deliveryFee || 0),
+      }));
+    } else {
+      // Clear fields if no client selected
+      setForm((prev) => ({
+        ...prev,
+        selectedClientId: "",
+        senderName: "",
+        senderPhone: "",
+        senderAddress: "",
+        senderCity: "",
+        senderDistrict: "",
+        senderPostalCode: "",
+        deliveryFee: "",
+      }));
+    }
   }
 
-  function normalizeText(value: string) {
-    return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
-  }
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const r = await fetch(`/api/deliveries/${id}`);
+        if (!r.ok) throw new Error("Failed");
+        const data: DeliveryResponse = await r.json();
+        if (!mounted) return;
+        const d = data.delivery || {};
+        setForm({
+          reference: d.reference || "",
+          selectedClientId: "", // Will be empty for editing existing deliveries
+          senderName: d.senderName || "",
+          senderPhone: d.senderPhone || "",
+          senderAddress: d.senderAddress || "",
+          senderCity: d.senderCity || "",
+          senderDistrict: d.senderDistrict || "",
+          senderPostalCode: d.senderPostalCode || "",
+          customerName: d.customerName || "",
+          customerPhone: d.customerPhone || "",
+          deliveryAddress: d.deliveryAddress || "",
+          deliveryCity: d.deliveryCity || "",
+          deliveryDistrict: d.deliveryDistrict || "",
+          deliveryPostalCode: d.deliveryPostalCode || "",
+          weightKg: d.weightKg != null ? String(d.weightKg) : "",
+          dimensions: d.dimensions || "",
+          packageType: d.packageType || "",
+          description: d.description || "",
+          priority: d.priority || "standard",
+          paymentMethod: d.paymentMethod || "prepaid",
+          deliveryFee: d.deliveryFee != null ? String(d.deliveryFee) : "",
+          codAmount: d.codAmount != null ? String(d.codAmount) : "",
+          notes: d.notes || "",
+          assignedDriverId: d.assignedDriverId?._id || "",
+        });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
-  async function submit(isDraft: boolean) {
-    // Client-side validation
-    const problems: string[] = [];
-    if (!form.description || form.description.trim().length === 0) {
-      problems.push("Description is required");
-    }
-    if (!form.senderPhone || form.senderPhone.trim().length <= 5) {
-      problems.push("Sender phone must be greater than 5 characters");
-    }
-    if (!form.customerPhone || form.customerPhone.trim().length <= 5) {
-      problems.push("Receiver phone must be greater than 5 characters");
-    }
-    if (String(form.codAmount).trim().length === 0) {
-      problems.push("COD amount is required");
-    }
-    const senderPhoneNorm = normalizePhone(form.senderPhone);
-    const receiverPhoneNorm = normalizePhone(form.customerPhone);
-    if (
-      senderPhoneNorm &&
-      receiverPhoneNorm &&
-      senderPhoneNorm === receiverPhoneNorm
-    ) {
-      problems.push("Sender and receiver phone cannot be the same");
-    }
-    const senderAddressNorm = normalizeText(form.senderAddress);
-    const deliveryAddressNorm = normalizeText(form.deliveryAddress);
-    if (
-      senderAddressNorm &&
-      deliveryAddressNorm &&
-      senderAddressNorm === deliveryAddressNorm
-    ) {
-      problems.push("Sender and receiver address cannot be the same");
-    }
-    if (problems.length > 0) {
-      showError("Validation Error", problems.join(" • "));
-      return;
-    }
-    setSubmitting(true);
+  async function submit() {
+    setSaving(true);
     try {
       const payload = {
-        reference: form.reference || generateReference(),
         senderName: form.senderName || undefined,
         senderPhone: form.senderPhone || undefined,
         senderAddress: form.senderAddress || undefined,
@@ -123,45 +235,36 @@ export default function CreateDeliveryPage() {
         dimensions: form.dimensions || undefined,
         packageType: form.packageType || undefined,
         description: form.description || undefined,
-        priority: form.priority as "standard" | "express",
-        paymentMethod: form.paymentMethod as "prepaid" | "cod",
+        priority: form.priority,
+        paymentMethod: form.paymentMethod,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
-        isDraft,
       };
-      const res = await fetch("/api/deliveries", {
-        method: "POST",
+      const res = await fetch(`/api/deliveries/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        showError("Save Failed", data?.error ?? "Failed to save delivery");
+        showError("Update Failed", data?.error ?? "Failed to update delivery");
         return;
       }
-      showSuccess(
-        "Delivery Created",
-        isDraft
-          ? "Delivery saved as draft successfully"
-          : "Delivery created successfully"
-      );
-      router.push("/client/track");
+      showSuccess("Updated", "Delivery updated successfully");
+      router.push("/admin/deliveries");
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   }
+
+  if (loading) return <div className="p-6 text-slate-500">Loading…</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Edit Delivery</h1>
         <Link
-          href="/client/delivery/bulk"
-          className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-        >
-          <PlusIcon size={16} /> Bulk Add Deliveries
-        </Link>
-        <Link
-          href="/client/track"
+          href="/admin/deliveries"
           className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
         >
           ← Back to Deliveries
@@ -172,38 +275,41 @@ export default function CreateDeliveryPage() {
         <div className="p-5 space-y-8">
           <section className="space-y-4">
             <h2 className="text-[15px] font-semibold text-slate-900">
-              Basic Information
-            </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Reference Number
-                </label>
-                <Input
-                  placeholder="SHIPZ-2025-001"
-                  value={form.reference}
-                  onChange={(e) => update("reference", e.target.value)}
-                />
-                <div className="text-[11px] text-slate-500 mt-1">
-                  Format: SHIPZ-0000-ABC
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-[15px] font-semibold text-slate-900">
               Sender Information
             </h2>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Select Client (to update sender info)
+              </label>
+              <Select
+                value={form.selectedClientId || ""}
+                onChange={(e) =>
+                  handleClientSelection((e.target as HTMLSelectElement).value)
+                }
+                disabled={loadingClients}
+              >
+                <option value="">
+                  {loadingClients
+                    ? "Loading clients..."
+                    : "Select a client to update sender info"}
+                </option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {`${client.firstName} ${client.lastName}`.trim()}
+                    {client.phone && ` - ${client.phone}`}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Sender Name
                 </label>
                 <Input
-                  placeholder="John Doe"
-                  value={form.senderName}
-                  onChange={(e) => update("senderName", e.target.value)}
+                  value={form.senderName || ""}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div>
@@ -211,11 +317,9 @@ export default function CreateDeliveryPage() {
                   Sender Phone
                 </label>
                 <Input
-                  placeholder="+1 234 567 8900"
-                  type="number"
-                  maxLength={11}
-                  value={form.senderPhone}
-                  onChange={(e) => update("senderPhone", e.target.value)}
+                  value={form.senderPhone || ""}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
             </div>
@@ -224,35 +328,27 @@ export default function CreateDeliveryPage() {
                 Sender Address
               </label>
               <Input
-                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
-                value={form.senderAddress}
-                onChange={(e) => update("senderAddress", e.target.value)}
+                value={form.senderAddress || ""}
+                readOnly
+                className="bg-gray-50"
               />
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Sender City</label>
-              <Select
-                value={form.senderCity}
-                onChange={(e) =>
-                  update("senderCity", (e.target as HTMLSelectElement).value)
-                }
-              >
-                <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
+              <Input
+                value={form.senderCity || ""}
+                readOnly
+                className="bg-gray-50"
+              />
             </div>
             <div>
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
               <Input
-                placeholder="Al Arid Dist"
-                value={form.senderDistrict}
-                onChange={(e) => update("senderDistrict", e.target.value)}
+                value={form.senderDistrict || ""}
+                readOnly
+                className="bg-gray-50"
               />
             </div>
             <div>
@@ -260,9 +356,9 @@ export default function CreateDeliveryPage() {
                 Sender Postal Code
               </label>
               <Input
-                placeholder="13337"
-                value={form.senderPostalCode}
-                onChange={(e) => update("senderPostalCode", e.target.value)}
+                value={form.senderPostalCode || ""}
+                readOnly
+                className="bg-gray-50"
               />
             </div>
           </section>
@@ -277,7 +373,6 @@ export default function CreateDeliveryPage() {
                   Receiver Name
                 </label>
                 <Input
-                  placeholder="Jane Smith"
                   value={form.customerName}
                   onChange={(e) => update("customerName", e.target.value)}
                 />
@@ -287,7 +382,6 @@ export default function CreateDeliveryPage() {
                   Receiver Phone
                 </label>
                 <Input
-                  placeholder="+1 234 567 8901"
                   type="number"
                   maxLength={11}
                   value={form.customerPhone}
@@ -298,7 +392,6 @@ export default function CreateDeliveryPage() {
             <div>
               <label className="text-[13px] text-slate-600">Address</label>
               <Input
-                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.deliveryAddress}
                 onChange={(e) => update("deliveryAddress", e.target.value)}
               />
@@ -322,7 +415,6 @@ export default function CreateDeliveryPage() {
             <div>
               <label className="text-[13px] text-slate-600">District</label>
               <Input
-                placeholder="Al Arid Dist"
                 value={form.deliveryDistrict}
                 onChange={(e) => update("deliveryDistrict", e.target.value)}
               />
@@ -330,7 +422,6 @@ export default function CreateDeliveryPage() {
             <div>
               <label className="text-[13px] text-slate-600">Postal Code</label>
               <Input
-                placeholder="13337"
                 value={form.deliveryPostalCode}
                 onChange={(e) => update("deliveryPostalCode", e.target.value)}
               />
@@ -339,7 +430,7 @@ export default function CreateDeliveryPage() {
 
           <section className="space-y-4">
             <h2 className="text-[15px] font-semibold text-slate-900">
-              Package Details
+              Package & Options
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
@@ -348,17 +439,13 @@ export default function CreateDeliveryPage() {
                 </label>
                 <Input
                   placeholder="1.5"
-                  type="number"
                   value={form.weightKg}
                   onChange={(e) => update("weightKg", e.target.value)}
                 />
               </div>
               <div>
-                <label className="text-[13px] text-slate-600">
-                  Dimensions (L×W×H)
-                </label>
+                <label className="text-[13px] text-slate-600">Dimensions</label>
                 <Input
-                  placeholder="20×15×10 cm"
                   value={form.dimensions}
                   onChange={(e) => update("dimensions", e.target.value)}
                 />
@@ -373,29 +460,20 @@ export default function CreateDeliveryPage() {
                     update("packageType", (e.target as HTMLSelectElement).value)
                   }
                 >
-                  <option>Select Type</option>
-                  <option>Document</option>
-                  <option>Parcel</option>
-                  <option>Other</option>
+                  <option value="">Select Type</option>
+                  <option value="Document">Document</option>
+                  <option value="Parcel">Parcel</option>
+                  <option value="Other">Other</option>
                 </Select>
               </div>
             </div>
             <div>
-              <label className="text-[13px] text-slate-600">
-                Package Description
-              </label>
+              <label className="text-[13px] text-slate-600">Description</label>
               <Input
-                placeholder="Brief description of package contents"
                 value={form.description}
                 onChange={(e) => update("description", e.target.value)}
               />
             </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-[15px] font-semibold text-slate-900">
-              Delivery Options
-            </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">Priority</label>
@@ -422,17 +500,27 @@ export default function CreateDeliveryPage() {
                     )
                   }
                 >
+                  <option value="prepaid">Prepaid</option>
                   <option value="cod">Cash on Delivery</option>
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="text-[13px] text-slate-600">
-                  COD Amount (﷼)
+                  Delivery Fee (﷼)
                 </label>
                 <Input
-                  placeholder="0.00"
+                  type="number"
+                  placeholder="Auto-populated from client"
+                  value={form.deliveryFee || ""}
+                  readOnly
+                  className="bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">COD Amount</label>
+                <Input
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
                 />
@@ -441,33 +529,18 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Total Amount (﷼)
                 </label>
-                <Input value={String(totalAmount)} disabled />
+                <Input
+                  readOnly
+                  value={(
+                    Number(form.deliveryFee || 0) + Number(form.codAmount || 0)
+                  ).toFixed(2)}
+                  className="bg-gray-50"
+                />
               </div>
             </div>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-[15px] font-semibold text-slate-900">
-              Special Instructions
-            </h2>
-            <div className="grid gap-3">
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Fragile - Handle
-                with care
-              </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Signature required
-              </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Insurance required
-              </label>
-            </div>
             <div>
-              <label className="text-[13px] text-slate-600">
-                Additional Notes
-              </label>
+              <label className="text-[13px] text-slate-600">Notes</label>
               <Input
-                placeholder="Any special delivery instructions or notes"
                 value={form.notes}
                 onChange={(e) => update("notes", e.target.value)}
               />
@@ -475,19 +548,11 @@ export default function CreateDeliveryPage() {
           </section>
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
-          <Button
-            disabled={submitting}
-            variant="secondary"
-            onClick={() => submit(true)}
-          >
-            {submitting ? "Saving..." : "Save as Draft"}
+          <Button variant="secondary" onClick={() => router.back()}>
+            Cancel
           </Button>
-          <Button
-            disabled={submitting}
-            variant="gradient"
-            onClick={() => submit(false)}
-          >
-            {submitting ? "Submitting..." : "Create Delivery"}
+          <Button variant="gradient" onClick={submit} disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </Card>

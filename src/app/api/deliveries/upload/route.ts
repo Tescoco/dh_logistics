@@ -7,10 +7,10 @@ import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
-// Expected CSV headers: reference,customerName,customerPhone,deliveryAddress,packageType,description,priority,paymentMethod,codAmount,notes
+// Expected CSV headers: reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes
 // Example:
-// REF001,John Doe,+1234567890,123 Main St,Package,Description,Standard,COD,10,50,Notes
-// REF002,Jane Smith,+9876543210,456 Oak Ave,Document,Important docs,Express,Prepaid,15,0,Handle with care
+// REF001,John Doe,+1234567890,Jane Sender,+9876543210,789 Sender St,Riyadh,Al-Malaz,12345,123 Main St,Riyadh,Al-Malaz,12345,Package,Description,Standard,COD,10,50,Notes
+// REF002,Jane Smith,+9876543210,Bob Sender,+1234567890,456 Sender Ave,Jeddah,Al-Hamra,54321,456 Oak Ave,Jeddah,Al-Hamra,54321,Document,Important docs,Express,Prepaid,15,0,Handle with care
 export async function POST(req: NextRequest) {
   await connectToDatabase();
   const auth = await getAuthUser(req);
@@ -82,8 +82,14 @@ export async function POST(req: NextRequest) {
       customerPhone: string;
       senderName: string;
       senderPhone: string;
-      senderAddress: string;
+      senderAddress?: string;
+      senderCity?: string;
+      senderDistrict?: string;
+      senderPostalCode?: string;
       deliveryAddress: string;
+      deliveryCity?: string;
+      deliveryDistrict?: string;
+      deliveryPostalCode?: string;
       packageType: string;
       description: string;
       priority: string;
@@ -110,14 +116,22 @@ export async function POST(req: NextRequest) {
       const reference = parts[0] ?? "";
       const customerName = parts[1] ?? "";
       const customerPhone = parts[2] ?? "";
-      const originAddress = parts[3] ?? "";
-      const deliveryAddress = parts[4] ?? "";
-      const packageType = parts[5] ?? "Package";
-      const description = parts[6] ?? "";
-      const priority = parts[7] ?? "standard";
-      const paymentMethod = parts[8] ?? "prepaid";
-      const codAmount = parseFloat(parts[9]) || 0;
-      const notes = parts[10] ?? "";
+      const senderNameCsv = parts[3] ?? "";
+      const senderPhoneCsv = parts[4] ?? "";
+      const senderAddressCsv = parts[5] ?? "";
+      const senderCityCsv = parts[6] ?? "";
+      const senderDistrictCsv = parts[7] ?? "";
+      const senderPostalCodeCsv = parts[8] ?? "";
+      const deliveryAddress = parts[9] ?? "";
+      const deliveryCity = parts[10] ?? "";
+      const deliveryDistrict = parts[11] ?? "";
+      const deliveryPostalCode = parts[12] ?? "";
+      const packageType = parts[13] ?? "Package";
+      const description = parts[14] ?? "";
+      const priority = parts[15] ?? "standard";
+      const paymentMethod = parts[16] ?? "prepaid";
+      const codAmount = parseFloat(parts[17]) || 0;
+      const notes = parts[18] ?? "";
 
       // Validate required fields
       if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
@@ -133,10 +147,16 @@ export async function POST(req: NextRequest) {
         reference: reference.trim(),
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
-        senderName: senderName,
-        senderPhone: senderPhone,
-        senderAddress: originAddress.trim(),
+        senderName: senderNameCsv.trim() || senderName,
+        senderPhone: senderPhoneCsv.trim() || senderPhone,
+        senderAddress: senderAddressCsv.trim() || undefined,
+        senderCity: senderCityCsv.trim() || undefined,
+        senderDistrict: senderDistrictCsv.trim() || undefined,
+        senderPostalCode: senderPostalCodeCsv.trim() || undefined,
         deliveryAddress: deliveryAddress.trim(),
+        deliveryCity: deliveryCity.trim() || undefined,
+        deliveryDistrict: deliveryDistrict.trim() || undefined,
+        deliveryPostalCode: deliveryPostalCode.trim() || undefined,
         packageType: packageType.trim(),
         description: description.trim(),
         priority: priority.trim(),

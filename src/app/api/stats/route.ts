@@ -43,6 +43,7 @@ export async function GET() {
     // current snapshots
     Delivery.countDocuments({
       ...scope,
+      status: { $in: ["in_transit"] },
     }),
     Delivery.countDocuments({ ...scope, status: "delivered" }),
     Delivery.countDocuments({ ...scope, status: "returned" }),

@@ -144,7 +144,12 @@ export default function ClientSettingsPage() {
           </div>
           <div className="md:col-span-2">
             <div className="text-[12px] text-slate-500 mb-1">Phone Number</div>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input
+              value={phone}
+              type="number"
+              maxLength={11}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
         </div>
         <div className="mt-4 flex justify-end">
@@ -192,7 +197,7 @@ export default function ClientSettingsPage() {
               />
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-lg bg-slate-50 p-4">
+          {/* <div className="flex items-center justify-between rounded-lg bg-slate-50 p-4">
             <div>
               <div className="font-medium">Two-Factor Authentication</div>
               <div className="text-sm text-slate-500">
@@ -200,7 +205,7 @@ export default function ClientSettingsPage() {
               </div>
             </div>
             <Button variant="gradient">Enable 2FA</Button>
-          </div>
+          </div> */}
           <div className="flex justify-end">
             <Button>Update Password</Button>
           </div>

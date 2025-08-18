@@ -11,6 +11,7 @@ export default function Input({
   rightIcon,
   type = "text",
   className = "",
+  maxLength = 10000,
   ...props
 }: InputProps) {
   return (
@@ -22,6 +23,12 @@ export default function Input({
       ) : null}
       <input
         type={type}
+        onInput={(e) => {
+          const target = e.target as HTMLInputElement;
+          if (target.value.length > maxLength) {
+            target.value = target.value.slice(0, maxLength);
+          }
+        }}
         className={[
           "w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[15px] text-slate-900 placeholder:text-slate-400 shadow-xs",
           "focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-[#0EA5E9]",

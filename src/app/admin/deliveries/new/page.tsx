@@ -3,16 +3,32 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { SAUDI_CITIES } from "@/lib/cities";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useToast } from "@/contexts/ToastContext";
 
 // metadata is set at a parent server component level
+
+type ClientUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  deliveryFee: number;
+  address?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
+};
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [clients, setClients] = useState<ClientUser[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
   const restrictedDriverId = "68992b3ad5eb3b93c40396dc";
   function generateReference(): string {
     const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
@@ -25,12 +41,19 @@ export default function CreateDeliveryPage() {
   }
   const [form, setForm] = useState({
     reference: typeof window === "undefined" ? "" : generateReference(),
+    selectedClientId: "",
     senderName: "",
     senderPhone: "",
     senderAddress: "",
+    senderCity: "",
+    senderDistrict: "",
+    senderPostalCode: "",
     customerName: "",
     customerPhone: "",
     deliveryAddress: "",
+    deliveryCity: "",
+    deliveryDistrict: "",
+    deliveryPostalCode: "",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -85,6 +108,68 @@ export default function CreateDeliveryPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  // Fetch clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const res = await fetch("/api/users/clients");
+        if (res.ok) {
+          const data = await res.json();
+          setClients(data.clients || []);
+        } else {
+          showError("Failed to load clients", "Could not fetch client list");
+        }
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        showError("Failed to load clients", "Could not fetch client list");
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+
+    fetchClients();
+  }, [showError]);
+
+  // Handle client selection and auto-populate sender fields
+  function handleClientSelection(clientId: string) {
+    const selectedClient = clients.find((c) => c._id === clientId);
+    if (selectedClient) {
+      setForm((prev) => ({
+        ...prev,
+        selectedClientId: clientId,
+        senderName:
+          `${selectedClient.firstName} ${selectedClient.lastName}`.trim(),
+        senderPhone: selectedClient.phone || "",
+        senderAddress: selectedClient.address || "",
+        senderCity: selectedClient.city || "",
+        senderDistrict: selectedClient.district || "",
+        senderPostalCode: selectedClient.postalCode || "",
+        deliveryFee: String(selectedClient.deliveryFee || 0),
+      }));
+    } else {
+      // Clear fields if no client selected
+      setForm((prev) => ({
+        ...prev,
+        selectedClientId: "",
+        senderName: "",
+        senderPhone: "",
+        senderAddress: "",
+        senderCity: "",
+        senderDistrict: "",
+        senderPostalCode: "",
+        deliveryFee: "",
+      }));
+    }
+  }
+
+  function normalizePhone(value: string) {
+    return (value || "").replace(/\D/g, "");
+  }
+
+  function normalizeText(value: string) {
+    return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
   async function submit(isDraft: boolean) {
     // Client-side validation
     const problems: string[] = [];
@@ -95,16 +180,34 @@ export default function CreateDeliveryPage() {
       problems.push("Description must be at least 5 characters");
     }
     if (!form.customerPhone || form.customerPhone.trim().length < 5) {
-      problems.push("Receiver phone must be at least 5 characters");
+      problems.push("Receiver phone must be at least 10 characters");
     }
     if (!form.senderPhone || form.senderPhone.trim().length < 5) {
-      problems.push("Sender phone must be at least 5 characters");
+      problems.push("Sender phone must be at least 10 characters");
     }
     if (
       form.paymentMethod === "cod" &&
       (form.codAmount === "" || String(form.codAmount).trim().length === 0)
     ) {
       problems.push("COD amount is required when payment method is COD");
+    }
+    const senderPhoneNorm = normalizePhone(form.senderPhone);
+    const receiverPhoneNorm = normalizePhone(form.customerPhone);
+    if (
+      senderPhoneNorm &&
+      receiverPhoneNorm &&
+      senderPhoneNorm === receiverPhoneNorm
+    ) {
+      problems.push("Sender and receiver phone cannot be the same");
+    }
+    const senderAddressNorm = normalizeText(form.senderAddress);
+    const deliveryAddressNorm = normalizeText(form.deliveryAddress);
+    if (
+      senderAddressNorm &&
+      deliveryAddressNorm &&
+      senderAddressNorm === deliveryAddressNorm
+    ) {
+      problems.push("Sender and receiver address cannot be the same");
     }
     if (problems.length > 0) {
       showError("Validation Error", problems.join(" • "));
@@ -117,9 +220,15 @@ export default function CreateDeliveryPage() {
         senderName: form.senderName || undefined,
         senderPhone: form.senderPhone || undefined,
         senderAddress: form.senderAddress || undefined,
+        senderCity: form.senderCity || undefined,
+        senderDistrict: form.senderDistrict || undefined,
+        senderPostalCode: form.senderPostalCode || undefined,
         customerName: form.customerName,
         customerPhone: form.customerPhone,
         deliveryAddress: form.deliveryAddress,
+        deliveryCity: form.deliveryCity || undefined,
+        deliveryDistrict: form.deliveryDistrict || undefined,
+        deliveryPostalCode: form.deliveryPostalCode || undefined,
         weightKg: form.weightKg ? Number(form.weightKg) : undefined,
         dimensions: form.dimensions || undefined,
         packageType: form.packageType || undefined,
@@ -165,6 +274,9 @@ export default function CreateDeliveryPage() {
     }
   }
 
+  const totalAmount =
+    (Number(form.deliveryFee || 0) || 0) + (Number(form.codAmount || 0) || 0);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -173,12 +285,12 @@ export default function CreateDeliveryPage() {
             Create Delivery
           </h1>
         </div>
-        <a
+        <Link
           href="/admin/deliveries"
           className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
         >
           ← Back to Deliveries
-        </a>
+        </Link>
       </div>
 
       <Card padded={false}>
@@ -226,15 +338,38 @@ export default function CreateDeliveryPage() {
             <h2 className="text-[15px] font-semibold text-slate-900">
               Sender Information
             </h2>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Select Client
+              </label>
+              <Select
+                value={form.selectedClientId}
+                onChange={(e) =>
+                  handleClientSelection((e.target as HTMLSelectElement).value)
+                }
+                disabled={loadingClients}
+              >
+                <option value="">
+                  {loadingClients ? "Loading clients..." : "Select a client"}
+                </option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {`${client.firstName} ${client.lastName}`.trim()}
+                    {client.phone && ` - ${client.phone}`}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Sender Name
                 </label>
                 <Input
-                  placeholder="John Doe"
+                  placeholder="Select a client first"
                   value={form.senderName}
-                  onChange={(e) => update("senderName", e.target.value)}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div>
@@ -242,9 +377,10 @@ export default function CreateDeliveryPage() {
                   Sender Phone
                 </label>
                 <Input
-                  placeholder="+1 234 567 8900"
+                  placeholder="Auto-populated from client"
                   value={form.senderPhone}
-                  onChange={(e) => update("senderPhone", e.target.value)}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
             </div>
@@ -253,9 +389,41 @@ export default function CreateDeliveryPage() {
                 Sender Address
               </label>
               <Input
-                placeholder="123 Main Street, City, State, ZIP"
+                placeholder="Auto-populated from client"
                 value={form.senderAddress}
-                onChange={(e) => update("senderAddress", e.target.value)}
+                readOnly
+                className="bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">Sender City</label>
+              <Input
+                placeholder="Auto-populated from client"
+                value={form.senderCity}
+                readOnly
+                className="bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Sender District
+              </label>
+              <Input
+                placeholder="Auto-populated from client"
+                value={form.senderDistrict}
+                readOnly
+                className="bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Sender Postal Code
+              </label>
+              <Input
+                placeholder="Auto-populated from client"
+                value={form.senderPostalCode}
+                readOnly
+                className="bg-gray-50"
               />
             </div>
           </section>
@@ -281,19 +449,51 @@ export default function CreateDeliveryPage() {
                 </label>
                 <Input
                   placeholder="+1 234 567 8901"
+                  type="number"
+                  maxLength={11}
                   value={form.customerPhone}
                   onChange={(e) => update("customerPhone", e.target.value)}
                 />
               </div>
             </div>
             <div>
-              <label className="text-[13px] text-slate-600">
-                Delivery Address
-              </label>
+              <label className="text-[13px] text-slate-600">Address</label>
               <Input
-                placeholder="456 Oak Avenue, City, State, ZIP"
+                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.deliveryAddress}
                 onChange={(e) => update("deliveryAddress", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">City</label>
+              <Select
+                value={form.deliveryCity}
+                onChange={(e) =>
+                  update("deliveryCity", (e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="">Select City</option>
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">District</label>
+              <Input
+                placeholder="Al Arid Dist"
+                value={form.deliveryDistrict}
+                onChange={(e) => update("deliveryDistrict", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">Postal Code</label>
+              <Input
+                placeholder="13337"
+                value={form.deliveryPostalCode}
+                onChange={(e) => update("deliveryPostalCode", e.target.value)}
               />
             </div>
           </section>
@@ -401,9 +601,10 @@ export default function CreateDeliveryPage() {
                 </label>
                 <Input
                   type="number"
-                  placeholder="25.00"
+                  placeholder="Auto-populated from client"
                   value={form.deliveryFee}
-                  onChange={(e) => update("deliveryFee", e.target.value)}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div>
@@ -416,6 +617,12 @@ export default function CreateDeliveryPage() {
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
                 />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Total Amount (﷼)
+                </label>
+                <Input value={String(totalAmount)} disabled />
               </div>
             </div>
           </section>

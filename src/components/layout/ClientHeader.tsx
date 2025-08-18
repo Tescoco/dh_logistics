@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { SearchIcon, UserIcon, BellIcon, PlusIcon } from "@/components/icons";
+import { SearchIcon, PlusIcon } from "@/components/icons";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -11,7 +11,7 @@ const navigation = [
   {
     name: "Dashboard",
     href: "/client",
-    helperText: "Welcome back! Here's your delivery overview",
+    helperText: "Welcome back! Here's your Deliveries overview",
   },
   {
     name: "Add Delivery",

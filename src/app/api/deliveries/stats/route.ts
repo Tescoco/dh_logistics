@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
   const [total, pendingAssignment, inTransit, assigned, deliveredToday] =
     await Promise.all([
-      Delivery.countDocuments({ ...paymentFilter, ...ownerFilter }),
+      Delivery.countDocuments({ ...paymentFilter, ...ownerFilter, ...query }),
       Delivery.countDocuments({
         ...paymentFilter,
         ...ownerFilter,

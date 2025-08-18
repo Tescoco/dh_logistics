@@ -13,9 +13,15 @@ export interface DeliveryDocument {
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
+  deliveryCity?: string;
+  deliveryDistrict?: string;
+  deliveryPostalCode?: string;
   senderName?: string;
   senderPhone?: string;
   senderAddress?: string;
+  senderCity?: string;
+  senderDistrict?: string;
+  senderPostalCode?: string;
   weightKg?: number;
   dimensions?: string;
   packageType?: string;
@@ -41,9 +47,15 @@ const deliverySchema = new Schema<DeliveryDocument>(
     customerName: { type: String, required: true },
     customerPhone: { type: String, required: true },
     deliveryAddress: { type: String, required: true },
+    deliveryCity: String,
+    deliveryDistrict: String,
+    deliveryPostalCode: String,
     senderName: String,
     senderPhone: String,
     senderAddress: String,
+    senderCity: String,
+    senderDistrict: String,
+    senderPostalCode: String,
     weightKg: Number,
     dimensions: String,
     packageType: String,

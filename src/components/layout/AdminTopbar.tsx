@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { BellIcon, UserIcon, ChevronDownIcon } from "@/components/icons";
+import { UserIcon, ChevronDownIcon } from "@/components/icons";
 
 export default function AdminTopbar({
   onMenuClick,

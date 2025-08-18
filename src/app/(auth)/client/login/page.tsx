@@ -42,7 +42,7 @@ export default function ClientLoginPage() {
       }
       // No client-side 3rd-party login persistence; backend handles token refresh via cron
       router.push("/client");
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ export default function ClientLoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo and Header */}
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-0 mb-0">
           <div className="h-20 w-20 flex items-center justify-center">
             {/* <span className="text-white font-bold text-lg">S</span> */}
             <Image
@@ -65,7 +65,9 @@ export default function ClientLoginPage() {
             />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-900">Shipz Portal</h1>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Shipz Customer Portal
+            </h1>
             <p className="text-sm text-slate-600">
               Sign in to your Shipz account
             </p>
@@ -202,7 +204,7 @@ export default function ClientLoginPage() {
           <p className="text-sm text-slate-600">
             Need assistance?{" "}
             <Link
-              href="/client/support"
+              href="mailto:hello@shipzsolutions.com?subject=Shipz Portal Support"
               className="font-medium text-[#0EA5E9] hover:text-[#0C94CF]"
             >
               Contact Support

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { TruckIcon, UserIcon } from "@/components/icons";
+import { UserIcon } from "@/components/icons";
 
 export default function Home() {
   return (
@@ -68,8 +68,11 @@ export default function Home() {
               Our support team is available 24/7 to assist you with any
               questions.
             </p>
-            <Link href="/client/support">
-              <Button variant="secondary">Contact Support</Button>
+            <Link
+              href="mailto:hello@shipzsolutions.com?subject=Shipz Portal Support"
+              className="text-white hover:text-white/80"
+            >
+              Contact Support
             </Link>
           </Card>
         </div>
