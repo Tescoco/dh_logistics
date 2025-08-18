@@ -18,7 +18,7 @@ export default function ClientLayout({
           mobileOpen={mobileSidebarOpen}
           onClose={() => setMobileSidebarOpen(false)}
         />
-        <main className="flex-1 md:ml-72 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <main className="flex-1 md:ml-72  max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           {children}
         </main>
       </div>
