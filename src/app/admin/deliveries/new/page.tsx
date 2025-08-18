@@ -130,7 +130,7 @@ export default function CreateDeliveryPage() {
     fetchClients();
   }, [showError]);
 
-  // Handle client selection and auto-populate sender fields
+  // Handle client selection and auto-populate sender fields (name, phone, delivery fee only)
   function handleClientSelection(clientId: string) {
     const selectedClient = clients.find((c) => c._id === clientId);
     if (selectedClient) {
@@ -140,24 +140,18 @@ export default function CreateDeliveryPage() {
         senderName:
           `${selectedClient.firstName} ${selectedClient.lastName}`.trim(),
         senderPhone: selectedClient.phone || "",
-        senderAddress: selectedClient.address || "",
-        senderCity: selectedClient.city || "",
-        senderDistrict: selectedClient.district || "",
-        senderPostalCode: selectedClient.postalCode || "",
         deliveryFee: String(selectedClient.deliveryFee || 0),
+        // Address fields remain manual - don't auto-populate
       }));
     } else {
-      // Clear fields if no client selected
+      // Clear only auto-populated fields if no client selected
       setForm((prev) => ({
         ...prev,
         selectedClientId: "",
         senderName: "",
         senderPhone: "",
-        senderAddress: "",
-        senderCity: "",
-        senderDistrict: "",
-        senderPostalCode: "",
         deliveryFee: "",
+        // Address fields remain unchanged
       }));
     }
   }
@@ -389,30 +383,35 @@ export default function CreateDeliveryPage() {
                 Sender Address
               </label>
               <Input
-                placeholder="Auto-populated from client"
+                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.senderAddress}
-                readOnly
-                className="bg-gray-50"
+                onChange={(e) => update("senderAddress", e.target.value)}
               />
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Sender City</label>
-              <Input
-                placeholder="Auto-populated from client"
+              <Select
                 value={form.senderCity}
-                readOnly
-                className="bg-gray-50"
-              />
+                onChange={(e) =>
+                  update("senderCity", (e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="">Select City</option>
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
               <Input
-                placeholder="Auto-populated from client"
+                placeholder="Al Arid Dist"
                 value={form.senderDistrict}
-                readOnly
-                className="bg-gray-50"
+                onChange={(e) => update("senderDistrict", e.target.value)}
               />
             </div>
             <div>
@@ -420,10 +419,9 @@ export default function CreateDeliveryPage() {
                 Sender Postal Code
               </label>
               <Input
-                placeholder="Auto-populated from client"
+                placeholder="13337"
                 value={form.senderPostalCode}
-                readOnly
-                className="bg-gray-50"
+                onChange={(e) => update("senderPostalCode", e.target.value)}
               />
             </div>
           </section>
