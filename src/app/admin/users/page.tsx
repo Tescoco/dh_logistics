@@ -18,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
+import { useToast } from "@/contexts/ToastContext";
 
 type ApiUser = {
   _id: string;
@@ -35,6 +36,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<ApiUser[]>([]);
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
 
   const [showAddType, setShowAddType] = useState(false);
   const [showAddDriver, setShowAddDriver] = useState(false);
@@ -115,12 +117,16 @@ export default function UsersPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d?.error ?? "Failed to update driver");
+        showError("Update Failed", d?.error ?? "Failed to update driver");
         return;
       }
       const { user: updated } = await res.json();
       setUsers((prev) =>
         prev.map((u) => (u._id === updated._id ? { ...u, ...updated } : u))
+      );
+      showSuccess(
+        "Driver Updated",
+        "Driver information has been updated successfully"
       );
       setEditDriverUser(null);
     } finally {
@@ -130,7 +136,7 @@ export default function UsersPage() {
 
   async function handleAddDriver() {
     if (!driverName || !driverPhone) {
-      alert("Driver name and phone are required");
+      showError("Validation Error", "Driver name and phone are required");
       return;
     }
     const parts = driverName.trim().split(/\s+/);
@@ -152,9 +158,10 @@ export default function UsersPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to add driver");
+        showError("Creation Failed", data?.error ?? "Failed to add driver");
         return;
       }
+      showSuccess("Driver Added", "Driver has been created successfully");
       setDriverName("");
       setDriverPhone("");
       setEmployeeId("");

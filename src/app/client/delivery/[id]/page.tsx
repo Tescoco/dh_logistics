@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 
 type DeliveryResponse = {
   delivery: {
@@ -32,6 +33,7 @@ export default function EditDeliveryPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const deliveryId = params?.id as string;
+  const { showError, showSuccess } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -122,9 +124,10 @@ export default function EditDeliveryPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to update delivery");
+        showError("Update Failed", data?.error ?? "Failed to update delivery");
         return;
       }
+      showSuccess("Delivery Updated", "Delivery updated successfully");
       router.push("/client/track");
     } finally {
       setSubmitting(false);
@@ -255,6 +258,7 @@ export default function EditDeliveryPage() {
                   Weight (kg)
                 </label>
                 <Input
+                  type="number"
                   placeholder="1.5"
                   value={form.weightKg}
                   onChange={(e) => update("weightKg", e.target.value)}
@@ -341,7 +345,7 @@ export default function EditDeliveryPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
-                  COD Amount (₹)
+                  COD Amount (﷼)
                 </label>
                 <Input
                   placeholder="0.00"

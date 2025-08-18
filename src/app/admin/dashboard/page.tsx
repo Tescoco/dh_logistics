@@ -109,6 +109,7 @@ export default function AdminDashboardPage() {
           onClick={() => {
             router.push("/admin/deliveries/new");
           }}
+          className="cursor-pointer"
           variant="gradient"
           leftIcon={<PlusIcon size={20} />}
           size="lg"

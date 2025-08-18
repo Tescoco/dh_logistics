@@ -5,11 +5,13 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 
 // metadata is set at a parent server component level
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const restrictedDriverId = "68992b3ad5eb3b93c40396dc";
   function generateReference(): string {
@@ -105,7 +107,7 @@ export default function CreateDeliveryPage() {
       problems.push("COD amount is required when payment method is COD");
     }
     if (problems.length > 0) {
-      alert(problems.join("\n"));
+      showError("Validation Error", problems.join(" • "));
       return;
     }
     setSubmitting(true);
@@ -143,14 +145,20 @@ export default function CreateDeliveryPage() {
           const errorMessage = fieldErrors.map((error) => {
             return Object.entries(error as Record<string, string>)
               .map(([key, value]) => `${key}: ${value}`)
-              .join("\n");
+              .join(" • ");
           });
-          alert(errorMessage.join("\n"));
+          showError("Validation Error", errorMessage.join(" • "));
         } else {
-          alert("Failed to save delivery");
+          showError("Save Failed", "Failed to save delivery");
         }
         return;
       }
+      showSuccess(
+        "Delivery Created",
+        isDraft
+          ? "Delivery saved as draft successfully"
+          : "Delivery created successfully"
+      );
       router.push("/admin/deliveries");
     } finally {
       setSubmitting(false);
@@ -300,6 +308,7 @@ export default function CreateDeliveryPage() {
                   Weight (kg)
                 </label>
                 <Input
+                  type="number"
                   placeholder="1.5"
                   value={form.weightKg}
                   onChange={(e) => update("weightKg", e.target.value)}
@@ -388,9 +397,10 @@ export default function CreateDeliveryPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
-                  Delivery Fee (₹)
+                  Delivery Fee (﷼)
                 </label>
                 <Input
+                  type="number"
                   placeholder="25.00"
                   value={form.deliveryFee}
                   onChange={(e) => update("deliveryFee", e.target.value)}
@@ -398,9 +408,10 @@ export default function CreateDeliveryPage() {
               </div>
               <div>
                 <label className="text-[13px] text-slate-600">
-                  COD Amount (₹)
+                  COD Amount (﷼)
                 </label>
                 <Input
+                  type="number"
                   placeholder="0.00"
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}

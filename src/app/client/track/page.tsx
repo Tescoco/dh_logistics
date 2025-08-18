@@ -459,7 +459,7 @@ export default function TrackDeliveriesPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-3 align-middle">
+                  <td className="px-6 py-3 align-middle capitalize">
                     <StatusBadge status={r.status} />
                   </td>
                   <td className="px-6 py-3 align-middle text-slate-700">
@@ -678,13 +678,13 @@ export default function TrackDeliveriesPage() {
             <div>
               <span className="text-slate-500">COD Amount:</span>{" "}
               <span className="font-medium">
-                ₹{Number(viewData.codAmount || 0).toFixed(2)}
+                ﷼{Number(viewData.codAmount || 0).toFixed(2)}
               </span>
             </div>
             <div>
               <span className="text-slate-500">Delivery Fee:</span>{" "}
               <span className="font-medium">
-                ₹{Number(viewData.deliveryFee || 0).toFixed(2)}
+                ﷼{Number(viewData.deliveryFee || 0).toFixed(2)}
               </span>
             </div>
             <div>
@@ -848,7 +848,7 @@ function StatusBadge({ status }: { status: DeliveryRow["status"] }) {
     Assigned: { label: "Assigned", variant: "default" },
   } as const;
   const { label, variant } = mapping[status];
-  return <Badge variant={variant}>{label}</Badge>;
+  return <Badge variant={variant}>{label.replace("_", " ")}</Badge>;
 }
 
 function IconButton({

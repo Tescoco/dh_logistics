@@ -9,6 +9,7 @@ export interface InputProps
 export default function Input({
   leftIcon,
   rightIcon,
+  type = "text",
   className = "",
   ...props
 }: InputProps) {
@@ -20,6 +21,7 @@ export default function Input({
         </div>
       ) : null}
       <input
+        type={type}
         className={[
           "w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[15px] text-slate-900 placeholder:text-slate-400 shadow-xs",
           "focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-[#0EA5E9]",

@@ -7,11 +7,13 @@ import Select from "@/components/ui/Select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function EditUserPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const userId = params?.id as string;
+  const { showError, showSuccess } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,9 +73,13 @@ export default function EditUserPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d?.error ?? "Failed to update user");
+        showError("Update Failed", d?.error ?? "Failed to update user");
         return;
       }
+      showSuccess(
+        "User Updated",
+        "User information has been updated successfully"
+      );
       router.push("/admin/users");
     } finally {
       setSaving(false);

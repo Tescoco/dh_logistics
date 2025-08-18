@@ -18,6 +18,7 @@ import {
   LinkIcon,
   TrashIcon,
 } from "@/components/icons";
+import { useToast } from "@/contexts/ToastContext";
 
 type ReportRow = {
   name: string;
@@ -40,6 +41,7 @@ type CODDelivery = {
 };
 
 export default function CodReportPage() {
+  const { showError, showSuccess } = useToast();
   // 30 days range from now
   const [fromDate, setFromDate] = useState(
     new Date(new Date().setDate(new Date().getDate() - 30))
@@ -106,9 +108,16 @@ export default function CodReportPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d?.error ?? "Failed to generate report");
+        showError(
+          "Report Generation Failed",
+          d?.error ?? "Failed to generate report"
+        );
         return;
       }
+      showSuccess(
+        "Report Generated",
+        "COD report has been generated successfully"
+      );
       // refresh history
       const h = await fetch("/api/reports/cod").then((r) => r.json());
       setHistory(h.reports || []);
@@ -127,7 +136,7 @@ export default function CodReportPage() {
 
       const res = await fetch(url.toString());
       if (!res.ok) {
-        alert("Failed to load preview data");
+        showError("Preview Failed", "Failed to load preview data");
         return;
       }
 
@@ -135,7 +144,7 @@ export default function CodReportPage() {
       setPreviewData(data.deliveries || []);
       setPreviewOpen(true);
     } catch (error) {
-      alert("Failed to load preview data");
+      showError("Preview Failed", "Failed to load preview data");
     } finally {
       setPreviewLoading(false);
     }
@@ -247,7 +256,7 @@ export default function CodReportPage() {
         {[
           {
             label: "Total COD Amount",
-            value: `₹${summary.totalAmount.toLocaleString()}`,
+            value: `﷼${summary.totalAmount.toLocaleString()}`,
             Icon: PackageIcon,
             color: "bg-blue-100 text-blue-600",
           },
@@ -259,13 +268,13 @@ export default function CodReportPage() {
           },
           {
             label: "Pending COD",
-            value: `₹${summary.pendingAmount.toLocaleString()}`,
+            value: `﷼${summary.pendingAmount.toLocaleString()}`,
             Icon: RefreshIcon,
             color: "bg-amber-100 text-amber-600",
           },
           {
             label: "Collected COD",
-            value: `₹${summary.collectedAmount.toLocaleString()}`,
+            value: `﷼${summary.collectedAmount.toLocaleString()}`,
             Icon: CheckIcon,
             color: "bg-emerald-100 text-emerald-600",
           },
@@ -406,7 +415,10 @@ export default function CodReportPage() {
 
                             const res = await fetch(url.toString());
                             if (!res.ok) {
-                              alert("Failed to load report data");
+                              showError(
+                                "Load Failed",
+                                "Failed to load report data"
+                              );
                               return;
                             }
 
@@ -414,7 +426,10 @@ export default function CodReportPage() {
                             setPreviewData(data.deliveries || []);
                             setPreviewOpen(true);
                           } catch (error) {
-                            alert("Failed to load report data");
+                            showError(
+                              "Load Failed",
+                              "Failed to load report data"
+                            );
                           } finally {
                             setPreviewLoading(false);
                           }
@@ -506,14 +521,17 @@ export default function CodReportPage() {
                         url.searchParams.set("detailed", "true");
                         const res = await fetch(url.toString());
                         if (!res.ok) {
-                          alert("Failed to load report data");
+                          showError(
+                            "Load Failed",
+                            "Failed to load report data"
+                          );
                           return;
                         }
                         const data = await res.json();
                         setPreviewData(data.deliveries || []);
                         setPreviewOpen(true);
                       } catch (error) {
-                        alert("Failed to load report data");
+                        showError("Load Failed", "Failed to load report data");
                       } finally {
                         setPreviewLoading(false);
                       }
@@ -576,7 +594,7 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-emerald-600">
-                ₹
+                ﷼
                 {previewData
                   .reduce((sum, d) => sum + (d.codAmount || 0), 0)
                   .toLocaleString()}
@@ -585,7 +603,7 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                ₹
+                ﷼
                 {previewData
                   .reduce((sum, d) => sum + (d.deliveryFee || 0), 0)
                   .toLocaleString()}
@@ -627,10 +645,10 @@ export default function CodReportPage() {
                       {delivery.deliveryAddress}
                     </td>
                     <td className="px-3 py-2 font-medium">
-                      ₹{delivery.codAmount?.toLocaleString() || "0"}
+                      ﷼{delivery.codAmount?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2">
-                      ₹{delivery.deliveryFee?.toLocaleString() || "0"}
+                      ﷼{delivery.deliveryFee?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2">
                       <Badge

@@ -13,8 +13,10 @@ import {
   XIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 export default function BulkDeliveriesUploadPage() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   type PreviewRow = {
@@ -210,9 +212,13 @@ export default function BulkDeliveriesUploadPage() {
       });
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error);
+        showError("Upload Failed", error.error);
         return;
       }
+      showSuccess(
+        "Bulk Upload Complete",
+        "All deliveries have been uploaded successfully"
+      );
       router.push("/client/track");
       setFile(null);
     } finally {

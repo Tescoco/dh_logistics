@@ -291,9 +291,9 @@ export default function DailyParcelsPage() {
             onChange={(e) => setAmountBand(e.currentTarget.value)}
           >
             <option value="">All Amounts</option>
-            <option value="lt50">Below ₹50</option>
-            <option value="50to100">₹50 - ₹100</option>
-            <option value="gt100">Above ₹100</option>
+            <option value="lt50">Below ﷼50</option>
+            <option value="50to100">﷼50 - ﷼100</option>
+            <option value="gt100">Above ﷼100</option>
           </Select>
           <div className="flex flex-wrap items-center justify-end gap-4">
             <button
@@ -386,9 +386,9 @@ export default function DailyParcelsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 align-top font-semibold text-slate-800 hidden sm:table-cell">
-                    ₹{r.amount.toFixed(2)}
+                    ﷼{r.amount.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 align-top">
+                  <td className="px-6 py-4 align-top capitalize">
                     <StatusBadge status={r.status} />
                   </td>
                   <td className="px-6 py-4 align-top">
@@ -485,18 +485,20 @@ export default function DailyParcelsPage() {
             </div>
             <div>
               <span className="text-slate-500">Status:</span>{" "}
-              <span className="font-medium">{viewData.status}</span>
+              <span className="font-medium capitalize">
+                {viewData.status?.replace("_", " ")}
+              </span>
             </div>
             <div>
               <span className="text-slate-500">COD Amount:</span>{" "}
               <span className="font-medium">
-                ₹{Number(viewData.codAmount || 0).toFixed(2)}
+                ﷼{Number(viewData.codAmount || 0).toFixed(2)}
               </span>
             </div>
             <div>
               <span className="text-slate-500">Delivery Fee:</span>{" "}
               <span className="font-medium">
-                ₹{Number(viewData.deliveryFee || 0).toFixed(2)}
+                ﷼{Number(viewData.deliveryFee || 0).toFixed(2)}
               </span>
             </div>
             <div>
@@ -526,7 +528,7 @@ function StatusBadge({ status }: { status: ParcelRow["status"] }) {
     Assigned: { label: "Assigned", variant: "default" },
   } as const;
   const { label, variant } = mapping[status];
-  return <Badge variant={variant}>{label}</Badge>;
+  return <Badge variant={variant}>{label.replace("_", " ")}</Badge>;
 }
 
 function IconButton({

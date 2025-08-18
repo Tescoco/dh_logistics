@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function ProfilePage() {
+  const { showError, showSuccess } = useToast();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -57,8 +59,15 @@ export default function ProfilePage() {
       data.append("file", file);
       const res = await fetch("/api/me/avatar", { method: "POST", body: data });
       const d = await res.json();
-      if (res.ok) setAvatarUrl(d.avatarUrl);
-      else alert(d?.error || "Failed to upload avatar");
+      if (res.ok) {
+        setAvatarUrl(d.avatarUrl);
+        showSuccess(
+          "Avatar Updated",
+          "Profile picture has been updated successfully"
+        );
+      } else {
+        showError("Upload Failed", d?.error || "Failed to upload avatar");
+      }
     } finally {
       setUploading(false);
     }

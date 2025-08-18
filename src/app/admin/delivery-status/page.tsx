@@ -7,9 +7,11 @@ import { UploadIcon, SearchIcon, DownloadIcon } from "@/components/icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function DeliveryStatusPage() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
   // Independent filters for bulk update vs list view
   const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
   const [id, setId] = useState<string>("");
@@ -89,9 +91,13 @@ export default function DeliveryStatusPage() {
     if (res.ok) {
       // refresh list
       setRefreshKey((k) => k + 1);
+      showSuccess(
+        "Status Updated",
+        "Delivery status has been updated successfully"
+      );
     } else {
       const data = await res.json().catch(() => ({}));
-      alert(data?.error ?? "Failed to update");
+      showError("Update Failed", data?.error ?? "Failed to update");
     }
   }
 
@@ -104,9 +110,13 @@ export default function DeliveryStatusPage() {
     });
     if (res.ok) {
       setRefreshKey((k) => k + 1);
+      showSuccess(
+        "Upload Complete",
+        "Delivery statuses have been updated successfully"
+      );
     } else {
       const data = await res.json().catch(() => ({}));
-      alert(data?.error ?? "Upload failed");
+      showError("Upload Failed", data?.error ?? "Upload failed");
     }
   }
 
@@ -260,9 +270,10 @@ export default function DeliveryStatusPage() {
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
-        alert(error?.error ?? "Upload failed");
+        showError("Upload Failed", error?.error ?? "Upload failed");
         return;
       }
+      showSuccess("Upload Complete", "CSV file has been uploaded successfully");
       // Refresh the page data
       setRefreshKey((k) => k + 1);
       setCsvFile(null);
@@ -579,7 +590,9 @@ export default function DeliveryStatusPage() {
             </div>
             <div>
               <span className="text-slate-500">Status:</span>{" "}
-              <span className="font-medium">{viewRow.status}</span>
+              <span className="font-medium capitalize">
+                {viewRow.status.replace("_", " ")}
+              </span>
             </div>
             <div>
               <span className="text-slate-500">Updated:</span>{" "}

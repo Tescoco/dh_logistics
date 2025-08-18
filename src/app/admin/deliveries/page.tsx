@@ -9,6 +9,7 @@ import Select from "@/components/ui/Select";
 import { PlusIcon, UploadIcon, SearchIcon } from "@/components/icons";
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 
 const tabs = [
   { key: "cod", label: "COD Deliveries" },
@@ -51,11 +52,15 @@ type DeliveryRow = {
   codAmount?: number;
   status: string;
   createdAt: string;
-  assignedDriverId?: string;
+  assignedDriverId?: {
+    firstName?: string;
+    lastName?: string;
+  };
 };
 
 function CODTab() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
   const [rows, setRows] = useState<DeliveryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
@@ -97,7 +102,10 @@ function CODTab() {
     codAmount?: number;
     priority?: string;
     status: string;
-    assignedDriverId?: string;
+    assignedDriverId?: {
+      firstName?: string;
+      lastName?: string;
+    };
     notes?: string;
   };
   const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
@@ -200,13 +208,17 @@ function CODTab() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data?.error ?? "Failed to update status");
+        showError("Update Failed", data?.error ?? "Failed to update status");
         return;
       }
       setRows((prev) =>
         prev.map((r) =>
           selectedIds.has(r._id) ? { ...r, status: bulkStatus } : r
         )
+      );
+      showSuccess(
+        "Status Updated",
+        `Successfully updated ${selectedIds.size} deliveries`
       );
       setSelectedIds(new Set());
       // Optionally refresh counts
@@ -228,7 +240,7 @@ function CODTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-3">
+      <div className="flex gap-3 cursor-pointer">
         <Button
           onClick={() => {
             router.push("/admin/deliveries/new");
@@ -383,15 +395,8 @@ function CODTab() {
                     {d.codAmount ? `$${d.codAmount.toFixed(2)}` : "—"}
                   </td>
                   <td className="px-5 py-3">
-                    {d.assignedDriverId
-                      ? drivers.find(
-                          (driver) => driver._id === d.assignedDriverId
-                        )?.firstName +
-                        " " +
-                        drivers.find(
-                          (driver) => driver._id === d.assignedDriverId
-                        )?.lastName
-                      : "—"}
+                    {d.assignedDriverId?.firstName || "—"}{" "}
+                    {d.assignedDriverId?.lastName || "—"}
                   </td>
                   <td className="px-5 py-3">
                     <span
@@ -490,14 +495,8 @@ function CODTab() {
                   Assigned Driver
                 </div>
                 <div className="font-medium">
-                  {(() => {
-                    const drv = drivers.find(
-                      (x) => x._id === String(viewDelivery.assignedDriverId)
-                    );
-                    return drv
-                      ? `${drv.firstName || ""} ${drv.lastName || ""}`.trim()
-                      : "—";
-                  })()}
+                  {viewDelivery.assignedDriverId?.firstName || "—"}{" "}
+                  {viewDelivery.assignedDriverId?.lastName || "—"}
                 </div>
               </div>
               <div className="md:col-span-2">
@@ -515,6 +514,7 @@ function CODTab() {
 }
 
 function InternalTab() {
+  const { showError, showSuccess } = useToast();
   const [driverName, setDriverName] = useState("");
   const [driverPhone, setDriverPhone] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -551,7 +551,10 @@ function InternalTab() {
     codAmount?: number;
     priority?: string;
     status: string;
-    assignedDriverId?: string;
+    assignedDriverId?: {
+      firstName?: string;
+      lastName?: string;
+    };
     notes?: string;
   };
   const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
@@ -659,11 +662,11 @@ function InternalTab() {
           const errorMessage = fieldErrors.map((error) => {
             return Object.entries(error as Record<string, string>)
               .map(([key, value]) => `${key}: ${value}`)
-              .join("\n");
+              .join(" • ");
           });
-          alert(errorMessage.join("\n"));
+          showError("Validation Error", errorMessage.join(" • "));
         } else {
-          alert("Failed to update status");
+          showError("Update Failed", "Failed to update status");
         }
         return;
       }
@@ -671,6 +674,10 @@ function InternalTab() {
         prev.map((r) =>
           selectedIds.has(r._id) ? { ...r, status: bulkStatus } : r
         )
+      );
+      showSuccess(
+        "Status Updated",
+        `Successfully updated ${selectedIds.size} deliveries`
       );
       setSelectedIds(new Set());
       // Optionally refresh counts
@@ -692,7 +699,7 @@ function InternalTab() {
 
   async function handleAddDriver() {
     if (!driverName || !driverPhone) {
-      alert("Driver name and phone are required");
+      showError("Validation Error", "Driver name and phone are required");
       return;
     }
     const parts = driverName.trim().split(/\s+/);
@@ -714,14 +721,14 @@ function InternalTab() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to add driver");
+        showError("Creation Failed", data?.error ?? "Failed to add driver");
         return;
       }
       setDriverName("");
       setDriverPhone("");
       setEmployeeId("");
       setVehicleType("");
-      alert("Driver created");
+      showSuccess("Driver Created", "Driver created successfully");
     } finally {
       setSubmitting(false);
     }
@@ -887,11 +894,14 @@ function InternalTab() {
                   </td>
                   <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
-                  <td className="px-5 py-3">—</td>
+                  <td className="px-5 py-3">
+                    {d.assignedDriverId?.firstName || "—"}{" "}
+                    {d.assignedDriverId?.lastName || "—"}
+                  </td>
                   <td className="px-5 py-3">{d.deliveryAddress}</td>
                   <td className="px-5 py-3">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${
                         d.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : d.status === "in_transit"
@@ -903,7 +913,7 @@ function InternalTab() {
                           : "bg-amber-50 text-amber-700 ring-amber-200"
                       }`}
                     >
-                      {d.status}
+                      {d.status.replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-5 py-3">
@@ -984,7 +994,10 @@ function InternalTab() {
                 <div className="text-[12px] text-slate-500">
                   Assigned Driver
                 </div>
-                <div className="font-medium">—</div>
+                <div className="font-medium">
+                  {viewDelivery.assignedDriverId?.firstName || "—"}{" "}
+                  {viewDelivery.assignedDriverId?.lastName || "—"}
+                </div>
               </div>
               <div className="md:col-span-2">
                 <div className="text-[12px] text-slate-500">Notes</div>

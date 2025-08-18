@@ -6,12 +6,14 @@ import Select from "@/components/ui/Select";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 // metadata is set by a parent server component
 
 export default function CreateUserPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showError, showSuccess } = useToast();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -26,7 +28,7 @@ export default function CreateUserPage() {
 
   async function handleCreate() {
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showError("Validation Error", "Passwords do not match");
       return;
     }
     setSubmitting(true);
@@ -45,9 +47,10 @@ export default function CreateUserPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to create user");
+        showError("Creation Failed", data?.error ?? "Failed to create user");
         return;
       }
+      showSuccess("User Created", "User has been created successfully");
       router.push("/admin/users");
     } finally {
       setSubmitting(false);

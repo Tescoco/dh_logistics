@@ -102,7 +102,7 @@ export default function ClientSidebar({
                 href={item.href}
                 onClick={() => onClose?.()}
                 className={[
-                  "flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-all duration-200 group",
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-all duration-200 group cursor-pointer",
                   active
                     ? "bg-gradient-to-r from-[#0EA5E9] to-[#0284c7] text-white shadow-lg shadow-blue-500/25"
                     : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",

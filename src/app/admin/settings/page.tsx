@@ -5,8 +5,10 @@ import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
 import Button from "@/components/ui/Button";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function SettingsPage() {
+  const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [systemName, setSystemName] = useState("Shipz Solutions");
@@ -78,9 +80,10 @@ export default function SettingsPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d?.error ?? "Failed to save settings");
+        showError("Save Failed", d?.error ?? "Failed to save settings");
         return;
       }
+      showSuccess("Settings Saved", "Settings have been updated successfully");
       // success
     } finally {
       setSaving(false);

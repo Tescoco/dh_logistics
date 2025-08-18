@@ -118,7 +118,7 @@ function AdminSidebarInner({
               const active = pathname === item.href;
               if (item.type === "group") {
                 return (
-                  <div key={item.href} className="mb-4">
+                  <div key={item.href} className="mb-4 cursor-pointer">
                     <div
                       className={[
                         "flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-all duration-200",
@@ -192,7 +192,7 @@ function AdminSidebarInner({
         <div className="mt-6 border-t border-slate-200/60 pt-4">
           <button
             onClick={handleLogout}
-            className="w-full rounded-xl px-4 py-3 text-[14px] font-medium text-white bg-red-600 hover:bg-red-700 hover:text-white transition-all"
+            className="w-full rounded-xl px-4 py-3 text-[14px] font-medium text-white bg-red-600 hover:bg-red-700 hover:text-white transition-all cursor-pointer"
           >
             Logout
           </button>

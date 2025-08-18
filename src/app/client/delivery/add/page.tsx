@@ -7,11 +7,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusIcon } from "@/components/icons";
+import { useToast } from "@/contexts/ToastContext";
 
 // metadata is set at a parent server component level
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
   const [submitting, setSubmitting] = useState(false);
   function generateReference(): string {
     const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
@@ -63,7 +65,7 @@ export default function CreateDeliveryPage() {
       problems.push("COD amount is required");
     }
     if (problems.length > 0) {
-      alert(problems.join("\n"));
+      showError("Validation Error", problems.join(" • "));
       return;
     }
     setSubmitting(true);
@@ -93,9 +95,15 @@ export default function CreateDeliveryPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error ?? "Failed to save delivery");
+        showError("Save Failed", data?.error ?? "Failed to save delivery");
         return;
       }
+      showSuccess(
+        "Delivery Created",
+        isDraft
+          ? "Delivery saved as draft successfully"
+          : "Delivery created successfully"
+      );
       router.push("/client/track");
     } finally {
       setSubmitting(false);
@@ -229,6 +237,7 @@ export default function CreateDeliveryPage() {
                 </label>
                 <Input
                   placeholder="1.5"
+                  type="number"
                   value={form.weightKg}
                   onChange={(e) => update("weightKg", e.target.value)}
                 />
@@ -309,7 +318,7 @@ export default function CreateDeliveryPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
-                  COD Amount (₹)
+                  COD Amount (﷼)
                 </label>
                 <Input
                   placeholder="0.00"

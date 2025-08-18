@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
 
   const deliveries = await Delivery.find(query)
     .sort({ createdAt: -1 })
+    .populate("assignedDriverId", "firstName lastName")
     .limit(100)
     .lean();
   return NextResponse.json({ deliveries });
