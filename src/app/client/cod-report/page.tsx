@@ -194,9 +194,7 @@ export default function CodReportPage() {
   return (
     <div className="space-y-6">
       {/* Generate new report */}
-      <Card
-        header={<div className="font-semibold">Generate New COD Report</div>}
-      >
+      <Card header={<div className="font-semibold">View COD Report</div>}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_200px_200px_auto] md:items-end">
           <div>
             <div className="text-[12px] text-slate-500 mb-1">From Date</div>
@@ -213,36 +211,6 @@ export default function CodReportPage() {
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
-          </div>
-          <div>
-            <div className="text-[12px] text-slate-500 mb-1">Report Format</div>
-            <Select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as ReportRow["format"])}
-            >
-              <option value="PDF">PDF</option>
-              <option value="Excel">Excel</option>
-              <option value="CSV">CSV</option>
-            </Select>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            <Button
-              leftIcon={<UploadIcon size={16} />}
-              onClick={handleGenerate}
-              loading={generating}
-            >
-              Generate Report
-            </Button>
-            <Button
-              variant="secondary"
-              loading={previewLoading}
-              onClick={() => {
-                setClickedFrom("preview");
-                handlePreview();
-              }}
-            >
-              Preview
-            </Button>
           </div>
         </div>
       </Card>
