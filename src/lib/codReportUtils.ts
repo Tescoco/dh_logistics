@@ -39,7 +39,7 @@ export interface CodReportData {
     codPaidAmount: number;
     codPaidDate?: Date;
     status: string;
-    assignedCourierId?: any;
+    assignedCourierId?: string;
     createdAt: Date;
     updatedAt: Date;
   }>;
@@ -105,8 +105,7 @@ export function calculateCodStats(
  */
 export function generateReportName(
   client: UserDocument,
-  fromDate: string,
-  toDate: string
+  fromDate: string
 ): string {
   const clientName = client.customerStoreName || client.firstName;
   const month = new Date(fromDate).toLocaleString("en-US", { month: "short" });

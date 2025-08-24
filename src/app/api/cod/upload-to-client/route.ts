@@ -5,6 +5,12 @@ import { getAuthUser } from "@/lib/session";
 import { Delivery } from "@/models/Delivery";
 import { User } from "@/models/User";
 import { CodReport } from "@/models/CodReport";
+import {
+  calculateCodStats,
+  generateReportName,
+  prepareDeliveryData,
+  groupDeliveriesByClient,
+} from "@/lib/codReportUtils";
 
 export const runtime = "nodejs";
 
@@ -30,7 +36,7 @@ export async function POST(req: NextRequest) {
     const deliveries = await Delivery.find({
       _id: { $in: input.deliveries },
       paymentMethod: "cod", // Only COD deliveries
-    }).populate("createdById", "firstName lastName email customerStoreName");
+    });
 
     if (deliveries.length === 0) {
       return NextResponse.json(
@@ -40,17 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Group deliveries by client (createdById)
-    const clientDeliveries = new Map<string, any[]>();
-
-    for (const delivery of deliveries) {
-      const clientId = delivery.createdById?._id?.toString();
-      if (clientId) {
-        if (!clientDeliveries.has(clientId)) {
-          clientDeliveries.set(clientId, []);
-        }
-        clientDeliveries.get(clientId)!.push(delivery);
-      }
-    }
+    const clientDeliveries = groupDeliveriesByClient(deliveries);
 
     // Generate COD reports for each client
     const generatedReports = [];
@@ -61,43 +57,10 @@ export async function POST(req: NextRequest) {
       if (!client) continue;
 
       // Calculate COD totals for this client
-      const codStats = {
-        totalDeliveries: clientDeliveryList.length,
-        totalCodAmount: 0,
-        totalPaidAmount: 0,
-        pendingAmount: 0,
-        deliveredCount: 0,
-        returnedCount: 0,
-        inTransitCount: 0,
-        pendingCount: 0,
-      };
-
-      for (const delivery of clientDeliveryList) {
-        codStats.totalCodAmount += delivery.codAmount || 0;
-        codStats.totalPaidAmount += delivery.codPaidAmount || 0;
-
-        if (delivery.status === "delivered") {
-          codStats.deliveredCount++;
-        } else if (delivery.status === "returned") {
-          codStats.returnedCount++;
-        } else if (delivery.status === "in_transit") {
-          codStats.inTransitCount++;
-        } else if (delivery.status === "pending") {
-          codStats.pendingCount++;
-        }
-      }
-
-      codStats.pendingAmount =
-        codStats.totalCodAmount - codStats.totalPaidAmount;
+      const codStats = calculateCodStats(clientDeliveryList);
 
       // Generate report name
-      const reportName = `COD_Report_${
-        client.customerStoreName || client.firstName
-      }_${new Date(input.from).toLocaleString("en-US", {
-        month: "short",
-      })}_${new Date(input.from).getFullYear()}_${Math.random()
-        .toString(36)
-        .substring(2, 6)}`.replace(/\s+/g, "_");
+      const reportName = generateReportName(client, input.from);
 
       // Create COD report record
       const codReport = await CodReport.create({
@@ -125,22 +88,7 @@ export async function POST(req: NextRequest) {
           to: input.to,
         },
         summary: codStats,
-        deliveries: clientDeliveryList.map((delivery) => ({
-          reference: delivery.reference,
-          customerName: delivery.customerName,
-          customerPhone: delivery.customerPhone,
-          deliveryAddress: delivery.deliveryAddress,
-          deliveryCity: delivery.deliveryCity,
-          deliveryDistrict: delivery.deliveryDistrict,
-          codAmount: delivery.codAmount,
-          codPaymentStatus: delivery.codPaymentStatus,
-          codPaidAmount: delivery.codPaidAmount,
-          codPaidDate: delivery.codPaidDate,
-          status: delivery.status,
-          assignedCourierId: delivery.assignedCourierId,
-          createdAt: delivery.createdAt,
-          updatedAt: delivery.updatedAt,
-        })),
+        deliveries: clientDeliveryList.map(prepareDeliveryData),
         generatedAt: new Date().toISOString(),
         generatedBy: auth.email, // Use email since firstName/lastName not available in AuthUser
       };
