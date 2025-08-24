@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         format: "PDF", // Default to PDF for client reports
         status: "ready",
         url: `/download/${reportName}.pdf`,
-        createdById: auth.userId,
+        createdById: clientId,
       });
 
       // Prepare report data for client portal
