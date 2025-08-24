@@ -37,7 +37,9 @@ export async function GET(req: NextRequest) {
   }
 
   const users = await User.find()
-    .select("firstName lastName email role isActive createdAt")
+    .select(
+      "firstName lastName email role isActive createdAt courierCompanyName"
+    )
     .lean();
   return NextResponse.json({ users });
 }

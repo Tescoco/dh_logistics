@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
+import { getDistrictsForCity } from "@/lib/districts";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -143,7 +144,7 @@ export default function AdminEditDeliveryPage() {
         const res = await fetch("/api/users/clients");
         if (res.ok) {
           const data = await res.json();
-          setClients(data.clients || []);
+          setClients(data.users || []);
         } else {
           showError("Failed to load clients", "Could not fetch client list");
         }
@@ -308,7 +309,7 @@ export default function AdminEditDeliveryPage() {
 
       <Card padded={false}>
         <div className="p-5 space-y-8">
-          <section className="space-y-4">
+          <section className="space-y-4 cl">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
@@ -345,9 +346,12 @@ export default function AdminEditDeliveryPage() {
               <label className="text-[13px] text-slate-600">Sender City</label>
               <Select
                 value={form.senderCity || ""}
-                onChange={(e) =>
-                  update("senderCity", (e.target as HTMLSelectElement).value)
-                }
+                onChange={(e) => {
+                  const city = (e.target as HTMLSelectElement).value;
+                  update("senderCity", city);
+                  // Reset district when city changes
+                  update("senderDistrict", "");
+                }}
               >
                 <option value="">Select City</option>
                 {SAUDI_CITIES.map((c) => (
@@ -361,11 +365,22 @@ export default function AdminEditDeliveryPage() {
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
-              <Input
-                placeholder="Al Arid Dist"
+              <Select
                 value={form.senderDistrict || ""}
-                onChange={(e) => update("senderDistrict", e.target.value)}
-              />
+                onChange={(e) =>
+                  update(
+                    "senderDistrict",
+                    (e.target as HTMLSelectElement).value
+                  )
+                }
+              >
+                <option value="">Select District</option>
+                {getDistrictsForCity(form.senderCity).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </Select>
             </div>
           </section>
 
@@ -421,14 +436,36 @@ export default function AdminEditDeliveryPage() {
               <label className="text-[13px] text-slate-600">City</label>
               <Select
                 value={form.deliveryCity}
-                onChange={(e) =>
-                  update("deliveryCity", (e.target as HTMLSelectElement).value)
-                }
+                onChange={(e) => {
+                  const city = (e.target as HTMLSelectElement).value;
+                  update("deliveryCity", city);
+                  // Reset district when city changes
+                  update("deliveryDistrict", "");
+                }}
               >
                 <option value="">Select City</option>
                 {SAUDI_CITIES.map((c) => (
                   <option key={c} value={c}>
                     {c}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">District</label>
+              <Select
+                value={form.deliveryDistrict || ""}
+                onChange={(e) =>
+                  update(
+                    "deliveryDistrict",
+                    (e.target as HTMLSelectElement).value
+                  )
+                }
+              >
+                <option value="">Select District</option>
+                {getDistrictsForCity(form.deliveryCity).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
                   </option>
                 ))}
               </Select>

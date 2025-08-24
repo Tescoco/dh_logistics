@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
+import { getDistrictsForCity } from "@/lib/districts";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -136,6 +137,7 @@ export default function AdminNewDeliveryPage() {
     lastName: string;
     email?: string;
     role: string;
+    courierCompanyName?: string;
   };
   const [drivers, setDrivers] = useState<Driver[]>([]);
 
@@ -147,7 +149,9 @@ export default function AdminNewDeliveryPage() {
         if (!res.ok) return;
         const data = await res.json().catch(() => ({}));
         const allUsers: Driver[] = data?.users ?? [];
-        const onlyDrivers = allUsers.filter((u) => u.role === "driver");
+        const onlyDrivers = allUsers.filter(
+          (u) => u.role === "driver" || u.role === "courier"
+        );
         if (!aborted) setDrivers(onlyDrivers);
       } catch {}
     })();
@@ -204,7 +208,7 @@ export default function AdminNewDeliveryPage() {
         const res = await fetch("/api/users/clients");
         if (res.ok) {
           const data = await res.json();
-          setClients(data.clients || []);
+          setClients(data.users || []);
         } else {
           showError("Failed to load clients", "Could not fetch client list");
         }
@@ -252,6 +256,23 @@ export default function AdminNewDeliveryPage() {
       }));
     }
   }
+
+  // Clear client-related fields when switching to non-restricted driver
+  useEffect(() => {
+    if (form.assignedDriverId && form.assignedDriverId !== restrictedDriverId) {
+      setForm((prev) => ({
+        ...prev,
+        selectedClientId: "",
+        senderName: "",
+        senderPhone: "",
+        deliveryFee: "",
+        senderAddress: "",
+        senderCity: "",
+        senderDistrict: "",
+        senderPostalCode: "",
+      }));
+    }
+  }, [form.assignedDriverId]);
 
   function normalizePhone(value: string) {
     return (value || "").replace(/\D/g, "");
@@ -421,27 +442,29 @@ export default function AdminNewDeliveryPage() {
                   </div>
                 )}
               </div>
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Assign Driver
-              </label>
-              <Select
-                value={form.assignedDriverId}
-                onChange={(e) =>
-                  update(
-                    "assignedDriverId",
-                    (e.target as HTMLSelectElement).value
-                  )
-                }
-              >
-                <option value="">Select Driver</option>
-                {drivers.map((d) => (
-                  <option key={d._id} value={d._id}>
-                    {d.firstName} {d.lastName}
-                  </option>
-                ))}
-              </Select>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Assign Driver
+                </label>
+                <Select
+                  value={form.assignedDriverId}
+                  onChange={(e) =>
+                    update(
+                      "assignedDriverId",
+                      (e.target as HTMLSelectElement).value
+                    )
+                  }
+                >
+                  <option value="">Select Driver</option>
+                  {drivers.map((d) => (
+                    <option key={d._id} value={d._id}>
+                      {d.role === "driver"
+                        ? `${d.firstName} ${d.lastName}`
+                        : `${d.courierCompanyName}`}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           </section>
 
@@ -449,38 +472,53 @@ export default function AdminNewDeliveryPage() {
             <h2 className="text-[15px] font-semibold text-slate-900">
               Sender Information
             </h2>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Select Client
-              </label>
-              <Select
-                value={form.selectedClientId}
-                onChange={(e) =>
-                  handleClientSelection((e.target as HTMLSelectElement).value)
-                }
-                disabled={loadingClients}
-              >
-                <option value="">
-                  {loadingClients ? "Loading clients..." : "Select a client"}
-                </option>
-                {clients.map((client) => (
-                  <option key={client._id} value={client._id}>
-                    {`${client.firstName} ${client.lastName}`.trim()}
-                    {client.phone && ` - ${client.phone}`}
+            {form.assignedDriverId === restrictedDriverId && (
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Select Client
+                </label>
+                <Select
+                  value={form.selectedClientId}
+                  onChange={(e) =>
+                    handleClientSelection((e.target as HTMLSelectElement).value)
+                  }
+                  disabled={loadingClients}
+                >
+                  <option value="">
+                    {loadingClients ? "Loading clients..." : "Select a client"}
                   </option>
-                ))}
-              </Select>
-            </div>
+                  {clients.map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {`${client.firstName} ${client.lastName}`.trim()}
+                      {client.phone && ` - ${client.phone}`}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Sender Name
                 </label>
                 <Input
-                  placeholder="Select a client first"
+                  placeholder={
+                    form.assignedDriverId === restrictedDriverId
+                      ? "Select a client first"
+                      : "Enter sender name"
+                  }
                   value={form.senderName}
-                  readOnly
-                  className="bg-gray-50"
+                  readOnly={form.assignedDriverId === restrictedDriverId}
+                  className={
+                    form.assignedDriverId === restrictedDriverId
+                      ? "bg-gray-50"
+                      : ""
+                  }
+                  onChange={
+                    form.assignedDriverId !== restrictedDriverId
+                      ? (e) => update("senderName", e.target.value)
+                      : undefined
+                  }
                 />
               </div>
               <div>
@@ -503,6 +541,7 @@ export default function AdminNewDeliveryPage() {
                       }
                     }}
                     className="rounded-l-none"
+                    readOnly={form.assignedDriverId === restrictedDriverId}
                   />
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
@@ -518,15 +557,20 @@ export default function AdminNewDeliveryPage() {
                 placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.senderAddress}
                 onChange={(e) => update("senderAddress", e.target.value)}
+                readOnly={form.assignedDriverId === restrictedDriverId}
               />
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Sender City</label>
               <Select
                 value={form.senderCity}
-                onChange={(e) =>
-                  update("senderCity", (e.target as HTMLSelectElement).value)
-                }
+                onChange={(e) => {
+                  const city = (e.target as HTMLSelectElement).value;
+                  update("senderCity", city);
+                  // Reset district when city changes
+                  update("senderDistrict", "");
+                }}
+                disabled={form.assignedDriverId === restrictedDriverId}
               >
                 <option value="">Select City</option>
                 {SAUDI_CITIES.map((c) => (
@@ -540,11 +584,23 @@ export default function AdminNewDeliveryPage() {
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
-              <Input
-                placeholder="Al Arid Dist"
+              <Select
                 value={form.senderDistrict}
-                onChange={(e) => update("senderDistrict", e.target.value)}
-              />
+                onChange={(e) =>
+                  update(
+                    "senderDistrict",
+                    (e.target as HTMLSelectElement).value
+                  )
+                }
+                disabled={form.assignedDriverId === restrictedDriverId}
+              >
+                <option value="">Select District</option>
+                {getDistrictsForCity(form.senderCity).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </Select>
             </div>
           </section>
 
@@ -602,9 +658,12 @@ export default function AdminNewDeliveryPage() {
               <label className="text-[13px] text-slate-600">City</label>
               <Select
                 value={form.deliveryCity}
-                onChange={(e) =>
-                  update("deliveryCity", (e.target as HTMLSelectElement).value)
-                }
+                onChange={(e) => {
+                  const city = (e.target as HTMLSelectElement).value;
+                  update("deliveryCity", city);
+                  // Reset district when city changes
+                  update("deliveryDistrict", "");
+                }}
               >
                 <option value="">Select City</option>
                 {SAUDI_CITIES.map((c) => (
@@ -616,11 +675,22 @@ export default function AdminNewDeliveryPage() {
             </div>
             <div>
               <label className="text-[13px] text-slate-600">District</label>
-              <Input
-                placeholder="Al Arid Dist"
+              <Select
                 value={form.deliveryDistrict}
-                onChange={(e) => update("deliveryDistrict", e.target.value)}
-              />
+                onChange={(e) =>
+                  update(
+                    "deliveryDistrict",
+                    (e.target as HTMLSelectElement).value
+                  )
+                }
+              >
+                <option value="">Select District</option>
+                {getDistrictsForCity(form.deliveryCity).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </Select>
             </div>
           </section>
 
@@ -732,10 +802,23 @@ export default function AdminNewDeliveryPage() {
                 </label>
                 <Input
                   type="number"
-                  placeholder="Auto-populated from client"
+                  placeholder={
+                    form.assignedDriverId === restrictedDriverId
+                      ? "Auto-populated from client"
+                      : "Enter delivery fee"
+                  }
                   value={form.deliveryFee}
-                  readOnly
-                  className="bg-gray-50"
+                  readOnly={form.assignedDriverId === restrictedDriverId}
+                  className={
+                    form.assignedDriverId === restrictedDriverId
+                      ? "bg-gray-50"
+                      : ""
+                  }
+                  onChange={
+                    form.assignedDriverId !== restrictedDriverId
+                      ? (e) => update("deliveryFee", e.target.value)
+                      : undefined
+                  }
                 />
               </div>
               <div>

@@ -14,6 +14,8 @@ import {
   TrendingUpIcon,
   ArrowUpIcon,
 } from "@/components/icons";
+import Select from "@/components/ui/Select";
+import { useToast } from "@/contexts/ToastContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -28,6 +30,8 @@ type StatCard = {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<{
     activeDeliveries: number;
     delivered: number;
@@ -64,6 +68,28 @@ export default function AdminDashboardPage() {
   };
   const [viewDelivery, setViewDelivery] = useState<DeliveryDetail | null>(null);
 
+  // Bulk update state
+  const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
+  const [bulkIds, setBulkIds] = useState<string>("");
+
+  // Activity log state
+  const [activityLog, setActivityLog] = useState<
+    Array<{
+      action: string;
+      performedBy: {
+        firstName: string;
+        lastName: string;
+        role: string;
+      };
+      performedAt: Date;
+      details?: string;
+      oldValue?: string;
+      newValue?: string;
+    }>
+  >([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [activeTab, setActiveTab] = useState<"details" | "activity">("details");
+
   useEffect(() => {
     let mounted = true;
     fetch("/api/stats")
@@ -82,7 +108,7 @@ export default function AdminDashboardPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   const statCards: StatCard[] = useMemo(
     () => [
@@ -149,10 +175,22 @@ export default function AdminDashboardPage() {
     setViewOpen(true);
     setViewLoading(true);
     setViewDelivery(null);
+    setActiveTab("details");
+    setActivityLog([]);
+
+    // Fetch delivery details
     fetch(`/api/deliveries/${id}`)
       .then((r) => r.json())
       .then((d) => setViewDelivery((d.delivery as DeliveryDetail) ?? null))
       .finally(() => setViewLoading(false));
+
+    // Fetch activity log
+    setLoadingActivity(true);
+    fetch(`/api/deliveries/${id}/activity`)
+      .then((r) => r.json())
+      .then((d) => setActivityLog(d.activityLog || []))
+      .catch(() => setActivityLog([]))
+      .finally(() => setLoadingActivity(false));
   }
   return (
     <div className="space-y-8">
@@ -237,6 +275,60 @@ export default function AdminDashboardPage() {
           );
         })}
       </div>
+
+      <Card header={<div className="font-semibold">Bulk Status Update</div>}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[240px_1fr_auto]">
+          <Select
+            value={bulkStatusFilter}
+            onChange={(e) =>
+              setBulkStatusFilter((e.target as HTMLSelectElement).value)
+            }
+          >
+            <option value="pending">Pending</option>
+            <option value="in_transit">In Transit</option>
+            <option value="delivered">Delivered</option>
+            <option value="assigned">Assigned</option>
+            <option value="returned">Returned</option>
+            <option value="future_delivery">Future Delivery</option>
+            <option value="lost_damaged">Lost & Damages</option>
+          </Select>
+          <Input
+            placeholder="ID1, ID2, ID3..."
+            value={bulkIds}
+            onChange={(e) => setBulkIds((e.target as HTMLInputElement).value)}
+          />
+          <Button
+            onClick={async () => {
+              const newStatus = bulkStatusFilter || "in_transit";
+              if (!bulkIds) return;
+              const ids = bulkIds
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean);
+              if (ids.length === 0) return;
+              const res = await fetch("/api/deliveries/bulk-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids, status: newStatus }),
+              });
+              if (res.ok) {
+                // refresh data
+                setRefreshKey((k) => k + 1);
+                showSuccess(
+                  "Status Updated",
+                  "Delivery status has been updated successfully"
+                );
+                setBulkIds("");
+              } else {
+                const data = await res.json().catch(() => ({}));
+                showError("Update Failed", data?.error ?? "Failed to update");
+              }
+            }}
+          >
+            Update Selected
+          </Button>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Card
@@ -504,77 +596,229 @@ export default function AdminDashboardPage() {
         open={viewOpen}
         onClose={() => setViewOpen(false)}
         title="Delivery Details"
-        widthClassName="max-w-2xl"
+        widthClassName="max-w-4xl"
       >
         {viewLoading ? (
           <div className="text-sm text-slate-500">Loading…</div>
         ) : viewDelivery ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div>
-                <div className="text-[12px] text-slate-500">Order ID</div>
-                <div className="font-medium">{String(viewDelivery._id)}</div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Reference</div>
-                <div className="font-medium">
-                  {viewDelivery.reference || "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Customer</div>
-                <div className="font-medium">{viewDelivery.customerName}</div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Phone</div>
-                <div className="font-medium">{viewDelivery.customerPhone}</div>
-              </div>
-              <div className="md:col-span-2">
-                <div className="text-[12px] text-slate-500">
-                  Delivery Address
-                </div>
-                <div className="font-medium">
-                  {viewDelivery.deliveryAddress}
-                </div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Payment</div>
-                <div className="font-medium">{viewDelivery.paymentMethod}</div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">COD Amount</div>
-                <div className="font-medium">
-                  {viewDelivery.codAmount
-                    ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
-                    : "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Priority</div>
-                <div className="font-medium">
-                  {viewDelivery.priority || "standard"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[12px] text-slate-500">Status</div>
-                <div className="font-medium capitalize text-slate-900">
-                  {viewDelivery.status.replace("_", " ")}
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <div className="text-[12px] text-slate-500">
-                  Assigned Driver
-                </div>
-                <div className="font-medium">
-                  {viewDelivery.assignedDriverId?.firstName || "—"}{" "}
-                  {viewDelivery.assignedDriverId?.lastName || "—"}
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <div className="text-[12px] text-slate-500">Notes</div>
-                <div className="font-medium">{viewDelivery.notes || "—"}</div>
-              </div>
+          <div>
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 mb-4">
+              <button
+                onClick={() => setActiveTab("details")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "details"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                BRIEF
+              </button>
+              <button
+                onClick={() => setActiveTab("activity")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "activity"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                HISTORY
+              </button>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === "details" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <div className="text-[12px] text-slate-500">Order ID</div>
+                    <div className="font-medium">
+                      {String(viewDelivery._id)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Reference</div>
+                    <div className="font-medium">
+                      {viewDelivery.reference || "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Customer</div>
+                    <div className="font-medium">
+                      {viewDelivery.customerName}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Phone</div>
+                    <div className="font-medium">
+                      {viewDelivery.customerPhone}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-[12px] text-slate-500">
+                      Delivery Address
+                    </div>
+                    <div className="font-medium">
+                      {viewDelivery.deliveryAddress}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Payment</div>
+                    <div className="font-medium">
+                      {viewDelivery.paymentMethod}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">COD Amount</div>
+                    <div className="font-medium">
+                      {viewDelivery.codAmount
+                        ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                        : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Priority</div>
+                    <div className="font-medium">
+                      {viewDelivery.priority || "standard"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-slate-500">Status</div>
+                    <div className="font-medium capitalize text-slate-900">
+                      {viewDelivery.status.replace("_", " ")}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-[12px] text-slate-500">
+                      Assigned Driver
+                    </div>
+                    <div className="font-medium">
+                      {viewDelivery.assignedDriverId?.firstName || "—"}{" "}
+                      {viewDelivery.assignedDriverId?.lastName || "—"}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-[12px] text-slate-500">Notes</div>
+                    <div className="font-medium">
+                      {viewDelivery.notes || "—"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "activity" && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-medium text-slate-900">
+                    Activity Log
+                  </h3>
+                </div>
+
+                {loadingActivity ? (
+                  <div className="text-center py-8 text-slate-500">
+                    Loading activity log...
+                  </div>
+                ) : activityLog.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    No activity recorded yet
+                  </div>
+                ) : (
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-600"></div>
+
+                    {/* Activity items */}
+                    <div className="space-y-4">
+                      {activityLog.map((activity, index) => (
+                        <div
+                          key={index}
+                          className="relative flex items-start gap-4"
+                        >
+                          {/* Timeline dot */}
+                          <div
+                            className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              activity.action === "note_added"
+                                ? "bg-amber-500"
+                                : "bg-blue-600"
+                            }`}
+                          >
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+
+                          {/* Activity content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-slate-900">
+                              <span className="capitalize">
+                                {activity.action.replace(/_/g, " ")}
+                              </span>
+                              {activity.details && (
+                                <span className="text-slate-600">
+                                  : {activity.details}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* User info */}
+                            <div className="mt-1 text-xs text-slate-500">
+                              by{" "}
+                              <span className="text-amber-700 font-medium">
+                                {activity.performedBy.firstName}{" "}
+                                {activity.performedBy.lastName}
+                              </span>
+                              {activity.performedBy.role && (
+                                <span className="text-slate-400">
+                                  {" "}
+                                  (Role: {activity.performedBy.role})
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Timestamp */}
+                            <div className="mt-1 text-xs text-slate-400">
+                              {new Date(activity.performedAt).toLocaleString()}
+                            </div>
+
+                            {/* Value changes if applicable */}
+                            {activity.oldValue && activity.newValue && (
+                              <div className="mt-2 p-2 bg-slate-50 rounded text-xs">
+                                <div className="text-slate-600">
+                                  <span className="font-medium">
+                                    Changed from:
+                                  </span>{" "}
+                                  {activity.oldValue}
+                                </div>
+                                <div className="text-sm text-slate-600">
+                                  <span className="font-medium">
+                                    Changed to:
+                                  </span>{" "}
+                                  {activity.newValue}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Special display for notes */}
+                            {activity.action === "note_added" && (
+                              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                                <div className="text-sm text-amber-800 font-medium mb-1">
+                                  📝 Note
+                                </div>
+                                <div className="text-sm text-amber-700">
+                                  {activity.details?.replace(
+                                    "Note added: ",
+                                    ""
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-sm text-slate-500">Delivery not found</div>
