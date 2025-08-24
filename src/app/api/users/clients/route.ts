@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
       isActive: true,
     })
       .select(
-        "firstName lastName phone deliveryFee address city district postalCode"
+        "firstName lastName phone deliveryFee address city district postalCode customerStoreName email"
       )
       .lean();
 
-    return NextResponse.json({ clients });
+    return NextResponse.json({ users: clients });
   } catch (error) {
     console.error("Fetch clients error:", error);
     return NextResponse.json(

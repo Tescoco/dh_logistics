@@ -5,6 +5,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useToast } from "@/contexts/ToastContext";
+import Select from "@/components/ui/Select";
+import { SAUDI_CITIES } from "@/lib/cities";
 
 export default function ProfilePage() {
   const { showError, showSuccess } = useToast();
@@ -16,6 +18,10 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -31,6 +37,10 @@ export default function ProfilePage() {
         setPhone(u.phone || "");
         setRole(u.role || "");
         setAvatarUrl(u.avatarUrl);
+        setAddress(u.address || "");
+        setCity(u.city || "");
+        setDistrict(u.district || "");
+        setPostalCode(u.postalCode || "");
       })
       .catch(() => {})
       .finally(() => {});
@@ -45,7 +55,17 @@ export default function ProfilePage() {
       await fetch("/api/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, phone, avatarUrl }),
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          avatarUrl,
+          address: address || undefined,
+          city: city || undefined,
+          district: district || undefined,
+          postalCode: postalCode || undefined,
+        }),
       });
     } finally {
       setSaving(false);
@@ -148,15 +168,87 @@ export default function ProfilePage() {
           </div>
           <div>
             <label className="text-[13px] text-slate-600">Phone Number</label>
-            <Input
-              placeholder="+1 (555) 123-4567"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+            <div className="flex">
+              <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                +966
+              </div>
+              <Input
+                placeholder="5XXXXXXXX"
+                type="tel"
+                maxLength={9}
+                value={phone}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  if (value.length <= 9) {
+                    setPhone(value);
+                  }
+                }}
+                className="rounded-l-none"
+              />
+            </div>
+            <div className="text-[11px] text-slate-500 mt-1">
+              Enter 9 digits only (without country code)
+            </div>
           </div>
           <div>
             <label className="text-[13px] text-slate-600">Role</label>
             <Input placeholder="System Administrator" value={role} disabled />
+          </div>
+        </div>
+
+        {/* Address Information */}
+        <div className="mt-6 space-y-4">
+          <h3 className="text-[15px] font-semibold text-slate-900">
+            Address Information
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <label className="text-[13px] text-slate-600">Address</label>
+              <Input
+                placeholder="Enter street address, building, unit, etc."
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className="text-[13px] text-slate-600">City</label>
+                <Select
+                  value={city}
+                  onChange={(e) =>
+                    setCity((e.target as HTMLSelectElement).value)
+                  }
+                >
+                  <option value="">Select City</option>
+                  <option value="Riyadh">Riyadh</option>
+                  <option value="Jeddah">Jeddah</option>
+                  <option value="Dammam">Dammam</option>
+                  <option value="Khobar">Khobar</option>
+                  <option value="Dhahran">Dhahran</option>
+                  <option value="Abha">Abha</option>
+                  <option value="Khamis Mushait">Khamis Mushait</option>
+                  <option value="Jubail">Jubail</option>
+                  <option value="Jizan">Jizan</option>
+                  <option value="Makkah">Makkah</option>
+                  <option value="Madinah">Madinah</option>
+                  <option value="Tabuk">Tabuk</option>
+                </Select>
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">District</label>
+                <Select
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                >
+                  <option value="">Select a district</option>
+                  {SAUDI_CITIES.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

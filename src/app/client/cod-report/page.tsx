@@ -252,7 +252,7 @@ export default function CodReportPage() {
       </Card>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             label: "Total COD Amount",
@@ -295,7 +295,7 @@ export default function CodReportPage() {
             </div>
           </Card>
         ))}
-      </div>
+      </div> */}
 
       {/* Report history */}
       <Card
@@ -622,7 +622,7 @@ export default function CodReportPage() {
                   <th className="px-3 py-2 font-medium">Phone</th>
                   <th className="px-3 py-2 font-medium">Address</th>
                   <th className="px-3 py-2 font-medium">COD Amount</th>
-                  <th className="px-3 py-2 font-medium">Delivery Fee</th>
+                  {/* <th className="px-3 py-2 font-medium">Delivery Fee</th> */}
                   <th className="px-3 py-2 font-medium">Status</th>
                   <th className="px-3 py-2 font-medium">Date</th>
                 </tr>
@@ -647,9 +647,9 @@ export default function CodReportPage() {
                     <td className="px-3 py-2 font-medium">
                       ﷼{delivery.codAmount?.toLocaleString() || "0"}
                     </td>
-                    <td className="px-3 py-2">
+                    {/* <td className="px-3 py-2">
                       ﷼{delivery.deliveryFee?.toLocaleString() || "0"}
-                    </td>
+                    </td> */}
                     <td className="px-3 py-2">
                       <Badge
                         variant={

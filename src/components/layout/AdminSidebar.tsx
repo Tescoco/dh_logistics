@@ -11,6 +11,7 @@ import {
   UsersIcon,
   SettingsIcon,
   UserIcon,
+  ListIcon,
 } from "@/components/icons";
 // Image intentionally rendered with <img> for guaranteed visibility in sidebar header
 
@@ -35,7 +36,10 @@ const topLevel: NavItem[] = [
     ],
   },
   { href: "/admin/delivery-status", label: "Delivery Status", icon: "package" },
+  { href: "/admin/cod-reports", label: "COD Reports", icon: "list" },
+  { href: "/admin/reports", label: "Client Reports", icon: "list" },
   { href: "/admin/users", label: "Users", icon: "users" },
+  { href: "/admin/couriers", label: "Courier Companies", icon: "truck" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },
   { href: "/admin/profile", label: "Profile", icon: "user" },
 ];
@@ -238,6 +242,12 @@ function renderIcon(name?: string, isActive = false) {
       return (
         <span aria-hidden className={common}>
           <UserIcon size={20} />
+        </span>
+      );
+    case "list":
+      return (
+        <span aria-hidden className={common}>
+          <ListIcon size={20} />
         </span>
       );
     default:

@@ -27,6 +27,20 @@ export async function GET() {
     returned,
     users,
     inTransit,
+    pending,
+    assigned,
+    noAnswer,
+    outForDelivery,
+    productDestroyed,
+    lostShipments,
+    damagedShipments,
+    readyForReturn,
+    returnInTransit,
+    returnedToClient,
+    shipmentOnHold,
+    returnedToInventory,
+    rto,
+    futureDelivery,
     deliveredPrev30,
     deliveredLast30,
     returnedPrev30,
@@ -49,6 +63,36 @@ export async function GET() {
     Delivery.countDocuments({ ...scope, status: "returned" }),
     User.countDocuments({}),
     Delivery.countDocuments({ ...scope, status: "in_transit" }),
+    Delivery.countDocuments({ ...scope, status: "pending" }),
+    Delivery.countDocuments({ ...scope, status: "assigned" }),
+    // Using returned as proxy for "no answer" - could be refined with specific field
+    Delivery.countDocuments({
+      ...scope,
+      status: "returned",
+      notes: { $regex: /no answer|no response/i },
+    }),
+    // Using in_transit as proxy for "out for delivery" - could be refined
+    Delivery.countDocuments({ ...scope, status: "in_transit" }),
+    // Using lost_damaged status for product destroyed
+    Delivery.countDocuments({ ...scope, status: "lost_damaged" }),
+    // Using lost_damaged status for lost shipments
+    Delivery.countDocuments({ ...scope, status: "lost_damaged" }),
+    // Using lost_damaged status for damaged shipments
+    Delivery.countDocuments({ ...scope, status: "lost_damaged" }),
+    // Ready for return - using returned status
+    Delivery.countDocuments({ ...scope, status: "returned" }),
+    // Return in transit - using rto status
+    Delivery.countDocuments({ ...scope, status: "rto" }),
+    // Returned to client - using returned status
+    Delivery.countDocuments({ ...scope, status: "returned" }),
+    // Shipment on hold - using drafts
+    Delivery.countDocuments({ ...scope, isDraft: true }),
+    // Returned to inventory - using returned status
+    Delivery.countDocuments({ ...scope, status: "returned" }),
+    // RTO status
+    Delivery.countDocuments({ ...scope, status: "rto" }),
+    // Future delivery
+    Delivery.countDocuments({ ...scope, status: "future_delivery" }),
     // windowed counts for % change calculations
     Delivery.countDocuments({
       ...scope,
@@ -139,12 +183,50 @@ export async function GET() {
   const totalPrevWindowGlobal =
     deliveredPrev30Global + returnedPrev30Global + inTransitPrevWindowGlobal;
 
+  const totalParcels =
+    activeDeliveries +
+    delivered +
+    returned +
+    pending +
+    assigned +
+    noAnswer +
+    outForDelivery +
+    productDestroyed +
+    lostShipments +
+    damagedShipments +
+    readyForReturn +
+    returnInTransit +
+    returnedToClient +
+    shipmentOnHold +
+    returnedToInventory +
+    rto +
+    futureDelivery;
+
   return NextResponse.json({
+    // Main stats
+    totalParcels,
     activeDeliveries,
     delivered,
     returned,
     totalUsers: users,
     inTransit,
+    pending,
+    assigned,
+
+    // Extended status categories
+    noAnswer,
+    outForDelivery,
+    productDestroyed,
+    lostShipments,
+    damagedShipments,
+    readyForReturn,
+    returnInTransit,
+    returnedToClient,
+    shipmentOnHold,
+    returnedToInventory,
+    rto,
+    futureDelivery,
+
     changes: {
       totalPct: percentChange(totalLastWindow, totalPrevWindow),
       deliveredPct: percentChange(deliveredLast30, deliveredPrev30),

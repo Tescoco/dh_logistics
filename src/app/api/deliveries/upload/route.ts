@@ -4,13 +4,16 @@ import { Delivery } from "@/models/Delivery";
 import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
 import { ObjectId } from "mongodb";
+import { parseFile, validateDeliveryRow } from "@/lib/fileParser";
 
 export const runtime = "nodejs";
 
-// Expected CSV headers: reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes
-// Example:
+// Supported file formats: CSV and XLSX
+// Expected headers: reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes
+// Example CSV:
 // REF001,John Doe,+1234567890,Jane Sender,+9876543210,789 Sender St,Riyadh,Al-Malaz,12345,123 Main St,Riyadh,Al-Malaz,12345,Package,Description,Standard,COD,10,50,Notes
 // REF002,Jane Smith,+9876543210,Bob Sender,+1234567890,456 Sender Ave,Jeddah,Al-Hamra,54321,456 Oak Ave,Jeddah,Al-Hamra,54321,Document,Important docs,Express,Prepaid,15,0,Handle with care
+
 export async function POST(req: NextRequest) {
   await connectToDatabase();
   const auth = await getAuthUser(req);
@@ -23,50 +26,52 @@ export async function POST(req: NextRequest) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "Missing file" }, { status: 400 });
     }
-    const text = await file.text();
-    const lines = text
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-    if (lines.length === 0) {
-      return NextResponse.json({ error: "Empty CSV" }, { status: 400 });
-    }
-    let startIdx = 0;
-    const headerLower = lines[0].toLowerCase();
-    let headerUsed = false;
 
-    // Check if first line looks like headers (contains common delivery fields)
-    const commonFields = [
-      "reference",
-      "customer",
-      "phone",
-      "address",
-      "package",
-      "description",
-    ];
-    const hasCommonFields = commonFields.some((field) =>
-      headerLower.includes(field)
-    );
+    // Validate file type
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type;
+    const isCSV = fileType === "text/csv" || fileName.endsWith(".csv");
+    const isXLSX =
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      fileName.endsWith(".xlsx");
 
-    if (hasCommonFields) {
-      startIdx = 1;
-      headerUsed = true;
-    } else {
-      // If first line doesn't look like headers, check if it has data-like content
-      const firstLineParts = lines[0].split(",").map((p) => p.trim());
-      if (
-        firstLineParts.length > 3 &&
-        firstLineParts.every((part) => part.length > 0)
-      ) {
-        // Assume first line is data, create generic headers
-        startIdx = 0;
-        headerUsed = false;
-      } else {
-        // Assume first line is headers
-        startIdx = 1;
-        headerUsed = true;
-      }
+    if (!isCSV && !isXLSX) {
+      return NextResponse.json(
+        {
+          error: "Unsupported file type. Please upload a CSV or XLSX file.",
+        },
+        { status: 400 }
+      );
     }
+
+    // Parse the file
+    let parseResult;
+    try {
+      parseResult = await parseFile(file);
+    } catch (parseError) {
+      return NextResponse.json(
+        {
+          error: `Failed to parse file: ${
+            parseError instanceof Error ? parseError.message : "Unknown error"
+          }`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { rows, headers } = parseResult;
+
+    if (rows.length === 0) {
+      return NextResponse.json(
+        {
+          error: "No data rows found in the file.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get sender information
     const sender = await User.findById(auth.userId);
     if (!sender) {
       return NextResponse.json({ error: "Sender not found" }, { status: 400 });
@@ -75,11 +80,13 @@ export async function POST(req: NextRequest) {
       sender.lastName ?? ""
     }`.trim();
     const senderPhone: string = sender.phone ?? "";
+    const defaultDeliveryFee = sender.deliveryFee || 0;
 
     type NewDelivery = {
       reference: string;
       customerName: string;
       customerPhone: string;
+      customerStoreName?: string; // Store name from customer account
       senderName: string;
       senderPhone: string;
       senderAddress?: string;
@@ -102,85 +109,66 @@ export async function POST(req: NextRequest) {
       createdAt: Date;
     };
 
-    // fetech delivery fee from user record
-    const deliveryFee = sender.deliveryFee;
-
     const deliveries: NewDelivery[] = [];
-    for (let i = startIdx; i < lines.length; i++) {
-      const raw = lines[i];
-      const parts = raw.split(",").map((p) => p.trim());
+    const errors: string[] = [];
 
-      // Basic validation for delivery data
-      if (parts.length < 3) continue; // Skip rows with insufficient data
+    // Process each row
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const validation = validateDeliveryRow(row, headers);
 
-      const reference = parts[0] ?? "";
-      const customerName = parts[1] ?? "";
-      const customerPhone = parts[2] ?? "";
-      const senderNameCsv = parts[3] ?? "";
-      const senderPhoneCsv = parts[4] ?? "";
-      const senderAddressCsv = parts[5] ?? "";
-      const senderCityCsv = parts[6] ?? "";
-      const senderDistrictCsv = parts[7] ?? "";
-      const senderPostalCodeCsv = parts[8] ?? "";
-      const deliveryAddress = parts[9] ?? "";
-      const deliveryCity = parts[10] ?? "";
-      const deliveryDistrict = parts[11] ?? "";
-      const deliveryPostalCode = parts[12] ?? "";
-      const packageType = parts[13] ?? "Package";
-      const description = parts[14] ?? "";
-      const priority = parts[15] ?? "standard";
-      const paymentMethod = parts[16] ?? "prepaid";
-      const codAmount = parseFloat(parts[17]) || 0;
-      const notes = parts[18] ?? "";
-      const deliveryFee = parseFloat(parts?.[19] ?? "0") || sender.deliveryFee;
-
-      // Validate required fields
-      if (!reference.trim() || !customerName.trim() || !customerPhone.trim()) {
-        continue; // Skip invalid rows
+      if (!validation.isValid) {
+        errors.push(`Row ${i + 1}: ${validation.reason}`);
+        continue;
       }
 
-      // Basic phone validation
-      if (!/^[+]?[0-9\s\-()]{7,15}$/.test(customerPhone.trim())) {
-        continue; // Skip invalid phone numbers
-      }
+      const data = validation.data!;
 
       deliveries.push({
-        reference: reference.trim(),
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        senderName: senderNameCsv.trim() || senderName,
-        senderPhone: senderPhoneCsv.trim() || senderPhone,
-        senderAddress: senderAddressCsv.trim() || undefined,
-        senderCity: senderCityCsv.trim() || undefined,
-        senderDistrict: senderDistrictCsv.trim() || undefined,
-        senderPostalCode: senderPostalCodeCsv.trim() || undefined,
-        deliveryAddress: deliveryAddress.trim(),
-        deliveryCity: deliveryCity.trim() || undefined,
-        deliveryDistrict: deliveryDistrict.trim() || undefined,
-        deliveryPostalCode: deliveryPostalCode.trim() || undefined,
-        packageType: packageType.trim(),
-        description: description.trim(),
-        priority: priority.trim(),
-        paymentMethod: paymentMethod.trim(),
-        deliveryFee,
-        codAmount,
-        notes: notes.trim(),
+        reference: data.reference,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        deliveryAddress: data.deliveryAddress,
+        deliveryCity: data.deliveryCity || undefined,
+        deliveryDistrict: data.deliveryDistrict || undefined,
+        deliveryPostalCode: data.deliveryPostalCode || undefined,
+        packageType: data.packageType,
+        description: data.description,
+        priority: data.priority,
+        paymentMethod: data.paymentMethod,
+        deliveryFee: data.deliveryFee || defaultDeliveryFee,
+        codAmount: data.codAmount,
+        notes: data.notes,
         status: "pending",
         createdById: auth.userId,
         createdAt: new Date(),
+        customerStoreName: data.customerStoreName || sender.customerStoreName, // Use sender's store name
+        senderName: data.senderName || senderName,
+        senderPhone: data.senderPhone || senderPhone,
+        senderAddress: data.senderAddress || undefined,
+        senderCity: data.senderCity || undefined,
+        senderDistrict: data.senderDistrict || undefined,
+        senderPostalCode: data.senderPostalCode || undefined,
       });
     }
+
     if (deliveries.length === 0) {
+      const errorMessage =
+        errors.length > 0
+          ? `No valid rows found. Errors: ${errors.slice(0, 5).join("; ")}${
+              errors.length > 5 ? "..." : ""
+            }`
+          : "No valid rows found. Please check your file format and required fields.";
+
       return NextResponse.json(
         {
-          error:
-            "No valid rows found. Please check your CSV format and required fields.",
+          error: errorMessage,
         },
         { status: 400 }
       );
     }
 
-    // bulk check if reference already exists
+    // Check for existing references
     const existingReferences = await Delivery.find({
       reference: { $in: deliveries.map((d) => d.reference) },
     });
@@ -188,26 +176,44 @@ export async function POST(req: NextRequest) {
       existingReferences.map((d) => [d.reference, d])
     );
 
-    // filter out deliveries that already exist
+    // Filter out deliveries that already exist
     const newDeliveries = deliveries.filter(
       (d) => !existingReferencesMap.has(d.reference)
     );
 
+    const skippedCount = deliveries.length - newDeliveries.length;
+
     // Create deliveries in batch
     try {
       const result = await Delivery.insertMany(newDeliveries);
+
+      let message = `Successfully processed ${deliveries.length} rows from ${
+        isCSV ? "CSV" : "XLSX"
+      } file. `;
+      message += `Created ${result.length} new deliveries.`;
+      if (skippedCount > 0) {
+        message += ` Skipped ${skippedCount} duplicate references.`;
+      }
+      if (errors.length > 0) {
+        message += ` ${errors.length} rows had validation errors.`;
+      }
+
       return NextResponse.json({
         ok: true,
         processed: deliveries.length,
         created: result.length,
-        message: `Successfully created ${result.length} deliveries`,
+        skipped: skippedCount,
+        errors: errors.length,
+        message,
+        fileType: isCSV ? "CSV" : "XLSX",
+        validationErrors: errors.length > 0 ? errors.slice(0, 10) : undefined, // Return first 10 errors
       });
     } catch (dbError: unknown) {
       console.error("Database insertion error:", dbError);
 
       let specificError = "Failed to create deliveries.";
 
-      // Narrow error type when possible
+      // Handle different types of database errors
       const err = dbError as
         | (Error & {
             code?: number;
@@ -272,7 +278,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (e) {
-    console.error("CSV upload error", e);
+    console.error("File upload error", e);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

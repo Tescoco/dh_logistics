@@ -11,6 +11,7 @@ const RegisterSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(["admin", "driver", "manager", "customer"]).optional(),
   password: z.string().min(8),
+  customerStoreName: z.string().optional(), // Store name for customer accounts
 });
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
       phone: input.phone,
       role: input.role ?? "admin",
       passwordHash,
+      customerStoreName: input.customerStoreName,
     });
 
     const token = await createJwt({

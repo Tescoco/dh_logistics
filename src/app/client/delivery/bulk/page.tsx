@@ -4,9 +4,21 @@ import React, { useMemo, useRef, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { UploadIcon, DownloadIcon, ListIcon } from "@/components/icons";
+import Modal from "@/components/ui/Modal";
+import {
+  UploadIcon,
+  DownloadIcon,
+  ListIcon,
+  EditIcon,
+} from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
+import {
+  parseFile,
+  validateDeliveryRow,
+  type ParsedRow,
+} from "@/lib/fileParser";
+
 export default function BulkDeliveriesUploadPage() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
@@ -14,7 +26,7 @@ export default function BulkDeliveriesUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   type PreviewRow = {
     index: number;
-    raw: string;
+    row: ParsedRow;
     valid: boolean;
     reason?: string;
     values: string[];
@@ -34,169 +46,137 @@ export default function BulkDeliveriesUploadPage() {
   const [mode, setMode] = useState("Process Immediately");
   const [uploading, setUploading] = useState(false);
 
+  // Inline editing state
+  const [editingRow, setEditingRow] = useState<PreviewRow | null>(null);
+  const [editValues, setEditValues] = useState<string[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const canStart = useMemo(
     () => !!file && rows.some((r) => r.valid),
     [file, rows]
   );
 
+  // Handle row editing
+  const handleEditRow = (row: PreviewRow) => {
+    setEditingRow(row);
+    setEditValues([...row.values]);
+    setShowEditModal(true);
+  };
+
+  // Save edited row
+  const handleSaveEdit = () => {
+    if (!editingRow) return;
+
+    // Create new row data from edited values
+    const newRowData: ParsedRow = {};
+    columns.forEach((header, index) => {
+      newRowData[header] = editValues[index] || "";
+    });
+
+    // Validate the edited row
+    const validation = validateDeliveryRow(newRowData, columns);
+
+    // Update the row
+    const updatedRows = rows.map((r) => {
+      if (r.index === editingRow.index) {
+        return {
+          ...r,
+          row: newRowData,
+          valid: validation.isValid,
+          reason: validation.reason || undefined,
+          values: editValues,
+        };
+      }
+      return r;
+    });
+
+    setRows(updatedRows);
+    setShowEditModal(false);
+    setEditingRow(null);
+    setEditValues([]);
+
+    if (validation.isValid) {
+      showSuccess(
+        "Row Updated",
+        "Row has been successfully updated and is now valid."
+      );
+    } else {
+      showError(
+        "Validation Failed",
+        `Row still has issues: ${validation.reason}`
+      );
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setShowEditModal(false);
+    setEditingRow(null);
+    setEditValues([]);
+  };
+
   async function handleFileChange(f: File | null) {
     setFile(f);
     setRows([]);
+    setColumns([]);
     setParseError(null);
     if (!f) return;
+
+    // Validate file type
+    const fileName = f.name.toLowerCase();
+    const fileType = f.type;
+    const isCSV = fileType === "text/csv" || fileName.endsWith(".csv");
+    const isXLSX =
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      fileName.endsWith(".xlsx");
+
+    if (!isCSV && !isXLSX) {
+      setParseError("Unsupported file type. Please upload a CSV or XLSX file.");
+      return;
+    }
+
     try {
-      const text = await f.text();
-      const lines = text
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean);
-      if (lines.length === 0) {
-        setParseError("CSV is empty");
+      // Parse the file using the new parser
+      const parseResult = await parseFile(f);
+      const { rows: parsedRows, headers } = parseResult;
+
+      setColumns(headers);
+
+      if (parsedRows.length === 0) {
+        setParseError("No data rows found in the file.");
         return;
       }
-      let startIdx = 0;
-      const headerLower = lines[0].toLowerCase();
-      let headerUsed = false;
 
-      // Check if first line looks like headers (contains common delivery fields)
-      const commonFields = [
-        "reference",
-        "customer",
-        "phone",
-        "address",
-        "package",
-        "description",
-      ];
-      const hasCommonFields = commonFields.some((field) =>
-        headerLower.includes(field)
-      );
+      // Validate each row
+      const previewRows: PreviewRow[] = [];
+      for (let i = 0; i < parsedRows.length; i++) {
+        const row = parsedRows[i];
+        const validation = validateDeliveryRow(row, headers);
 
-      if (hasCommonFields) {
-        startIdx = 1;
-        headerUsed = true;
-      } else {
-        // If first line doesn't look like headers, check if it has data-like content
-        const firstLineParts = lines[0].split(",").map((p) => p.trim());
-        if (
-          firstLineParts.length > 3 &&
-          firstLineParts.every((part) => part.length > 0)
-        ) {
-          // Assume first line is data, create generic headers
-          startIdx = 0;
-          headerUsed = false;
-        } else {
-          // Assume first line is headers
-          startIdx = 1;
-          headerUsed = true;
-        }
-      }
-      if (headerUsed) {
-        const headerParts = lines[0].split(",").map((p) => p.trim());
-        setColumns(headerParts);
-      } else {
-        const sampleParts = lines[startIdx].split(",").map((p) => p.trim());
-        setColumns(sampleParts.map((_, i) => `col${i + 1}`));
-      }
-      const parsed: PreviewRow[] = [];
-      for (let i = startIdx; i < lines.length; i++) {
-        const raw = lines[i];
-        const parts = raw.split(",").map((p) => p.trim());
+        // Convert row object to array of values for display
+        const values = headers.map((header) => row[header]?.toString() || "");
 
-        // Basic validation for delivery data
-        let valid = true;
-        let reason = "";
-
-        if (parts.length < 3) {
-          valid = false;
-          reason =
-            "Minimum 3 columns required (reference, customer name, phone)";
-        } else {
-          // Check for required fields (assuming first few columns are reference, customer, phone)
-          const reference = parts[0] ?? "";
-          const customerName = parts[1] ?? "";
-          const customerPhone = parts[2] ?? "";
-          const senderName = parts[3] ?? "";
-          const senderPhone = parts[4] ?? "";
-          const senderAddress = parts[5] ?? "";
-          const senderCity = parts[6] ?? "";
-          const senderDistrict = parts[7] ?? "";
-          const senderPostalCode = parts[8] ?? "";
-          const deliveryAddress = parts[9] ?? "";
-          const deliveryCity = parts[10] ?? "";
-          const deliveryDistrict = parts[11] ?? "";
-          const deliveryPostalCode = parts[12] ?? "";
-          const packageType = parts[13] ?? "Package";
-          const description = parts[14] ?? "";
-          let priority = parts[15] ?? "standard";
-          const paymentMethod = parts[16] ?? "prepaid";
-          const codAmount = parseFloat(parts[17]) || 0;
-          const notes = parts[18] ?? "";
-
-          const missingFields = [];
-          if (!reference.trim()) missingFields.push("reference");
-          if (!customerName.trim()) missingFields.push("customer name");
-          if (!customerPhone.trim()) missingFields.push("customer phone");
-
-          if (missingFields.length > 0) {
-            valid = false;
-            reason = `Missing required fields: ${missingFields.join(", ")}`;
-          }
-
-          // Basic phone validation
-          if (
-            customerPhone &&
-            !/^[+]?[0-9\s\-()]{7,15}$/.test(customerPhone.trim())
-          ) {
-            valid = false;
-            reason = reason
-              ? `${reason}; invalid phone format`
-              : "Invalid phone format";
-          }
-
-          //   if priority is not express or standard, set it to standard
-          if (
-            priority &&
-            priority.trim().toLowerCase() !== "express" &&
-            priority.trim().toLowerCase() !== "standard"
-          ) {
-            priority = "standard";
-          }
-
-          if (
-            paymentMethod &&
-            paymentMethod.trim().toLowerCase() !== "cod" &&
-            paymentMethod.trim().toLowerCase() !== "cash on delivery"
-          ) {
-            valid = false;
-            reason = reason
-              ? `${reason}; invalid payment method its should be cash on delivery`
-              : "Invalid payment method its should be cash on delivery";
-          }
-        }
-
-        parsed.push({
-          valid,
-          index: i - startIdx + 1,
-          raw,
-          reason: valid ? undefined : reason,
-          values: parts,
+        previewRows.push({
+          index: i + 1,
+          row,
+          valid: validation.isValid,
+          reason: validation.reason || undefined,
+          values,
         });
       }
-      if (parsed.length === 0) {
-        setParseError(
-          "No valid delivery data found. Expected columns: reference, customer name, phone, address, etc."
-        );
-        return;
-      }
-      setRows(parsed);
+
+      setRows(previewRows);
     } catch (e) {
-      setParseError("Failed to read CSV file");
+      const errorMessage =
+        e instanceof Error ? e.message : "Failed to parse file";
+      setParseError(errorMessage);
     }
   }
 
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes",
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,deliveryDistrict,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -250,10 +230,11 @@ export default function BulkDeliveriesUploadPage() {
           <div className="flex-1">
             <div className="font-semibold">Upload Instructions</div>
             <ul className="mt-2 text-[13px] text-slate-600 space-y-1 list-disc pl-5">
-              <li>Upload a CSV file containing delivery information</li>
+              <li>Upload a CSV or XLSX file containing delivery information</li>
               <li>Maximum file size: 10MB</li>
               <li>Maximum 1000 deliveries per upload</li>
               <li>Ensure all required fields are included</li>
+              <li>Both CSV and Excel (.xlsx) formats are supported</li>
             </ul>
           </div>
         </div>
@@ -263,9 +244,9 @@ export default function BulkDeliveriesUploadPage() {
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-semibold">CSV Template</div>
+            <div className="font-semibold">File Template</div>
             <div className="text-[12px] text-slate-500">
-              Download the template file to ensure proper formatting
+              Download the CSV template file to ensure proper formatting
             </div>
           </div>
           <Button
@@ -285,7 +266,7 @@ export default function BulkDeliveriesUploadPage() {
             <UploadIcon size={20} />
           </div>
           <div className="text-slate-700 font-medium">
-            Drop your CSV file here
+            Drop your CSV or XLSX file here
           </div>
           <div className="text-[12px] text-slate-500">
             or click to browse and select
@@ -294,7 +275,7 @@ export default function BulkDeliveriesUploadPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx"
               hidden
               onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
             />
@@ -349,16 +330,25 @@ export default function BulkDeliveriesUploadPage() {
                   <tr key={idx} className="border-t border-slate-100">
                     <td className="px-4 py-3">
                       <div className="relative group">
-                        <span
+                        <button
+                          onClick={() => !r.valid && handleEditRow(r)}
+                          disabled={r.valid}
                           className={
-                            "inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium cursor-help whitespace-nowrap " +
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium whitespace-nowrap transition-all duration-200 " +
                             (r.valid
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                              : "bg-rose-50 text-rose-700 ring-1 ring-rose-200")
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 cursor-default"
+                              : "bg-rose-50 text-rose-700 ring-1 ring-rose-200 cursor-pointer hover:bg-rose-100 hover:ring-rose-300")
                           }
                         >
-                          {r.valid ? "Valid" : "Invalid"}
-                        </span>
+                          {r.valid ? (
+                            "Valid"
+                          ) : (
+                            <>
+                              Invalid
+                              <EditIcon size={10} />
+                            </>
+                          )}
+                        </button>
                         {!r.valid && r.reason && (
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-[11px] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 max-w-xs">
                             {r.reason}
@@ -371,9 +361,9 @@ export default function BulkDeliveriesUploadPage() {
                       <td
                         key={colIdx}
                         className="px-4 py-3 text-slate-800 whitespace-nowrap max-w-[200px] truncate"
-                        title={value}
+                        title={value || ""}
                       >
-                        {value}
+                        {value || ""}
                       </td>
                     ))}
                   </tr>
@@ -503,32 +493,61 @@ export default function BulkDeliveriesUploadPage() {
         </div>
       </Card>
 
-      {/* Recent Uploads */}
-      {/* <Card header={<div className="font-semibold">Recent Uploads</div>}>
-        <div className="space-y-2 text-sm">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50"
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                <div>
-                  <div className="font-medium text-slate-800">
-                    batch_deliveries_jan_0{i}.csv
+      {/* Edit Row Modal */}
+      <Modal
+        open={showEditModal}
+        onClose={handleCancelEdit}
+        title={`Edit Row ${editingRow?.index || ""}`}
+        widthClassName="max-w-4xl"
+      >
+        {editingRow && (
+          <div className="space-y-4">
+            <div className="text-sm text-slate-600 mb-4">
+              {editingRow.reason && (
+                <div className="bg-rose-50 border border-rose-200 rounded-md p-3 mb-3">
+                  <div className="font-medium text-rose-800">
+                    Validation Error:
                   </div>
-                  <div className="text-[12px] text-slate-500">
-                    245 deliveries • Completed 2 hours ago
-                  </div>
+                  <div className="text-rose-700">{editingRow.reason}</div>
                 </div>
-              </div>
-              <button className="text-slate-400 hover:text-slate-600">
-                <XIcon size={16} />
-              </button>
+              )}
+              <p>
+                Edit the values below to fix validation issues. Click Save when
+                done.
+              </p>
             </div>
-          ))}
-        </div>
-      </Card> */}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              {columns.map((header, index) => (
+                <div key={index}>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {header}
+                  </label>
+                  <Input
+                    value={editValues[index] || ""}
+                    onChange={(e) => {
+                      const newValues = [...editValues];
+                      newValues[index] = e.target.value;
+                      setEditValues(newValues);
+                    }}
+                    placeholder={`Enter ${header}`}
+                    className="w-full"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+              <Button variant="secondary" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+              <Button variant="gradient" onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

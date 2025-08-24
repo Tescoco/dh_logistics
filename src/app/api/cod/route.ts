@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
   const detailed = url.searchParams.get("detailed") === "true";
   const format = url.searchParams.get("format");
   const download = url.searchParams.get("download") === "true";
+  const client = url.searchParams.get("client"); // Client filter for admin
   const start = from ? new Date(from) : new Date(0);
   const end = to
     ? new Date(new Date(to).setHours(23, 59, 59, 999))
@@ -74,7 +75,12 @@ export async function GET(req: NextRequest) {
     paymentMethod: "cod",
     createdAt: { $gte: start, $lte: end },
   };
-  if (auth.role !== "admin") match.createdById = auth.userId;
+  if (auth.role !== "admin") {
+    match.createdById = auth.userId;
+  } else if (client) {
+    // Admin filtering by specific client
+    match.createdById = client;
+  }
 
   // Get deliveries data
   const deliveriesData = await Delivery.find(match)
@@ -95,8 +101,13 @@ export async function GET(req: NextRequest) {
     reference: string;
     customerName: string;
     customerPhone: string;
+    customerStoreName?: string;
     deliveryAddress: string;
     codAmount: number;
+    codPaymentStatus?: string;
+    codPaidAmount?: number;
+    codPaidDate?: Date;
+    codNotes?: string;
     deliveryFee: number;
     status: string;
     assignedDriverId: string;
@@ -109,8 +120,13 @@ export async function GET(req: NextRequest) {
     reference: d.reference,
     customerName: d.customerName,
     customerPhone: d.customerPhone,
+    customerStoreName: d.customerStoreName,
     deliveryAddress: d.deliveryAddress,
     codAmount: d.codAmount,
+    codPaymentStatus: d.codPaymentStatus || "pending",
+    codPaidAmount: d.codPaidAmount,
+    codPaidDate: d.codPaidDate,
+    codNotes: d.codNotes,
     deliveryFee: d.deliveryFee,
     status: d.status,
     assignedDriver: "",
@@ -137,9 +153,13 @@ export async function GET(req: NextRequest) {
       const csvHeaders = [
         "Reference",
         "Customer Name",
+        "Store Name",
         "Customer Phone",
         "Delivery Address",
         "COD Amount",
+        "Payment Status",
+        "Paid Amount",
+        "Paid Date",
         "Delivery Fee",
         "Status",
         auth.role === "admin" ? "Assigned Driver" : "",
@@ -149,9 +169,13 @@ export async function GET(req: NextRequest) {
       const csvRows = processedDeliveries.map((d) => [
         d.reference,
         d.customerName,
+        d.customerStoreName || "",
         d.customerPhone,
         d.deliveryAddress,
         d.codAmount || 0,
+        d.codPaymentStatus || "pending",
+        d.codPaidAmount || "",
+        d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
         d.deliveryFee || 0,
         d.status,
         auth.role === "admin" ? d.assignedDriver : "",
@@ -182,9 +206,13 @@ export async function GET(req: NextRequest) {
       worksheet.columns = [
         { header: "Reference", key: "reference", width: 18 },
         { header: "Customer Name", key: "customerName", width: 24 },
+        { header: "Store Name", key: "customerStoreName", width: 24 },
         { header: "Customer Phone", key: "customerPhone", width: 16 },
         { header: "Delivery Address", key: "deliveryAddress", width: 40 },
         { header: "COD Amount", key: "codAmount", width: 14 },
+        { header: "Payment Status", key: "codPaymentStatus", width: 16 },
+        { header: "Paid Amount", key: "codPaidAmount", width: 14 },
+        { header: "Paid Date", key: "codPaidDate", width: 16 },
         { header: "Delivery Fee", key: "deliveryFee", width: 14 },
         { header: "Status", key: "status", width: 14 },
         auth.role === "admin"
@@ -197,9 +225,15 @@ export async function GET(req: NextRequest) {
         worksheet.addRow({
           reference: d.reference,
           customerName: d.customerName,
+          customerStoreName: d.customerStoreName || "",
           customerPhone: d.customerPhone,
           deliveryAddress: d.deliveryAddress,
           codAmount: d.codAmount || 0,
+          codPaymentStatus: d.codPaymentStatus || "pending",
+          codPaidAmount: d.codPaidAmount || "",
+          codPaidDate: d.codPaidDate
+            ? new Date(d.codPaidDate).toLocaleDateString()
+            : "",
           deliveryFee: d.deliveryFee || 0,
           status: d.status,
           assignedDriver: auth.role === "admin" ? d.assignedDriver : "",
@@ -396,7 +430,7 @@ export async function GET(req: NextRequest) {
       ensureSpace(lineHeight * 2);
       // Place totals at left margin
       drawText(
-        `Total COD: INR ${totalCOD.toLocaleString()}`,
+        `Total COD: ﷼ ${totalCOD.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {
@@ -405,7 +439,7 @@ export async function GET(req: NextRequest) {
       );
       cursorY -= lineHeight;
       drawText(
-        `Total Delivery Fees: INR ${totalFee.toLocaleString()}`,
+        `Total Delivery Fees: ﷼ ${totalFee.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {

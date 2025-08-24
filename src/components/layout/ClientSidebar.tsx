@@ -9,20 +9,32 @@ import {
   TruckIcon,
   SettingsIcon,
   UserIcon,
+  SearchIcon,
+  ListIcon,
+  UploadIcon,
 } from "@/components/icons";
 
 type NavItem = {
   href: string;
   label: string;
-  icon?: "dashboard" | "package" | "truck" | "settings" | "user";
+  icon?:
+    | "dashboard"
+    | "package"
+    | "truck"
+    | "settings"
+    | "user"
+    | "search"
+    | "list"
+    | "upload";
 };
 
 const items: NavItem[] = [
   { href: "/client", label: "Dashboard", icon: "dashboard" },
   { href: "/client/delivery/add", label: "Add Delivery", icon: "truck" },
-  { href: "/client/track", label: "Track Deliveries", icon: "truck" },
+  { href: "/client/delivery/bulk", label: "Bulk Upload", icon: "upload" },
+  { href: "/client/track", label: "Track Deliveries", icon: "search" },
   { href: "/client/daily-parcels", label: "Daily Parcels", icon: "package" },
-  { href: "/client/cod-report", label: "COD Report", icon: "dashboard" },
+  { href: "/client/cod-report", label: "COD Report", icon: "list" },
   { href: "/client/settings", label: "Settings", icon: "settings" },
 ];
 
@@ -184,6 +196,24 @@ function renderIcon(icon: NavItem["icon"], isActive: boolean) {
       return (
         <span aria-hidden className={common}>
           <UserIcon size={20} />
+        </span>
+      );
+    case "search":
+      return (
+        <span aria-hidden className={common}>
+          <SearchIcon size={20} />
+        </span>
+      );
+    case "list":
+      return (
+        <span aria-hidden className={common}>
+          <ListIcon size={20} />
+        </span>
+      );
+    case "upload":
+      return (
+        <span aria-hidden className={common}>
+          <UploadIcon size={20} />
         </span>
       );
     default:

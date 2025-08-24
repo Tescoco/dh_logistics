@@ -9,22 +9,25 @@ const CreateDeliverySchema = z.object({
   reference: z.string().min(3),
   customerName: z.string().min(1),
   customerPhone: z.string().min(3),
-  deliveryAddress: z.string().min(3),
-  deliveryCity: z.string().optional(),
-  deliveryDistrict: z.string().optional(),
-  deliveryPostalCode: z.string().optional(),
-  senderName: z.string().optional(),
-  senderPhone: z.string().optional(),
+  customerEmail: z.string().email().optional(),
+  customerWhatsApp: z.string().optional(),
+  customerStoreName: z.string().optional(), // Store name from customer account
   senderAddress: z.string().optional(),
   senderCity: z.string().optional(),
   senderDistrict: z.string().optional(),
   senderPostalCode: z.string().optional(),
+  senderWhatsApp: z.string().optional(),
+  senderName: z.string().optional(),
+  senderPhone: z.string().optional(),
+  deliveryAddress: z.string().min(3),
+  deliveryCity: z.string().optional(),
+  deliveryDistrict: z.string().optional(),
   weightKg: z.number().optional(),
   dimensions: z.string().optional(),
   packageType: z.string().optional(),
   description: z.string().min(1),
-  priority: z.enum(["standard", "express"]).optional(),
-  paymentMethod: z.enum(["prepaid", "cod"]).optional(),
+  priority: z.enum(["standard"]).optional(),
+  paymentMethod: z.enum(["cod"]).optional(),
   deliveryFee: z.number().optional(),
   codAmount: z.number().optional(),
   specialInstructions: z.array(z.string()).optional(),
@@ -33,6 +36,10 @@ const CreateDeliverySchema = z.object({
   assignedDriverId: z
     .string()
     .regex(/^[a-f0-9]{24}$/i, { message: "Invalid driver id format" })
+    .optional(),
+  assignedCourierId: z
+    .string()
+    .regex(/^[a-f0-9]{24}$/i, { message: "Invalid courier id format" })
     .optional(),
 });
 
@@ -48,6 +55,10 @@ export async function GET(req: NextRequest) {
   const status = url.searchParams.get("status");
   const payment = url.searchParams.get("payment");
   const tab = url.searchParams.get("tab");
+  const from = url.searchParams.get("from");
+  const to = url.searchParams.get("to");
+  const client = url.searchParams.get("client");
+
   const query: Record<string, unknown> = {};
   if (status) query.status = status;
   if (payment) query.paymentMethod = payment;
@@ -59,32 +70,52 @@ export async function GET(req: NextRequest) {
   if (tab === "cod") {
     query.assignedDriverId = "68992b3ad5eb3b93c40396dc";
   }
+  if (client) query.createdById = client;
+  if (from && to) {
+    query.createdAt = { $gte: new Date(from), $lte: new Date(to) };
+  }
   // Scope to the requesting user unless admin
   if (auth.role !== "admin") query.createdById = auth.userId;
 
   const deliveries = await Delivery.find(query)
     .sort({ createdAt: -1 })
     .populate("assignedDriverId", "firstName lastName")
+    .populate("assignedCourierId", "firstName lastName courierCompanyName")
     .limit(100)
     .lean();
+
   return NextResponse.json({ deliveries });
 }
 
 export async function POST(req: NextRequest) {
   await connectToDatabase();
+
   const auth = await getAuthUser(req);
   if (!auth)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    // fetech delivery fee from user record
-    const user = await User.findById(auth.userId).select("deliveryFee").lean();
+    // fetch delivery fee and store name from user record
+    const user = await User.findById(auth.userId)
+      .select(
+        "deliveryFee customerStoreName firstName phone address city district postalCode"
+      )
+      .lean();
 
     const input = CreateDeliverySchema.parse({
       ...body,
       deliveryFee: user?.deliveryFee || 0,
+      // Automatically populate customerStoreName from user account if not provided
+      customerStoreName: body.customerStoreName || user?.customerStoreName,
+      senderName: body.senderName || user?.firstName,
+      senderPhone: body.senderPhone || user?.phone,
+      senderAddress: body.senderAddress || user?.address,
+      senderCity: body.senderCity || user?.city,
+      senderDistrict: body.senderDistrict || user?.district,
+      senderPostalCode: body.senderPostalCode || user?.postalCode,
     });
+
     // If a driver is specified, ensure it exists and has role 'driver'
     if (input.assignedDriverId) {
       const driver = await User.findById(input.assignedDriverId)
@@ -107,13 +138,36 @@ export async function POST(req: NextRequest) {
       //   return NextResponse.json({ error: "Selected driver is inactive" }, { status: 400 });
       // }
     }
-    const doc = await Delivery.create({ ...input, createdById: auth.userId });
 
-    // If assigned to the special COD driver, forward to 3rd party using stored admin token
+    // Add initial activity log entry
+    const initialActivity = {
+      action: "created",
+      performedBy: auth.userId,
+      performedAt: new Date(),
+      details: "Delivery created",
+    };
+
+    const deliveryData = {
+      ...input,
+      createdById: auth.userId,
+      activityLog: [initialActivity],
+    };
+
+    let doc;
+    try {
+      doc = await Delivery.create(deliveryData);
+    } catch (error) {
+      console.error("Error creating delivery:", error);
+      throw error;
+    }
+
+    // Only forward to 3rd party COD solutions if not assigned to a courier and is assigned to special COD driver
     try {
       if (
-        !input.assignedDriverId ||
-        input.assignedDriverId === "68992b3ad5eb3b93c40396dc"
+        !input.assignedCourierId && // Not assigned to courier
+        (!input.assignedDriverId ||
+          input.assignedDriverId === "68992b3ad5eb3b93c40396dc") &&
+        auth.role === "admin"
       ) {
         const settingsDoc = await (
           await import("@/models/Settings")
@@ -125,18 +179,18 @@ export async function POST(req: NextRequest) {
           const body = {
             name: input.customerName,
             reference: input.reference,
-            customer_email: "testorder@gmail.com",
+            customer_email: "not-available@gmail.com",
             number: input.customerPhone,
             address: input.deliveryAddress,
-            city: "Riyadh",
+            city: input.deliveryCity,
             amount: input.codAmount || 0,
             description: input.description,
             branded_content: "No",
             country: 2,
-            whatsapp: input.customerPhone,
+            whatsapp: input.customerWhatsApp,
             insurance: "No",
             client_id: 82589,
-            location: "",
+            location: input.deliveryDistrict,
             Service: 1,
           };
           const r = await fetch(

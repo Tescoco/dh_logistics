@@ -5,7 +5,7 @@ const encoder = new TextEncoder();
 
 export type JwtPayload = {
   sub: string;
-  role: "admin" | "driver" | "manager" | "customer";
+  role: "admin" | "driver" | "manager" | "customer" | "courier";
   email: string;
 };
 

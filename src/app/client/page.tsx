@@ -4,10 +4,6 @@ import React, { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import {
   PackageIcon,
-  TruckIcon,
-  CheckIcon,
-  RefreshIcon,
-  ClockIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
@@ -24,18 +20,18 @@ export default function ClientDashboard() {
     deliveryAddress?: string;
   };
   const [stats, setStats] = useState({
-    total: 0,
+    totalParcels: 0,
     delivered: 0,
     inTransit: 0,
     returned: 0,
+    noAnswer: 0,
+    outForDelivery: 0,
+    productDestroyed: 0,
+    lostShipments: 0,
+    damagedShipments: 0,
+    pending: 0,
   });
-  // per-user changes available from API but not displayed; using admin-based changes below
-  const [adminChanges, setAdminChanges] = useState({
-    totalPct: 0,
-    deliveredPct: 0,
-    inTransitPct: 0,
-    returnedPct: 0,
-  });
+
   const [recent, setRecent] = useState<
     {
       id: string;
@@ -61,18 +57,18 @@ export default function ClientDashboard() {
     ])
       .then(([d, list, sec]) => {
         setStats({
-          total:
-            (d.activeDeliveries ?? 0) + (d.delivered ?? 0) + (d.returned ?? 0),
+          totalParcels: d.totalParcels ?? 0,
           delivered: d.delivered ?? 0,
           inTransit: d.inTransit ?? 0,
           returned: d.returned ?? 0,
+          noAnswer: d.noAnswer ?? 0,
+          outForDelivery: d.outForDelivery ?? 0,
+          productDestroyed: d.productDestroyed ?? 0,
+          lostShipments: d.lostShipments ?? 0,
+          damagedShipments: d.damagedShipments ?? 0,
+          pending: d.pending ?? 0,
         });
-        setAdminChanges({
-          totalPct: d.adminChanges?.totalPct ?? 0,
-          deliveredPct: d.adminChanges?.deliveredPct ?? 0,
-          inTransitPct: d.adminChanges?.inTransitPct ?? 0,
-          returnedPct: d.adminChanges?.returnedPct ?? 0,
-        });
+
         setSecondary({
           readyForReturn: sec.readyForReturn ?? 0,
           returnInTransit: sec.returnInTransit ?? 0,
@@ -164,110 +160,136 @@ export default function ClientDashboard() {
     return `${d}d ago`;
   }
 
-  function formatChange(pct: number): string {
-    const sign = pct > 0 ? "+" : "";
-    return `${sign}${pct}% from last month`;
-  }
-
   return (
     <div className="space-y-6">
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Comprehensive Stats Grid - Matching COD Solutions Dashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* First Row */}
         {[
           {
             label: "Total Parcels",
-            value: stats.total,
-            change: formatChange(adminChanges.totalPct),
-            Icon: PackageIcon,
-            color: "bg-blue-100 text-blue-600",
+            value: stats.totalParcels,
+            color: "text-[#0052CC]",
           },
           {
             label: "Delivered",
             value: stats.delivered,
-            change: formatChange(adminChanges.deliveredPct),
-            Icon: CheckIcon,
-            color: "bg-emerald-100 text-emerald-600",
+            color: "text-[#0052CC]",
           },
           {
             label: "In Transit",
             value: stats.inTransit,
-            change: formatChange(adminChanges.inTransitPct),
-            Icon: TruckIcon,
-            color: "bg-amber-100 text-amber-600",
+            color: "text-[#0052CC]",
           },
           {
-            label: "Returned",
-            value: stats.returned,
-            change: formatChange(adminChanges.returnedPct),
-            Icon: RefreshIcon,
-            color: "bg-rose-100 text-rose-600",
+            label: "No Answer",
+            value: stats.noAnswer,
+            color: "text-[#0052CC]",
           },
-        ].map(({ label, value, change, Icon, color }) => (
-          <Card key={label} className="p shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">{label}</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {value.toLocaleString()}
-                </p>
-                <p className="text-xs text-slate-500 mt-2">{change}</p>
+          {
+            label: "Out For Delivery",
+            value: stats.outForDelivery,
+            color: "text-[#0052CC]",
+          },
+          {
+            label: "Product Destroyed",
+            value: stats.productDestroyed,
+            color: "text-[#0052CC]",
+          },
+        ].map(({ label, value, color }) => (
+          <Card
+            key={label}
+            className="p-4 shadow-sm bg-white rounded-lg border"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-900 mb-1">
+                {value.toLocaleString()}
               </div>
-              <div
-                className={`h-10 w-10 rounded-xl flex items-center justify-center ${color}`}
-              >
-                <Icon size={28} />
-              </div>
+              <div className={`text-sm font-medium ${color}`}>{label}</div>
             </div>
           </Card>
         ))}
       </div>
 
-      {/* Secondary Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Second Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
           {
-            label: "Ready for Return",
+            label: "Ready For Return",
             value: secondary.readyForReturn,
-            Icon: RefreshIcon,
-            iconColor: "text-purple-600",
+            color: "text-[#0052CC]",
           },
           {
-            label: "Return in Transit",
+            label: "Return In Transit",
             value: secondary.returnInTransit,
-            Icon: TruckIcon,
-            iconColor: "text-yellow-600",
+            color: "text-[#0052CC]",
           },
           {
-            label: "Shipment on Hold",
-            value: secondary.shipmentOnHold,
-            Icon: ClockIcon,
-            iconColor: "text-red-600",
-          },
-          {
-            label: "Returned Inventory",
+            label: "Returned To Client",
             value: secondary.returnedInventory,
-            Icon: PackageIcon,
-            iconColor: "text-indigo-600",
+            color: "text-[#0052CC]",
           },
           {
-            label: "Pending",
-            value: secondary.pending,
-            Icon: ClockIcon,
-            iconColor: "text-orange-600",
+            label: "Shipment On Hold",
+            value: secondary.shipmentOnHold,
+            color: "text-[#0052CC]",
           },
-        ].map(({ label, value, Icon, iconColor }) => (
-          <Card key={label} className=" shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0">
-                <Icon size={24} className={iconColor} />
+          {
+            label: "Returned To Inventory",
+            value: secondary.returnedInventory,
+            color: "text-[#0052CC]",
+          },
+          {
+            label: "Lost Shipments",
+            value: stats.lostShipments,
+            color: "text-[#0052CC]",
+          },
+        ].map(({ label, value, color }) => (
+          <Card
+            key={label}
+            className="p-4 shadow-sm bg-white rounded-lg border"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-900 mb-1">
+                {value.toLocaleString()}
               </div>
-              <div>
-                <p className="text-xs text-slate-500">{label}</p>
-                <p className="text-sm font-semibold text-slate-800">{value}</p>
-              </div>
+              <div className={`text-sm font-medium ${color}`}>{label}</div>
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* Third Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[
+          {
+            label: "Damaged Shipments",
+            value: stats.damagedShipments,
+            color: "text-[#0052CC]",
+          },
+          {
+            label: "Pending",
+            value: stats.pending,
+            color: "text-[#0052CC]",
+          },
+        ].map(({ label, value, color }) => (
+          <Card
+            key={label}
+            className="p-4 shadow-sm bg-white rounded-lg border"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-900 mb-1">
+                {value.toLocaleString()}
+              </div>
+              <div className={`text-sm font-medium ${color}`}>{label}</div>
+            </div>
+          </Card>
+        ))}
+        {/* Empty cells to maintain grid layout */}
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
       </div>
 
       {/* Recent Deliveries and Quick Actions */}

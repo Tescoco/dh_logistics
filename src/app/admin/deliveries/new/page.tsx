@@ -23,24 +23,88 @@ type ClientUser = {
   postalCode?: string;
 };
 
-export default function CreateDeliveryPage() {
+export default function AdminNewDeliveryPage() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<ClientUser[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [loadingReference, setLoadingReference] = useState(true);
+  const [referenceError, setReferenceError] = useState<string | null>(null);
   const restrictedDriverId = "68992b3ad5eb3b93c40396dc";
-  function generateReference(): string {
-    const digits = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    const letters = Array.from({ length: 3 })
-      .map(() =>
-        String.fromCharCode("A".charCodeAt(0) + Math.floor(Math.random() * 26))
-      )
-      .join("");
-    return `SHIPZ-${digits}-${letters}`;
+
+  // Auto-generate reference number based on existing orders
+  async function generateReference(): Promise<string> {
+    try {
+      setReferenceError(null);
+      const res = await fetch("/api/deliveries/count?scope=all");
+      if (!res.ok) {
+        throw new Error("Failed to get delivery count");
+      }
+      const data = await res.json();
+      const orderCount = data.count || 0;
+
+      // Generate reference starting from 1000 + existing orders
+      let nextReference = 1000 + orderCount + 1;
+      let reference = `SS${nextReference}`;
+
+      // Check if this reference already exists and increment if needed
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (attempts < maxAttempts) {
+        const checkRes = await fetch(
+          `/api/deliveries/check-reference?reference=${reference}`
+        );
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (!checkData.exists) {
+            break; // Reference is unique
+          }
+        }
+        // Reference exists, try next one
+        nextReference++;
+        reference = `SS${nextReference}`;
+        attempts++;
+      }
+
+      return reference;
+    } catch (error) {
+      console.error("Error generating reference:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to generate reference";
+      setReferenceError(errorMessage);
+      // Fallback to timestamp-based reference
+      const timestamp = Date.now();
+      return `SS${timestamp}`;
+    }
   }
+
+  // Regenerate reference number
+  async function regenerateReference() {
+    setLoadingReference(true);
+    setReferenceError(null);
+    try {
+      const ref = await generateReference();
+      setForm((prev) => ({ ...prev, reference: ref }));
+    } catch (error) {
+      console.error("Error regenerating reference:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to regenerate reference";
+      setReferenceError(errorMessage);
+      // Fallback to timestamp-based reference on error
+      const timestamp = Date.now();
+      setForm((prev) => ({ ...prev, reference: `SS${timestamp}` }));
+    } finally {
+      setLoadingReference(false);
+    }
+  }
+
   const [form, setForm] = useState({
-    reference: typeof window === "undefined" ? "" : generateReference(),
+    reference: "",
     selectedClientId: "",
     senderName: "",
     senderPhone: "",
@@ -58,8 +122,8 @@ export default function CreateDeliveryPage() {
     dimensions: "",
     packageType: "",
     description: "",
-    priority: "standard",
-    paymentMethod: "prepaid",
+    priority: "standard" as "standard" | "express",
+    paymentMethod: "prepaid" as "prepaid" | "cod",
     deliveryFee: "",
     codAmount: "",
     notes: "",
@@ -90,6 +154,31 @@ export default function CreateDeliveryPage() {
     return () => {
       aborted = true;
     };
+  }, []);
+
+  // Initialize reference number on component mount
+  useEffect(() => {
+    const initialize = async () => {
+      setLoadingReference(true);
+      setReferenceError(null);
+      try {
+        const ref = await generateReference();
+        setForm((prev) => ({ ...prev, reference: ref }));
+      } catch (error) {
+        console.error("Error initializing reference:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize reference";
+        setReferenceError(errorMessage);
+        // Fallback to timestamp-based reference on error
+        const timestamp = Date.now();
+        setForm((prev) => ({ ...prev, reference: `SS${timestamp}` }));
+      } finally {
+        setLoadingReference(false);
+      }
+    };
+    initialize();
   }, []);
 
   useEffect(() => {
@@ -130,7 +219,7 @@ export default function CreateDeliveryPage() {
     fetchClients();
   }, [showError]);
 
-  // Handle client selection and auto-populate sender fields (name, phone, delivery fee only)
+  // Handle client selection and auto-populate sender fields (name, phone, delivery fee, and address)
   function handleClientSelection(clientId: string) {
     const selectedClient = clients.find((c) => c._id === clientId);
     if (selectedClient) {
@@ -141,7 +230,11 @@ export default function CreateDeliveryPage() {
           `${selectedClient.firstName} ${selectedClient.lastName}`.trim(),
         senderPhone: selectedClient.phone || "",
         deliveryFee: String(selectedClient.deliveryFee || 0),
-        // Address fields remain manual - don't auto-populate
+        // Auto-populate address fields from client
+        senderAddress: selectedClient.address || "",
+        senderCity: selectedClient.city || "",
+        senderDistrict: selectedClient.district || "",
+        senderPostalCode: selectedClient.postalCode || "",
       }));
     } else {
       // Clear only auto-populated fields if no client selected
@@ -151,7 +244,11 @@ export default function CreateDeliveryPage() {
         senderName: "",
         senderPhone: "",
         deliveryFee: "",
-        // Address fields remain unchanged
+        // Clear address fields when no client selected
+        senderAddress: "",
+        senderCity: "",
+        senderDistrict: "",
+        senderPostalCode: "",
       }));
     }
   }
@@ -173,11 +270,15 @@ export default function CreateDeliveryPage() {
     if (!form.description || form.description.trim().length < 5) {
       problems.push("Description must be at least 5 characters");
     }
-    if (!form.customerPhone || form.customerPhone.trim().length < 5) {
-      problems.push("Receiver phone must be at least 10 characters");
+    if (!form.customerPhone || form.customerPhone.trim().length !== 9) {
+      problems.push(
+        "Receiver phone must be exactly 9 digits (without country code)"
+      );
     }
-    if (!form.senderPhone || form.senderPhone.trim().length < 5) {
-      problems.push("Sender phone must be at least 10 characters");
+    if (!form.senderPhone || form.senderPhone.trim().length !== 9) {
+      problems.push(
+        "Sender phone must be exactly 9 digits (without country code)"
+      );
     }
     if (
       form.paymentMethod === "cod" &&
@@ -207,7 +308,7 @@ export default function CreateDeliveryPage() {
       showError("Validation Error", problems.join(" • "));
       return;
     }
-    setSubmitting(true);
+    setSaving(true);
     try {
       const payload = {
         reference: form.reference || generateReference(),
@@ -262,9 +363,13 @@ export default function CreateDeliveryPage() {
           ? "Delivery saved as draft successfully"
           : "Delivery created successfully"
       );
+
+      // Generate next reference number for next delivery
+      await regenerateReference();
+
       router.push("/admin/deliveries");
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   }
 
@@ -299,32 +404,44 @@ export default function CreateDeliveryPage() {
                   Reference Number
                 </label>
                 <Input
-                  placeholder="SHIPZ-2025-001"
+                  placeholder="SS1000"
                   value={form.reference}
+                  disabled={loadingReference}
                   onChange={(e) => update("reference", e.target.value)}
+                  className="bg-gray-50"
                 />
+                <div className="text-[11px] text-slate-500 mt-1">
+                  {loadingReference
+                    ? "Loading reference..."
+                    : "Auto-generated reference number"}
+                </div>
+                {referenceError && (
+                  <div className="text-[11px] text-red-500 mt-1">
+                    Warning: {referenceError} (using fallback reference)
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Assign Driver
-                </label>
-                <Select
-                  value={form.assignedDriverId}
-                  onChange={(e) =>
-                    update(
-                      "assignedDriverId",
-                      (e.target as HTMLSelectElement).value
-                    )
-                  }
-                >
-                  <option value="">Select Driver</option>
-                  {drivers.map((d) => (
-                    <option key={d._id} value={d._id}>
-                      {d.firstName} {d.lastName}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Assign Driver
+              </label>
+              <Select
+                value={form.assignedDriverId}
+                onChange={(e) =>
+                  update(
+                    "assignedDriverId",
+                    (e.target as HTMLSelectElement).value
+                  )
+                }
+              >
+                <option value="">Select Driver</option>
+                {drivers.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.firstName} {d.lastName}
+                  </option>
+                ))}
+              </Select>
             </div>
           </section>
 
@@ -370,12 +487,27 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Sender Phone
                 </label>
-                <Input
-                  placeholder="Auto-populated from client"
-                  value={form.senderPhone}
-                  readOnly
-                  className="bg-gray-50"
-                />
+                <div className="flex">
+                  <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                    +966
+                  </div>
+                  <Input
+                    placeholder="5XXXXXXXX"
+                    type="tel"
+                    maxLength={9}
+                    value={form.senderPhone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 9) {
+                        update("senderPhone", value);
+                      }
+                    }}
+                    className="rounded-l-none"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Enter 9 digits only (without country code)
+                </div>
               </div>
             </div>
             <div>
@@ -414,16 +546,6 @@ export default function CreateDeliveryPage() {
                 onChange={(e) => update("senderDistrict", e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Sender Postal Code
-              </label>
-              <Input
-                placeholder="13337"
-                value={form.senderPostalCode}
-                onChange={(e) => update("senderPostalCode", e.target.value)}
-              />
-            </div>
           </section>
 
           <section className="space-y-4">
@@ -445,13 +567,27 @@ export default function CreateDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Receiver Phone
                 </label>
-                <Input
-                  placeholder="+1 234 567 8901"
-                  type="number"
-                  maxLength={11}
-                  value={form.customerPhone}
-                  onChange={(e) => update("customerPhone", e.target.value)}
-                />
+                <div className="flex">
+                  <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                    +966
+                  </div>
+                  <Input
+                    placeholder="5XXXXXXXX"
+                    type="tel"
+                    maxLength={9}
+                    value={form.customerPhone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 9) {
+                        update("customerPhone", value);
+                      }
+                    }}
+                    className="rounded-l-none"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Enter 9 digits only (without country code)
+                </div>
               </div>
             </div>
             <div>
@@ -484,14 +620,6 @@ export default function CreateDeliveryPage() {
                 placeholder="Al Arid Dist"
                 value={form.deliveryDistrict}
                 onChange={(e) => update("deliveryDistrict", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">Postal Code</label>
-              <Input
-                placeholder="13337"
-                value={form.deliveryPostalCode}
-                onChange={(e) => update("deliveryPostalCode", e.target.value)}
               />
             </div>
           </section>
@@ -561,7 +689,12 @@ export default function CreateDeliveryPage() {
                 <Select
                   value={form.priority}
                   onChange={(e) =>
-                    update("priority", (e.target as HTMLSelectElement).value)
+                    update(
+                      "priority",
+                      (e.target as HTMLSelectElement).value as
+                        | "standard"
+                        | "express"
+                    )
                   }
                 >
                   <option value="standard">Standard</option>
@@ -577,7 +710,7 @@ export default function CreateDeliveryPage() {
                   onChange={(e) =>
                     update(
                       "paymentMethod",
-                      (e.target as HTMLSelectElement).value
+                      (e.target as HTMLSelectElement).value as "prepaid" | "cod"
                     )
                   }
                 >
@@ -655,18 +788,18 @@ export default function CreateDeliveryPage() {
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
           <Button
-            disabled={submitting}
+            disabled={saving}
             variant="secondary"
             onClick={() => submit(true)}
           >
-            {submitting ? "Saving..." : "Save as Draft"}
+            {saving ? "Saving..." : "Save as Draft"}
           </Button>
           <Button
-            disabled={submitting}
+            disabled={saving}
             variant="gradient"
             onClick={() => submit(false)}
           >
-            {submitting ? "Submitting..." : "Create Delivery"}
+            {saving ? "Submitting..." : "Create Delivery"}
           </Button>
         </div>
       </Card>

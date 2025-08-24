@@ -48,7 +48,7 @@ type DeliveryApiLite = {
 
 export default function DailyParcelsPage() {
   const router = useRouter();
-  const [search] = useState("");
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -280,6 +280,8 @@ export default function DailyParcelsPage() {
             <option value="pending">Pending</option>
             <option value="returned">Returned</option>
             <option value="assigned">Assigned</option>
+            <option value="future_delivery">Future Delivery</option>
+            <option value="lost_damaged">Lost & Damages</option>
           </Select>
           <Input
             type="date"
@@ -323,8 +325,15 @@ export default function DailyParcelsPage() {
       {/* Today's Parcels */}
       <Card padded={false}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 pt-4">
-          <div className="font-semibold text-slate-900">
-            Today&apos;s Parcels
+          <div className="flex items-center gap-3">
+            <div className="font-semibold text-slate-900">
+              Today&apos;s Parcels
+            </div>
+            {search && (
+              <div className="text-sm text-slate-500">
+                Found {filteredRows.length} results for &quot;{search}&quot;
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-600">Show:</span>
@@ -342,8 +351,79 @@ export default function DailyParcelsPage() {
           </div>
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 py-3 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
-          <div className="font-medium">&nbsp;</div>
-          <div />
+          <div className="font-medium text-white">Search & Filters</div>
+          <div className="flex items-center gap-3">
+            <Input
+              type="text"
+              placeholder="Search parcels..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-48 text-sm bg-white/10 border-white/20 text-white placeholder-white/70 focus:bg-white/20 focus:border-white/40"
+            />
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-32 text-sm bg-white/10 border-white/20 text-white focus:bg-white/20 focus:border-white/40"
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="returned">Returned</option>
+            </Select>
+          </div>
+        </div>
+
+        {/* Additional Filters */}
+        <div className="px-6 py-3 bg-slate-50 border-b border-slate-200">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">From:</span>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-32 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">To:</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-32 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Amount:</span>
+              <Select
+                value={amountBand}
+                onChange={(e) => setAmountBand(e.target.value)}
+                className="w-32 text-sm"
+              >
+                <option value="">All Amounts</option>
+                <option value="lt50">Under ﷼50</option>
+                <option value="50to100">﷼50 - ﷼100</option>
+                <option value="gt100">Over ﷼100</option>
+              </Select>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setSearch("");
+                setStatus("");
+                setDateFrom("");
+                setDateTo("");
+                setAmountBand("");
+              }}
+              className="ml-auto"
+            >
+              Clear Filters
+            </Button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -488,69 +568,6 @@ export default function DailyParcelsPage() {
               <span className="text-slate-500">Phone:</span>{" "}
               <span className="font-medium">{viewData.customerPhone}</span>
             </div>
-            {(viewData.senderName ||
-              viewData.senderPhone ||
-              viewData.senderAddress) && (
-              <>
-                <div className="border-t border-slate-100 pt-2 mt-2">
-                  <span className="text-slate-500 text-xs uppercase tracking-wide">
-                    Sender Information
-                  </span>
-                </div>
-                {viewData.senderName && (
-                  <div>
-                    <span className="text-slate-500">Sender:</span>{" "}
-                    <span className="font-medium">{viewData.senderName}</span>
-                  </div>
-                )}
-                {viewData.senderPhone && (
-                  <div>
-                    <span className="text-slate-500">Sender Phone:</span>{" "}
-                    <span className="font-medium">{viewData.senderPhone}</span>
-                  </div>
-                )}
-                {viewData.senderAddress && (
-                  <div>
-                    <span className="text-slate-500">Sender Address:</span>{" "}
-                    <span className="font-medium">
-                      {viewData.senderAddress}
-                    </span>
-                  </div>
-                )}
-                {(viewData.senderCity ||
-                  viewData.senderDistrict ||
-                  viewData.senderPostalCode) && (
-                  <div className="pl-4 space-y-1 border-l-2 border-slate-100">
-                    {viewData.senderCity && (
-                      <div>
-                        <span className="text-slate-500">Sender City:</span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderCity}
-                        </span>
-                      </div>
-                    )}
-                    {viewData.senderDistrict && (
-                      <div>
-                        <span className="text-slate-500">Sender District:</span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderDistrict}
-                        </span>
-                      </div>
-                    )}
-                    {viewData.senderPostalCode && (
-                      <div>
-                        <span className="text-slate-500">
-                          Sender Postal Code:
-                        </span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderPostalCode}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
             <div className="border-t border-slate-100 pt-2 mt-2">
               <span className="text-slate-500 text-xs uppercase tracking-wide">
                 Delivery Information
@@ -600,12 +617,12 @@ export default function DailyParcelsPage() {
                 ﷼{Number(viewData.codAmount || 0).toFixed(2)}
               </span>
             </div>
-            <div>
+            {/* <div>
               <span className="text-slate-500">Delivery Fee:</span>{" "}
               <span className="font-medium">
                 ﷼{Number(viewData.deliveryFee || 0).toFixed(2)}
               </span>
-            </div>
+            </div> */}
             <div>
               <span className="text-slate-500">Created:</span>{" "}
               <span className="font-medium">

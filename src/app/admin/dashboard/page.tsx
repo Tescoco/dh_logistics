@@ -545,7 +545,7 @@ export default function AdminDashboardPage() {
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery.codAmount
-                    ? `$${Number(viewDelivery.codAmount).toFixed(2)}`
+                    ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>

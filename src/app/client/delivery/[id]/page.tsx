@@ -13,12 +13,6 @@ type DeliveryResponse = {
   delivery: {
     _id: string;
     reference: string;
-    senderName?: string;
-    senderPhone?: string;
-    senderAddress?: string;
-    senderCity?: string;
-    senderDistrict?: string;
-    senderPostalCode?: string;
     customerName: string;
     customerPhone: string;
     deliveryAddress: string;
@@ -46,12 +40,6 @@ export default function EditDeliveryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     reference: "",
-    senderName: "",
-    senderPhone: "",
-    senderAddress: "",
-    senderCity: "",
-    senderDistrict: "",
-    senderPostalCode: "",
     customerName: "",
     customerPhone: "",
     deliveryAddress: "",
@@ -94,12 +82,6 @@ export default function EditDeliveryPage() {
         const d = data.delivery;
         setForm({
           reference: d.reference,
-          senderName: d.senderName || "",
-          senderPhone: d.senderPhone || "",
-          senderAddress: d.senderAddress || "",
-          senderCity: d.senderCity || "",
-          senderDistrict: d.senderDistrict || "",
-          senderPostalCode: d.senderPostalCode || "",
           customerName: d.customerName || "",
           customerPhone: d.customerPhone || "",
           deliveryAddress: d.deliveryAddress || "",
@@ -128,24 +110,33 @@ export default function EditDeliveryPage() {
   async function submit() {
     // Client-side validation
     const problems: string[] = [];
-    const senderPhoneNorm = normalizePhone(form.senderPhone);
-    const receiverPhoneNorm = normalizePhone(form.customerPhone);
-    if (
-      senderPhoneNorm &&
-      receiverPhoneNorm &&
-      senderPhoneNorm === receiverPhoneNorm
-    ) {
-      problems.push("Sender and receiver phone cannot be the same");
+    if (!form.customerName || form.customerName.trim().length === 0) {
+      problems.push("Receiver name is required");
     }
-    const senderAddressNorm = normalizeText(form.senderAddress);
-    const deliveryAddressNorm = normalizeText(form.deliveryAddress);
-    if (
-      senderAddressNorm &&
-      deliveryAddressNorm &&
-      senderAddressNorm === deliveryAddressNorm
-    ) {
-      problems.push("Sender and receiver address cannot be the same");
+    if (!form.customerPhone || form.customerPhone.trim().length === 0) {
+      problems.push("Receiver phone is required");
     }
+    if (!form.customerPhone || form.customerPhone.trim().length !== 9) {
+      problems.push(
+        "Receiver phone must be exactly 9 digits (without country code)"
+      );
+    }
+    if (!form.deliveryAddress || form.deliveryAddress.trim().length === 0) {
+      problems.push("Delivery address is required");
+    }
+    if (!form.deliveryCity || form.deliveryCity.trim().length === 0) {
+      problems.push("Delivery city is required");
+    }
+    if (!form.deliveryDistrict || form.deliveryDistrict.trim().length === 0) {
+      problems.push("Delivery district is required");
+    }
+    if (!form.description || form.description.trim().length === 0) {
+      problems.push("Package description is required");
+    }
+    if (!form.codAmount || form.codAmount.trim().length === 0) {
+      problems.push("COD amount is required");
+    }
+
     if (problems.length > 0) {
       showError("Validation Error", problems.join(" • "));
       return;
@@ -153,12 +144,6 @@ export default function EditDeliveryPage() {
     setSubmitting(true);
     try {
       const payload = {
-        senderName: form.senderName || undefined,
-        senderPhone: form.senderPhone || undefined,
-        senderAddress: form.senderAddress || undefined,
-        senderCity: form.senderCity || undefined,
-        senderDistrict: form.senderDistrict || undefined,
-        senderPostalCode: form.senderPostalCode || undefined,
         customerName: form.customerName,
         customerPhone: form.customerPhone,
         deliveryAddress: form.deliveryAddress,
@@ -233,82 +218,6 @@ export default function EditDeliveryPage() {
 
           <section className="space-y-4">
             <h2 className="text-[15px] font-semibold text-slate-900">
-              Sender Information
-            </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Sender Name
-                </label>
-                <Input
-                  placeholder="John Doe"
-                  value={form.senderName}
-                  onChange={(e) => update("senderName", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Sender Phone
-                </label>
-                <Input
-                  placeholder="+1 234 567 8900"
-                  type="number"
-                  maxLength={11}
-                  value={form.senderPhone}
-                  onChange={(e) => update("senderPhone", e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Sender Address
-              </label>
-              <Input
-                placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
-                value={form.senderAddress}
-                onChange={(e) => update("senderAddress", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">Sender City</label>
-              <Select
-                value={form.senderCity}
-                onChange={(e) =>
-                  update("senderCity", (e.target as HTMLSelectElement).value)
-                }
-              >
-                <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Sender District
-              </label>
-              <Input
-                placeholder="Al Arid Dist"
-                value={form.senderDistrict}
-                onChange={(e) => update("senderDistrict", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Sender Postal Code
-              </label>
-              <Input
-                placeholder="13337"
-                value={form.senderPostalCode}
-                onChange={(e) => update("senderPostalCode", e.target.value)}
-              />
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-[15px] font-semibold text-slate-900">
               Receiver Information
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -326,13 +235,27 @@ export default function EditDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Receiver Phone
                 </label>
-                <Input
-                  placeholder="+1 234 567 8901"
-                  type="number"
-                  maxLength={11}
-                  value={form.customerPhone}
-                  onChange={(e) => update("customerPhone", e.target.value)}
-                />
+                <div className="flex">
+                  <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                    +966
+                  </div>
+                  <Input
+                    placeholder="5XXXXXXXX"
+                    type="tel"
+                    maxLength={9}
+                    value={form.customerPhone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 9) {
+                        update("customerPhone", value);
+                      }
+                    }}
+                    className="rounded-l-none"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Enter 9 digits only (without country code)
+                </div>
               </div>
             </div>
             <div>
@@ -481,12 +404,6 @@ export default function EditDeliveryPage() {
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  Total Amount (﷼)
-                </label>
-                <Input value={String(totalAmount)} disabled />
               </div>
             </div>
           </section>

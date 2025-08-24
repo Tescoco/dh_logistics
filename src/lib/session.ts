@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 
 export type AuthUser = {
   userId: string;
-  role: "admin" | "driver" | "manager" | "customer";
+  role: "admin" | "driver" | "manager" | "customer" | "courier";
   email: string;
 };
 

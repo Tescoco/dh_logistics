@@ -516,10 +516,13 @@ export default function UsersPage() {
             />
             <Input
               placeholder="Phone Number"
-              type="number"
-              maxLength={11}
               value={driverPhone}
-              onChange={(e) => setDriverPhone(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                if (value.length <= 9) {
+                  setDriverPhone(value);
+                }
+              }}
             />
             <Input
               placeholder="Employee ID"
@@ -580,11 +583,27 @@ export default function UsersPage() {
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Phone</label>
-              <Input
-                placeholder="Phone number"
-                value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
-              />
+              <div className="flex">
+                <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                  +966
+                </div>
+                <Input
+                  placeholder="5XXXXXXXX"
+                  type="tel"
+                  maxLength={9}
+                  value={editPhone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    if (value.length <= 9) {
+                      setEditPhone(value);
+                    }
+                  }}
+                  className="rounded-l-none"
+                />
+              </div>
+              <div className="text-[11px] text-slate-500 mt-1">
+                Enter 9 digits only (without country code)
+              </div>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
               <div className="text-sm font-medium text-slate-700">Active</div>

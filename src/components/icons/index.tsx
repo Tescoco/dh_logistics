@@ -246,3 +246,51 @@ export const InfoIcon = (p: IconProps) => (
     <path d="M12 8h.01" />
   </Svg>
 );
+
+export const PhoneOffIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27c.21-.21.49-.32.76-.32.79 0 1.58-.31 2.03-.76l1.27-1.27L22 15.46c0 .55-.22 1.04-.61 1.43-.39.39-.88.61-1.43.61-3.57 0-6.85-1.47-9.2-3.83C8.4 11.32 6.93 8.04 6.93 4.47c0-.55.22-1.04.61-1.43.39-.39.88-.61 1.43-.61L11.54 5l-1.27 1.27c-.45.45-.76 1.24-.76 2.03 0 .27-.11.55-.32.76L8 10.32c.79 1.15 1.79 2.16 2.68 3.01z" />
+    <path d="M22 2 2 22" />
+  </Svg>
+);
+
+export const AlertCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </Svg>
+);
+
+export const ShieldOffIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18" />
+    <path d="M4.73 4.73 4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38" />
+    <path d="M2 2l20 20" />
+  </Svg>
+);
+
+export const ZapOffIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M10.513 4.856 13.12 2.17a.5.5 0 0 1 .86.46l-1.377 4.317" />
+    <path d="M15.656 10H20a1 1 0 0 1 .78 1.63L18.1 14.9" />
+    <path d="M7.26 7.26 3.5 12.75a1 1 0 0 0 .78 1.63L8 14l-1.5 4.17a.5.5 0 0 0 .86.46L11 15" />
+    <path d="M2 2l20 20" />
+  </Svg>
+);
+
+export const ArchiveIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2" y="3" width="20" height="5" rx="1" />
+    <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+    <path d="M10 12h4" />
+  </Svg>
+);
+
+export const PauseCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="10" y1="15" x2="10" y2="9" />
+    <line x1="14" y1="15" x2="14" y2="9" />
+  </Svg>
+);

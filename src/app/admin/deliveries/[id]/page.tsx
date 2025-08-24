@@ -10,6 +10,20 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/contexts/ToastContext";
 
+type ActivityLogEntry = {
+  action: string;
+  performedBy: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
+  performedAt: string;
+  details?: string;
+  oldValue?: string;
+  newValue?: string;
+};
+
 type DeliveryResponse = {
   delivery: {
     _id: string;
@@ -60,6 +74,8 @@ export default function AdminEditDeliveryPage() {
   const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<ClientUser[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const [form, setForm] = useState<{
     reference: string;
@@ -142,6 +158,24 @@ export default function AdminEditDeliveryPage() {
     fetchClients();
   }, [showError]);
 
+  // Load activity log
+  async function loadActivityLog() {
+    if (!id) return;
+
+    setLoadingActivity(true);
+    try {
+      const res = await fetch(`/api/deliveries/${id}/activity`);
+      if (res.ok) {
+        const data = await res.json();
+        setActivityLog(data.activityLog || []);
+      }
+    } catch {
+      // Ignore activity log errors
+    } finally {
+      setLoadingActivity(false);
+    }
+  }
+
   // Handle client selection and auto-populate sender fields (name, phone, delivery fee only)
   function handleClientSelection(clientId: string) {
     const selectedClient = clients.find((c) => c._id === clientId);
@@ -207,6 +241,10 @@ export default function AdminEditDeliveryPage() {
         if (mounted) setLoading(false);
       }
     })();
+
+    // Load activity log
+    loadActivityLog();
+
     return () => {
       mounted = false;
     };
@@ -271,33 +309,6 @@ export default function AdminEditDeliveryPage() {
       <Card padded={false}>
         <div className="p-5 space-y-8">
           <section className="space-y-4">
-            <h2 className="text-[15px] font-semibold text-slate-900">
-              Sender Information
-            </h2>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Select Client (to update sender info)
-              </label>
-              <Select
-                value={form.selectedClientId || ""}
-                onChange={(e) =>
-                  handleClientSelection((e.target as HTMLSelectElement).value)
-                }
-                disabled={loadingClients}
-              >
-                <option value="">
-                  {loadingClients
-                    ? "Loading clients..."
-                    : "Select a client to update sender info"}
-                </option>
-                {clients.map((client) => (
-                  <option key={client._id} value={client._id}>
-                    {`${client.firstName} ${client.lastName}`.trim()}
-                    {client.phone && ` - ${client.phone}`}
-                  </option>
-                ))}
-              </Select>
-            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
@@ -356,16 +367,6 @@ export default function AdminEditDeliveryPage() {
                 onChange={(e) => update("senderDistrict", e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Sender Postal Code
-              </label>
-              <Input
-                placeholder="13337"
-                value={form.senderPostalCode || ""}
-                onChange={(e) => update("senderPostalCode", e.target.value)}
-              />
-            </div>
           </section>
 
           <section className="space-y-4">
@@ -386,12 +387,27 @@ export default function AdminEditDeliveryPage() {
                 <label className="text-[13px] text-slate-600">
                   Receiver Phone
                 </label>
-                <Input
-                  type="number"
-                  maxLength={11}
-                  value={form.customerPhone}
-                  onChange={(e) => update("customerPhone", e.target.value)}
-                />
+                <div className="flex">
+                  <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
+                    +966
+                  </div>
+                  <Input
+                    placeholder="5XXXXXXXX"
+                    type="tel"
+                    maxLength={9}
+                    value={form.customerPhone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 9) {
+                        update("customerPhone", value);
+                      }
+                    }}
+                    className="rounded-l-none"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Enter 9 digits only (without country code)
+                </div>
               </div>
             </div>
             <div>
@@ -416,20 +432,6 @@ export default function AdminEditDeliveryPage() {
                   </option>
                 ))}
               </Select>
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">District</label>
-              <Input
-                value={form.deliveryDistrict}
-                onChange={(e) => update("deliveryDistrict", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">Postal Code</label>
-              <Input
-                value={form.deliveryPostalCode}
-                onChange={(e) => update("deliveryPostalCode", e.target.value)}
-              />
             </div>
           </section>
 
@@ -551,6 +553,68 @@ export default function AdminEditDeliveryPage() {
               />
             </div>
           </section>
+
+          {/* <section className="space-y-4">
+            <h2 className="text-[15px] font-semibold text-slate-900">
+              Activity Log
+            </h2>
+            {loadingActivity ? (
+              <div className="text-sm text-slate-500">Loading activity...</div>
+            ) : activityLog.length === 0 ? (
+              <div className="text-sm text-slate-500">No activity recorded</div>
+            ) : (
+              <div className="space-y-3">
+                {activityLog.map((entry, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-3 p-3 bg-slate-50 rounded-lg"
+                  >
+                    <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-slate-900">
+                          {entry.performedBy.firstName}{" "}
+                          {entry.performedBy.lastName}
+                        </span>
+                        <span className="text-slate-500">
+                          ({entry.performedBy.role})
+                        </span>
+                        <span className="text-slate-400">•</span>
+                        <span className="text-slate-500">
+                          {new Date(entry.performedAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-700 mt-1">
+                        {entry.action === "assigned_to_courier" &&
+                          "Assigned parcel to courier"}
+                        {entry.action === "status_changed" &&
+                          "Changed delivery status"}
+                        {entry.action === "details_updated" &&
+                          "Updated delivery details"}
+                        {entry.action === "created" && "Created delivery"}
+                        {![
+                          "assigned_to_courier",
+                          "status_changed",
+                          "details_updated",
+                          "created",
+                        ].includes(entry.action) && entry.action}
+                      </div>
+                      {entry.details && (
+                        <div className="text-sm text-slate-600 mt-1">
+                          {entry.details}
+                        </div>
+                      )}
+                      {entry.oldValue && entry.newValue && (
+                        <div className="text-xs text-slate-500 mt-1">
+                          Changed from "{entry.oldValue}" to "{entry.newValue}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section> */}
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4">
           <Button variant="secondary" onClick={() => router.back()}>

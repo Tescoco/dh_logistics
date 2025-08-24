@@ -12,7 +12,6 @@ import {
   UploadIcon,
   EyeIcon,
   EditIcon,
-  TrashIcon,
   FilterIcon,
   ListIcon,
   CalendarIcon,
@@ -23,11 +22,19 @@ type DeliveryRow = {
   trackingId: string;
   customerName: string;
   customerPhone: string;
-  status: "Delivered" | "In Transit" | "Pending" | "Returned" | "Assigned";
+  status:
+    | "Delivered"
+    | "In Transit"
+    | "Pending"
+    | "Returned"
+    | "Assigned"
+    | "Cancelled";
   origin: string;
   destination: string;
   date: string; // ISO string
   avatarHue: number; // HSL hue to generate a simple avatar color
+  clientStoreName?: string; // Client's store name
+  codAmount?: number; // COD amount
 };
 
 type DeliveryApiLite = {
@@ -35,10 +42,23 @@ type DeliveryApiLite = {
   reference?: string;
   customerName?: string;
   customerPhone?: string;
-  status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
+  status?:
+    | "delivered"
+    | "in_transit"
+    | "pending"
+    | "assigned"
+    | "returned"
+    | "cancelled";
   senderAddress?: string;
+  senderName?: string;
+  senderPhone?: string;
+  senderCity?: string;
+  senderDistrict?: string;
+  senderPostalCode?: string;
   deliveryAddress?: string;
   createdAt?: string | Date;
+  clientStoreName?: string; // Added for client store name
+  codAmount?: number; // Added for COD amount
 };
 
 export default function TrackDeliveriesPage() {
@@ -49,6 +69,16 @@ export default function TrackDeliveriesPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+
+  // Statistics state
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    outForDelivery: 0,
+    forwardToFinalDestination: 0,
+    movedVia3pl: 0,
+    delivered: 0,
+    deliveryRatio: 0,
+  });
 
   // Bulk search state
   const [bulkSearchOpen, setBulkSearchOpen] = useState(false);
@@ -61,6 +91,33 @@ export default function TrackDeliveriesPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [originFilter, setOriginFilter] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("");
+
+  // Calculate statistics from rows
+  const calculateStats = (deliveryRows: DeliveryRow[]) => {
+    const total = deliveryRows.length;
+    const delivered = deliveryRows.filter(
+      (r) => r.status === "Delivered"
+    ).length;
+    const outForDelivery = deliveryRows.filter(
+      (r) => r.status === "In Transit"
+    ).length;
+    const forwardToFinalDestination = deliveryRows.filter(
+      (r) => r.status === "Assigned"
+    ).length;
+    const movedVia3pl = deliveryRows.filter(
+      (r) => r.status === "Pending"
+    ).length;
+    const deliveryRatio = total > 0 ? Math.round((delivered / total) * 100) : 0;
+
+    setStats({
+      totalOrders: total,
+      outForDelivery,
+      forwardToFinalDestination,
+      movedVia3pl,
+      delivered,
+      deliveryRatio,
+    });
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -87,17 +144,27 @@ export default function TrackDeliveriesPage() {
                 ? "Pending"
                 : it.status === "assigned"
                 ? "Assigned"
-                : "Returned",
+                : it.status === "returned"
+                ? "Returned"
+                : it.status === "cancelled"
+                ? "Cancelled"
+                : "Pending",
             origin: it.senderAddress || "—",
             destination: it.deliveryAddress || "—",
             date: new Date(it.createdAt ?? Date.now())
               .toISOString()
               .slice(0, 10),
             avatarHue: (i * 47) % 360,
+            clientStoreName: it.clientStoreName || "—",
+            codAmount: it.codAmount || 0,
           }));
         setRows(serverRows);
+        calculateStats(serverRows);
       })
-      .catch(() => setRows([]))
+      .catch(() => {
+        setRows([]);
+        calculateStats([]);
+      })
       .finally(() => setLoading(false));
   }, [statusFilter]);
 
@@ -126,9 +193,9 @@ export default function TrackDeliveriesPage() {
             r.origin,
             r.destination,
             r.status,
-          ]
-            .filter(Boolean)
-            .some((v) => (v || "").toLowerCase().includes(q))
+            r.clientStoreName || "",
+            (r.codAmount || 0).toString(),
+          ].some((v) => v.toLowerCase().includes(q))
         : true;
 
       // Status filtering (support multiple statuses)
@@ -202,6 +269,11 @@ export default function TrackDeliveriesPage() {
     destinationFilter,
   ]);
 
+  // Update stats when filtered rows change
+  useEffect(() => {
+    calculateStats(filteredRows);
+  }, [filteredRows]);
+
   // Handler functions for new features
   function handleBulkSearch() {
     setBulkSearchOpen(true);
@@ -268,6 +340,7 @@ export default function TrackDeliveriesPage() {
     codAmount?: number;
     deliveryFee?: number;
     createdAt?: string | Date;
+    clientStoreName?: string; // Added for client store name
   } | null;
   const [viewData, setViewData] = useState<ViewData>(null);
 
@@ -281,15 +354,24 @@ export default function TrackDeliveriesPage() {
     } catch {}
   }
 
-  async function handleDelete(deliveryId: string) {
-    const ok = confirm("Delete this delivery?");
+  async function handleCancel(deliveryId: string) {
+    const ok = confirm("Cancel this delivery? This action cannot be undone.");
     if (!ok) return;
     try {
       const res = await fetch(`/api/deliveries/${deliveryId}`, {
-        method: "DELETE",
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled" }),
       });
       if (res.ok) {
-        setRows((prev) => prev.filter((r) => r.deliveryId !== deliveryId));
+        // Update the local state to reflect the cancelled status
+        setRows((prev) =>
+          prev.map((r) =>
+            r.deliveryId === deliveryId
+              ? { ...r, status: "Cancelled" as const }
+              : r
+          )
+        );
       }
     } catch {}
   }
@@ -302,10 +384,12 @@ export default function TrackDeliveriesPage() {
     const headers = [
       "Tracking ID",
       "Customer",
-      "Email",
+      "Phone",
+      "Client Store",
       "Status",
       "Origin",
       "Destination",
+      "COD Amount",
       "Date",
     ];
     const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
@@ -315,9 +399,11 @@ export default function TrackDeliveriesPage() {
           r.trackingId,
           r.customerName,
           r.customerPhone,
+          r.clientStoreName || "",
           r.status,
           r.origin,
           r.destination,
+          (r.codAmount || 0).toString(),
           r.date,
         ]
           .map(escape)
@@ -339,6 +425,63 @@ export default function TrackDeliveriesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-slate-900">
+              {stats.totalOrders}
+            </div>
+            <div className="text-sm text-slate-600">Total Orders</div>
+          </div>
+        </Card>
+
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.outForDelivery}
+            </div>
+            <div className="text-sm text-slate-600">Out for Delivery</div>
+          </div>
+        </Card>
+
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-orange-600">
+              {stats.forwardToFinalDestination}
+            </div>
+            <div className="text-sm text-slate-600">Forward to Final</div>
+          </div>
+        </Card>
+
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-purple-600">
+              {stats.movedVia3pl}
+            </div>
+            <div className="text-sm text-slate-600">Moved via 3PL</div>
+          </div>
+        </Card>
+
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {stats.delivered}
+            </div>
+            <div className="text-sm text-slate-600">Delivered</div>
+          </div>
+        </Card>
+
+        <Card className="text-center">
+          <div className="p-4">
+            <div className="text-2xl font-bold text-emerald-600">
+              {stats.deliveryRatio}%
+            </div>
+            <div className="text-sm text-slate-600">Delivery Ratio</div>
+          </div>
+        </Card>
+      </div>
+
       {/* Filters */}
       <Card>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(260px,1fr)_200px_200px_auto] md:items-center">
@@ -360,6 +503,9 @@ export default function TrackDeliveriesPage() {
             <option value="pending">Pending</option>
             <option value="assigned">Assigned</option>
             <option value="returned">Returned</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="future_delivery">Future Delivery</option>
+            <option value="lost_damaged">Lost & Damages</option>
           </Select>
           <Input
             type="date"
@@ -412,9 +558,11 @@ export default function TrackDeliveriesPage() {
                   "",
                   "Tracking ID",
                   "Customer",
+                  "Client Store",
                   "Status",
                   "Origin",
                   "Destination",
+                  "COD Amount",
                   "Date",
                   "Actions",
                 ].map((h, idx) => (
@@ -467,6 +615,9 @@ export default function TrackDeliveriesPage() {
                       </div>
                     </div>
                   </td>
+                  <td className="px-6 py-3 align-middle text-slate-700">
+                    {r.clientStoreName}
+                  </td>
                   <td className="px-6 py-3 align-middle capitalize">
                     <StatusBadge status={r.status} />
                   </td>
@@ -475,6 +626,9 @@ export default function TrackDeliveriesPage() {
                   </td>
                   <td className="px-6 py-3 align-middle text-slate-700">
                     {r.destination}
+                  </td>
+                  <td className="px-6 py-3 align-middle text-slate-700">
+                    {r.codAmount ? `﷼${r.codAmount.toLocaleString()}` : "—"}
                   </td>
                   <td className="px-6 py-3 align-middle text-slate-700">
                     {new Date(r.date).toLocaleString(undefined, {
@@ -498,10 +652,10 @@ export default function TrackDeliveriesPage() {
                         <EditIcon size={16} />
                       </IconButton>
                       <IconButton
-                        label="Delete"
-                        onClick={() => handleDelete(r.deliveryId)}
+                        label="Cancel"
+                        onClick={() => handleCancel(r.deliveryId)}
                       >
-                        <TrashIcon size={16} />
+                        <span className="text-[#0EA5E9] text-lg">✕</span>
                       </IconButton>
                     </div>
                   </td>
@@ -567,6 +721,18 @@ export default function TrackDeliveriesPage() {
                   <span className="font-medium text-slate-600">To:</span>{" "}
                   {r.destination}
                 </div>
+                <div className="text-xs text-slate-500">
+                  <span className="font-medium text-slate-600">
+                    Client Store:
+                  </span>{" "}
+                  {r.clientStoreName}
+                </div>
+                <div className="text-xs text-slate-500">
+                  <span className="font-medium text-slate-600">
+                    COD Amount:
+                  </span>{" "}
+                  {r.codAmount ? `﷼${r.codAmount.toLocaleString()}` : "—"}
+                </div>
                 <div className="mt-1 text-xs text-slate-500">
                   {new Date(r.date).toLocaleString(undefined, {
                     month: "short",
@@ -589,10 +755,10 @@ export default function TrackDeliveriesPage() {
                     <EditIcon size={16} />
                   </IconButton>
                   <IconButton
-                    label="Delete"
-                    onClick={() => handleDelete(r.deliveryId)}
+                    label="Cancel"
+                    onClick={() => handleCancel(r.deliveryId)}
                   >
-                    <TrashIcon size={16} />
+                    <span className="text-[#0EA5E9] text-lg">✕</span>
                   </IconButton>
                 </div>
               </div>
@@ -675,69 +841,12 @@ export default function TrackDeliveriesPage() {
               <span className="text-slate-500">Phone:</span>{" "}
               <span className="font-medium">{viewData.customerPhone}</span>
             </div>
-            {(viewData.senderName ||
-              viewData.senderPhone ||
-              viewData.senderAddress) && (
-              <>
-                <div className="border-t border-slate-100 pt-2 mt-2">
-                  <span className="text-slate-500 text-xs uppercase tracking-wide">
-                    Sender Information
-                  </span>
-                </div>
-                {viewData.senderName && (
-                  <div>
-                    <span className="text-slate-500">Sender:</span>{" "}
-                    <span className="font-medium">{viewData.senderName}</span>
-                  </div>
-                )}
-                {viewData.senderPhone && (
-                  <div>
-                    <span className="text-slate-500">Sender Phone:</span>{" "}
-                    <span className="font-medium">{viewData.senderPhone}</span>
-                  </div>
-                )}
-                {viewData.senderAddress && (
-                  <div>
-                    <span className="text-slate-500">Sender Address:</span>{" "}
-                    <span className="font-medium">
-                      {viewData.senderAddress}
-                    </span>
-                  </div>
-                )}
-                {(viewData.senderCity ||
-                  viewData.senderDistrict ||
-                  viewData.senderPostalCode) && (
-                  <div className="pl-4 space-y-1 border-l-2 border-slate-100">
-                    {viewData.senderCity && (
-                      <div>
-                        <span className="text-slate-500">Sender City:</span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderCity}
-                        </span>
-                      </div>
-                    )}
-                    {viewData.senderDistrict && (
-                      <div>
-                        <span className="text-slate-500">Sender District:</span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderDistrict}
-                        </span>
-                      </div>
-                    )}
-                    {viewData.senderPostalCode && (
-                      <div>
-                        <span className="text-slate-500">
-                          Sender Postal Code:
-                        </span>{" "}
-                        <span className="font-medium">
-                          {viewData.senderPostalCode}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+            <div>
+              <span className="text-slate-500">Client Store:</span>{" "}
+              <span className="font-medium">
+                {viewData.clientStoreName || "—"}
+              </span>
+            </div>
             <div className="border-t border-slate-100 pt-2 mt-2">
               <span className="text-slate-500 text-xs uppercase tracking-wide">
                 Delivery Information
@@ -889,6 +998,7 @@ export default function TrackDeliveriesPage() {
                 { value: "pending", label: "Pending" },
                 { value: "assigned", label: "Assigned" },
                 { value: "returned", label: "Returned" },
+                { value: "cancelled", label: "Cancelled" },
               ].map((status) => (
                 <label
                   key={status.value}
@@ -952,6 +1062,7 @@ function StatusBadge({ status }: { status: DeliveryRow["status"] }) {
     Pending: { label: "Pending", variant: "warning" },
     Returned: { label: "Returned", variant: "danger" },
     Assigned: { label: "Assigned", variant: "default" },
+    Cancelled: { label: "Cancelled", variant: "danger" },
   } as const;
   const { label, variant } = mapping[status];
   return <Badge variant={variant}>{label.replace("_", " ")}</Badge>;
