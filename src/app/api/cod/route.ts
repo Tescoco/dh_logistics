@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
+// User model is imported to register schema for Mongoose population
+import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
 import {
   PDFDocument as PDFLibDocument,
@@ -84,14 +86,19 @@ export async function GET(req: NextRequest) {
 
   // Get deliveries data
   const deliveriesData = await Delivery.find(match)
-    .populate("assignedDriverId", "name email")
+    .populate("assignedDriverId", "firstName lastName email")
     .sort({ createdAt: -1 })
     .lean();
 
   function extractAssignedDriverName(value: unknown): string | undefined {
-    if (value && typeof value === "object" && "name" in value) {
-      const n = (value as { name?: unknown }).name;
-      return typeof n === "string" ? n : undefined;
+    if (value && typeof value === "object" && "firstName" in value) {
+      const firstName = (value as { firstName?: unknown }).firstName;
+      const lastName = (value as { lastName?: unknown }).lastName;
+      if (typeof firstName === "string") {
+        return lastName && typeof lastName === "string"
+          ? `${firstName} ${lastName}`.trim()
+          : firstName;
+      }
     }
     return undefined;
   }
