@@ -20,7 +20,6 @@ import {
 } from "@/lib/fileParser";
 
 export default function DeliveryStatusPage() {
-  const router = useRouter();
   const { showError, showSuccess } = useToast();
   // Independent filters for bulk update vs list view
   const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
@@ -242,25 +241,6 @@ export default function DeliveryStatusPage() {
     } else {
       const data = await res.json().catch(() => ({}));
       showError("Update Failed", data?.error ?? "Failed to update");
-    }
-  }
-
-  async function handleUpload(file: File) {
-    const form = new FormData();
-    form.append("file", file);
-    const res = await fetch("/api/deliveries/upload", {
-      method: "POST",
-      body: form,
-    });
-    if (res.ok) {
-      setRefreshKey((k) => k + 1);
-      showSuccess(
-        "Upload Complete",
-        "Delivery statuses have been updated successfully"
-      );
-    } else {
-      const data = await res.json().catch(() => ({}));
-      showError("Upload Failed", data?.error ?? "Upload failed");
     }
   }
 

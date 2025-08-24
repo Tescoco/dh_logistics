@@ -4,7 +4,7 @@ import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
+
 import Switch from "@/components/ui/Switch";
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "@/components/icons";
 import React, { useEffect, useMemo, useState } from "react";
@@ -58,7 +58,7 @@ export default function CouriersPage() {
 
   useEffect(() => {
     loadCouriers();
-  }, []);
+  }, [loadCouriers]);
 
   async function loadCouriers() {
     setLoading(true);

@@ -27,7 +27,7 @@ type ClientUser = {
 export default function AdminNewDeliveryPage() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
-  const [loading, setLoading] = useState(true);
+
   const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<ClientUser[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);

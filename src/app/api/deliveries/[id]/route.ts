@@ -50,8 +50,6 @@ const UpdateDeliverySchema = z.object({
   thirdPartyShipmentNumber: z.string().optional(),
 });
 
-type RouteParams = { params: { id: string } };
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(_req: NextRequest, context: any) {
   await connectToDatabase();

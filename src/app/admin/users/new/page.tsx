@@ -32,7 +32,6 @@ export default function CreateUserPage() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
-  const [postalCode, setPostalCode] = useState("");
 
   async function handleCreate() {
     if (password !== confirmPassword) {
@@ -58,7 +57,6 @@ export default function CreateUserPage() {
           address: address || undefined,
           city: city || undefined,
           district: district || undefined,
-          postalCode: postalCode || undefined,
         }),
       });
       if (!res.ok) {

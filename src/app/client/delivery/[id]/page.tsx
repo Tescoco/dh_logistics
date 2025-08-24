@@ -63,14 +63,6 @@ export default function EditDeliveryPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function normalizePhone(value: string) {
-    return (value || "").replace(/\D/g, "");
-  }
-
-  function normalizeText(value: string) {
-    return (value || "").toLowerCase().replace(/\s+/g, " ").trim();
-  }
-
   useEffect(() => {
     let mounted = true;
     async function load() {

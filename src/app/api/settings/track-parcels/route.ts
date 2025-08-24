@@ -15,7 +15,7 @@ interface ThirdPartyTrackingResponse {
   error?: string;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     await connectToDatabase();
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const deliveries = await Delivery.find({
       status: { $ne: "delivered" },
       assignedDriverId: { $exists: true, $ne: null },
-      thirdPartyShipmentNumber: { $exists: true, $ne: null, $ne: "" },
+      thirdPartyShipmentNumber: { $exists: true, $ne: null, $nin: [null, ""] },
     }).select("_id reference thirdPartyShipmentNumber status");
 
     if (deliveries.length === 0) {
@@ -172,7 +172,7 @@ export async function GET() {
     const trackableDeliveries = await Delivery.countDocuments({
       status: { $ne: "delivered" },
       assignedDriverId: { $exists: true, $ne: null },
-      thirdPartyShipmentNumber: { $exists: true, $ne: null, $ne: "" },
+      thirdPartyShipmentNumber: { $exists: true, $ne: null, $nin: [null, ""] },
     });
 
     // Get count by status
@@ -181,7 +181,11 @@ export async function GET() {
         $match: {
           status: { $ne: "delivered" },
           assignedDriverId: { $exists: true, $ne: null },
-          thirdPartyShipmentNumber: { $exists: true, $ne: null, $ne: "" },
+          thirdPartyShipmentNumber: {
+            $exists: true,
+            $ne: null,
+            $nin: [null, ""],
+          },
         },
       },
       {

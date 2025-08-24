@@ -74,9 +74,6 @@ export default function AdminEditDeliveryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<ClientUser[]>([]);
-  const [loadingClients, setLoadingClients] = useState(true);
-  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
-  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const [form, setForm] = useState<{
     reference: string;
@@ -152,56 +149,12 @@ export default function AdminEditDeliveryPage() {
         console.error("Error fetching clients:", error);
         showError("Failed to load clients", "Could not fetch client list");
       } finally {
-        setLoadingClients(false);
+        // Loading complete
       }
     };
 
     fetchClients();
-  }, [showError]);
-
-  // Load activity log
-  async function loadActivityLog() {
-    if (!id) return;
-
-    setLoadingActivity(true);
-    try {
-      const res = await fetch(`/api/deliveries/${id}/activity`);
-      if (res.ok) {
-        const data = await res.json();
-        setActivityLog(data.activityLog || []);
-      }
-    } catch {
-      // Ignore activity log errors
-    } finally {
-      setLoadingActivity(false);
-    }
-  }
-
-  // Handle client selection and auto-populate sender fields (name, phone, delivery fee only)
-  function handleClientSelection(clientId: string) {
-    const selectedClient = clients.find((c) => c._id === clientId);
-    if (selectedClient) {
-      setForm((prev) => ({
-        ...prev,
-        selectedClientId: clientId,
-        senderName:
-          `${selectedClient.firstName} ${selectedClient.lastName}`.trim(),
-        senderPhone: selectedClient.phone || "",
-        deliveryFee: String(selectedClient.deliveryFee || 0),
-        // Address fields remain manual - don't auto-populate
-      }));
-    } else {
-      // Clear only auto-populated fields if no client selected
-      setForm((prev) => ({
-        ...prev,
-        selectedClientId: "",
-        senderName: "",
-        senderPhone: "",
-        deliveryFee: "",
-        // Address fields remain unchanged
-      }));
-    }
-  }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -242,9 +195,6 @@ export default function AdminEditDeliveryPage() {
         if (mounted) setLoading(false);
       }
     })();
-
-    // Load activity log
-    loadActivityLog();
 
     return () => {
       mounted = false;

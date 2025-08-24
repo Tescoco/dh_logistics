@@ -33,6 +33,13 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleRemove = () => {
+    setIsRemoving(true);
+    setTimeout(() => {
+      onRemove(toast.id);
+    }, 300);
+  };
+
   useEffect(() => {
     const duration = toast.duration || 3000;
     const timer = setTimeout(() => {
@@ -40,14 +47,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [toast.duration]);
-
-  const handleRemove = () => {
-    setIsRemoving(true);
-    setTimeout(() => {
-      onRemove(toast.id);
-    }, 300);
-  };
+  }, [toast.duration, handleRemove]);
 
   const getIcon = () => {
     switch (toast.type) {

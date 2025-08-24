@@ -141,7 +141,7 @@ export default function AdminCODReportsPage() {
       })
       .catch(() => showError("Error", "Failed to load COD deliveries"))
       .finally(() => setLoading(false));
-  }, [fromDate, toDate, selectedClient]);
+  }, [fromDate, toDate, selectedClient, showError]);
 
   const filteredDeliveries = useMemo(() => {
     let filtered = deliveries;

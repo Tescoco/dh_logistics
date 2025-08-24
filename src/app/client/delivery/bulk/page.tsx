@@ -38,12 +38,10 @@ export default function BulkDeliveriesUploadPage() {
   const [checkDuplicate, setCheckDuplicate] = useState(true);
   const [skipInvalid, setSkipInvalid] = useState(false);
   const [emailNotify, setEmailNotify] = useState(false);
-  const [serviceType, setServiceType] = useState("Standard Delivery");
   const [priority, setPriority] = useState("Standard");
   const [batchName, setBatchName] = useState(
     `Batch_${new Date().toISOString().slice(0, 10).replace(/-/g, "_")}`
   );
-  const [mode, setMode] = useState("Process Immediately");
   const [uploading, setUploading] = useState(false);
 
   // Inline editing state

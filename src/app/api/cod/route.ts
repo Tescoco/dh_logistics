@@ -96,25 +96,6 @@ export async function GET(req: NextRequest) {
     return undefined;
   }
 
-  type Delivery = {
-    _id: string;
-    reference: string;
-    customerName: string;
-    customerPhone: string;
-    customerStoreName?: string;
-    deliveryAddress: string;
-    codAmount: number;
-    codPaymentStatus?: string;
-    codPaidAmount?: number;
-    codPaidDate?: Date;
-    codNotes?: string;
-    deliveryFee: number;
-    status: string;
-    assignedDriverId: string;
-    createdAt: Date;
-    assignedDriver?: string;
-  };
-
   const processedDeliveries = deliveriesData.map((d) => ({
     _id: d._id,
     reference: d.reference,
@@ -430,7 +411,7 @@ export async function GET(req: NextRequest) {
       ensureSpace(lineHeight * 2);
       // Place totals at left margin
       drawText(
-        `Total COD: ﷼ ${totalCOD.toLocaleString()}`,
+        `Total COD: SAR ${totalCOD.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {
@@ -439,7 +420,7 @@ export async function GET(req: NextRequest) {
       );
       cursorY -= lineHeight;
       drawText(
-        `Total Delivery Fees: ﷼ ${totalFee.toLocaleString()}`,
+        `Total Delivery Fees: SAR ${totalFee.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {

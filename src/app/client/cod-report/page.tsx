@@ -10,10 +10,6 @@ import Modal from "@/components/ui/Modal";
 import {
   SearchIcon,
   UploadIcon,
-  PackageIcon,
-  TruckIcon,
-  CheckIcon,
-  RefreshIcon,
   DownloadIcon,
   LinkIcon,
   TrashIcon,

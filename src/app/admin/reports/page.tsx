@@ -102,6 +102,7 @@ export default function ReportsPage() {
     selectedMonth,
     selectedClient,
     statusFilter,
+    loadReports,
   ]);
 
   async function loadClients() {

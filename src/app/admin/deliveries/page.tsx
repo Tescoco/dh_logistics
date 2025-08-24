@@ -6,13 +6,8 @@ import Tabs from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import {
-  PlusIcon,
-  UploadIcon,
-  SearchIcon,
-  DownloadIcon,
-} from "@/components/icons";
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { PlusIcon, SearchIcon, DownloadIcon } from "@/components/icons";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
 
