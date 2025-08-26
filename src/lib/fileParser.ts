@@ -371,7 +371,7 @@ export function validateDeliveryRow(
       "payment",
       "Payment Method",
       "Payment",
-    ]) || "prepaid";
+    ]) || "cod";
   const serviceType = getFieldValue(["serviceType", "Service Type"]) || "1";
   const deliveryFee =
     parseFloat(
