@@ -587,22 +587,6 @@ export default function DailyParcelsPage() {
                     <span className="font-medium">{viewData.deliveryCity}</span>
                   </div>
                 )}
-                {viewData.deliveryDistrict && (
-                  <div>
-                    <span className="text-slate-500">District:</span>{" "}
-                    <span className="font-medium">
-                      {viewData.deliveryDistrict}
-                    </span>
-                  </div>
-                )}
-                {viewData.deliveryPostalCode && (
-                  <div>
-                    <span className="text-slate-500">Postal Code:</span>{" "}
-                    <span className="font-medium">
-                      {viewData.deliveryPostalCode}
-                    </span>
-                  </div>
-                )}
               </div>
             )}
             <div>

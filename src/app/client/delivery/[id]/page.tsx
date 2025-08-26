@@ -271,22 +271,6 @@ export default function EditDeliveryPage() {
                 ))}
               </Select>
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">District</label>
-              <Input
-                placeholder="Al Arid Dist"
-                value={form.deliveryDistrict}
-                onChange={(e) => update("deliveryDistrict", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-slate-600">Postal Code</label>
-              <Input
-                placeholder="13337"
-                value={form.deliveryPostalCode}
-                onChange={(e) => update("deliveryPostalCode", e.target.value)}
-              />
-            </div>
           </section>
 
           <section className="space-y-4">
