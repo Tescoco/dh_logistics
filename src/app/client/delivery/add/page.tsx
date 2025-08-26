@@ -524,9 +524,9 @@ export default function CreateDeliveryPage() {
                   }
                 >
                   <option value="">Select Type</option>
-                  <option value="Document">Document</option>
-                  <option value="Parcel">Parcel</option>
-                  <option value="Other">Other</option>
+                  <option value="doscument">Document</option>
+                  <option value="parcel">Parcel</option>
+                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>

@@ -304,15 +304,15 @@ export default function EditDeliveryPage() {
                   Package Type
                 </label>
                 <Select
-                  value={form.packageType}
+                  value={form.packageType.toLowerCase()}
                   onChange={(e) =>
                     update("packageType", (e.target as HTMLSelectElement).value)
                   }
                 >
                   <option value="">Select Type</option>
-                  <option value="Document">Document</option>
-                  <option value="Parcel">Parcel</option>
-                  <option value="Other">Other</option>
+                  <option value="document">Document</option>
+                  <option value="parcel">Parcel</option>
+                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>

@@ -51,7 +51,7 @@ export default function CouriersPage() {
     city: "",
     district: "",
     postalCode: "",
-    password: "",
+    password: "testing12345",
   });
 
   const [serviceAreaInput, setServiceAreaInput] = useState("");
@@ -366,7 +366,7 @@ export default function CouriersPage() {
                     <td className="px-5 py-3">
                       <Switch
                         checked={courier.isActive}
-                        onChange={() => handleToggleActive(courier)}
+                        onCheckedChange={() => handleToggleActive(courier)}
                       />
                     </td>
                     <td className="px-5 py-3">
@@ -502,7 +502,7 @@ export default function CouriersPage() {
               />
             </div>
           </div>
-
+          {/* 
           {!editingCourier && (
             <div>
               <label className="text-[13px] text-slate-600 mb-2 block">
@@ -517,7 +517,7 @@ export default function CouriersPage() {
                 }
               />
             </div>
-          )}
+          )} */}
 
           <div>
             <label className="text-[13px] text-slate-600 mb-2 block">

@@ -385,7 +385,7 @@ export default function TrackDeliveriesPage() {
       "Tracking ID",
       "Customer",
       "Phone",
-      "Client Store",
+      "Store",
       "Status",
       "Origin",
       "Destination",
@@ -558,7 +558,7 @@ export default function TrackDeliveriesPage() {
                   "",
                   "Tracking ID",
                   "Customer",
-                  "Client Store",
+                  "Store",
                   "Status",
                   "Origin",
                   "Destination",
@@ -722,9 +722,7 @@ export default function TrackDeliveriesPage() {
                   {r.destination}
                 </div>
                 <div className="text-xs text-slate-500">
-                  <span className="font-medium text-slate-600">
-                    Client Store:
-                  </span>{" "}
+                  <span className="font-medium text-slate-600">Store:</span>{" "}
                   {r.clientStoreName}
                 </div>
                 <div className="text-xs text-slate-500">
@@ -842,7 +840,7 @@ export default function TrackDeliveriesPage() {
               <span className="font-medium">{viewData.customerPhone}</span>
             </div>
             <div>
-              <span className="text-slate-500">Client Store:</span>{" "}
+              <span className="text-slate-500">Store:</span>{" "}
               <span className="font-medium">
                 {viewData.clientStoreName || "—"}
               </span>
