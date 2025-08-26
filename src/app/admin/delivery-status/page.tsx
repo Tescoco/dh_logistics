@@ -899,11 +899,66 @@ export default function DeliveryStatusPage() {
                     {header}
                   </label>
                   <Input
+                    // type={
+                    //   header === "customerPhone" || header === "senderPhone"
+                    //     ? "number"
+                    //     : "text"
+                    // }
                     value={editValues[index] || ""}
                     onChange={(e) => {
                       const newValues = [...editValues];
                       newValues[index] = e.target.value;
                       setEditValues(newValues);
+
+                      // Build full row data from all edited values
+                      const newRowData: ParsedRow = {};
+                      columns.forEach((col, idx) => {
+                        newRowData[col] = newValues[idx] || "";
+                      });
+
+                      // Validate full row on each change
+                      const validation = validateDeliveryRow(
+                        newRowData,
+                        columns
+                      );
+
+                      // Reflect current validation state live in the modal
+                      setEditingRow((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              row: newRowData,
+                              values: newValues,
+                              valid: validation.isValid,
+                              reason: validation.reason || undefined,
+                            }
+                          : prev
+                      );
+
+                      // If the row becomes valid, save immediately without waiting for submit
+                      if (validation.isValid && editingRow) {
+                        const updatedRows = previewRows.map((r) => {
+                          if (r.index === editingRow.index) {
+                            return {
+                              ...r,
+                              row: newRowData,
+                              valid: true,
+                              reason: undefined,
+                              values: newValues,
+                            };
+                          }
+                          return r;
+                        });
+
+                        setPreviewRows(updatedRows);
+                        setShowEditModal(false);
+                        setEditingRow(null);
+                        setEditValues([]);
+                        showSuccess(
+                          "Row Updated",
+                          "Row has been successfully updated and is now valid."
+                        );
+                      }
                     }}
                     placeholder={`Enter ${header}`}
                     className="w-full"

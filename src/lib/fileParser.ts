@@ -68,13 +68,26 @@ export function parseCSV(content: string): FileParseResult {
   }
 
   const rows: ParsedRow[] = [];
+  const expandScientific = (val: string): string => {
+    // Convert scientific-notation numeric strings to full digit strings
+    // e.g., 9.66501E+11 -> 966501000000 or similar; we prefer integer truncation
+    const sciRe = /^\s*\d+(?:\.\d+)?e[+\-]?\d+\s*$/i;
+    if (sciRe.test(val)) {
+      const num = Number(val);
+      if (Number.isFinite(num)) {
+        return String(Math.trunc(num));
+      }
+    }
+    return val;
+  };
   for (let i = startIdx; i < lines.length; i++) {
     const raw = lines[i];
     const parts = raw.split(",").map((p) => p.trim());
 
     const row: ParsedRow = {};
     headers.forEach((header, index) => {
-      row[header] = parts[index] || "";
+      const original = parts[index] || "";
+      row[header] = expandScientific(original);
     });
     rows.push(row);
   }
@@ -144,6 +157,23 @@ export async function parseXLSX(buffer: ArrayBuffer): Promise<FileParseResult> {
     startIndex = 1;
   }
 
+  // Helper to normalize cell values consistently
+  const normalizeCell = (cellValue: unknown): string => {
+    if (cellValue == null) return "";
+    if (typeof cellValue === "number") {
+      // Avoid scientific notation for long integers
+      return String(Math.trunc(cellValue));
+    }
+    const text = cellValue.toString().trim();
+    // Handle scientific-notation numeric strings
+    const sciRe = /^\s*\d+(?:\.\d+)?e[+\-]?\d+\s*$/i;
+    if (sciRe.test(text)) {
+      const num = Number(text);
+      if (Number.isFinite(num)) return String(Math.trunc(num));
+    }
+    return text;
+  };
+
   // Parse data rows
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber < startIndex) return;
@@ -154,7 +184,7 @@ export async function parseXLSX(buffer: ArrayBuffer): Promise<FileParseResult> {
     const parsedRow: ParsedRow = {};
     headers.forEach((header, index) => {
       const cellValue = rowValues[index + 1]; // Excel values are 1-indexed
-      parsedRow[header] = cellValue ? cellValue.toString().trim() : "";
+      parsedRow[header] = normalizeCell(cellValue);
     });
 
     // Only add rows that have some content
@@ -361,12 +391,17 @@ export function validateDeliveryRow(
   }
 
   // Basic phone validation
-  const phoneRegex = /^[5-9]\d{8}$/;
-  if (!phoneRegex.test(customerPhone.replace(/[\s\-\(\)]/g, ""))) {
+  if (customerPhone.replace(/[\s\-\(\)]/g, "").length !== 9) {
     return {
       isValid: false,
-      reason:
-        "Customer phone must be exactly 9 digits starting with 5-9 (without country code)",
+      reason: "Customer phone must be exactly 9 digits (without country code)",
+    };
+  }
+
+  if (senderPhone && senderPhone.replace(/[\s\-\(\)]/g, "").length !== 9) {
+    return {
+      isValid: false,
+      reason: "Sender phone must be exactly 9 digits (without country code)",
     };
   }
 

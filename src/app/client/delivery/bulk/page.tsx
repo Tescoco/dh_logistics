@@ -522,6 +522,7 @@ export default function BulkDeliveriesUploadPage() {
                     {header}
                   </label>
                   <Input
+                    type={header === "customerPhone" ? "number" : "text"}
                     value={editValues[index] || ""}
                     onChange={(e) => {
                       const newValues = [...editValues];
