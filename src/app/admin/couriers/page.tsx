@@ -108,7 +108,7 @@ export default function CouriersPage() {
       city: "",
       district: "",
       postalCode: "",
-      password: "",
+      password: "testing12345",
     });
     setServiceAreaInput("");
     setModalOpen(true);
@@ -219,6 +219,12 @@ export default function CouriersPage() {
   }
 
   async function handleToggleActive(courier: CourierCompany) {
+    console.log(
+      "Toggle clicked for courier:",
+      courier._id,
+      "Current status:",
+      courier.isActive
+    );
     try {
       const res = await fetch(`/api/users/${courier._id}`, {
         method: "PATCH",
@@ -226,7 +232,11 @@ export default function CouriersPage() {
         body: JSON.stringify({ isActive: !courier.isActive }),
       });
 
+      console.log("API response status:", res.status);
+
       if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.log("API error:", errorData);
         showError("Update Failed", "Failed to update courier status");
         return;
       }
@@ -240,7 +250,8 @@ export default function CouriersPage() {
         "Updated",
         `Courier company ${!courier.isActive ? "activated" : "deactivated"}`
       );
-    } catch {
+    } catch (error) {
+      console.error("Toggle error:", error);
       showError("Update Failed", "Failed to update courier status");
     }
   }
@@ -366,7 +377,13 @@ export default function CouriersPage() {
                     <td className="px-5 py-3">
                       <Switch
                         checked={courier.isActive}
-                        onCheckedChange={() => handleToggleActive(courier)}
+                        onCheckedChange={() => {
+                          console.log(
+                            "Switch clicked for:",
+                            courier.courierCompanyName
+                          );
+                          handleToggleActive(courier);
+                        }}
                       />
                     </td>
                     <td className="px-5 py-3">

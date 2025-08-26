@@ -13,14 +13,19 @@ export default function Switch({
   className = "",
   ...props
 }: SwitchProps) {
+  const handleClick = () => {
+    console.log("Switch button clicked, checked:", checked);
+    onCheckedChange?.(!checked);
+  };
+
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
-      onClick={() => onCheckedChange?.(!checked)}
+      onClick={handleClick}
       className={[
-        "inline-flex h-6 w-10 items-center rounded-full transition-colors",
+        "inline-flex h-6 w-10 items-center rounded-full transition-colors cursor-pointer",
         checked ? "bg-[#0EA5E9]" : "bg-slate-300",
         className,
       ].join(" ")}
@@ -28,7 +33,7 @@ export default function Switch({
     >
       <span
         className={[
-          "h-4 w-4 rounded-full bg-white shadow transform transition-transform mx-1",
+          "h-4 w-4 rounded-full bg-white shadow transform transition-transform mx-1 pointer-events-none",
           checked ? "translate-x-4" : "translate-x-0",
         ].join(" ")}
       />

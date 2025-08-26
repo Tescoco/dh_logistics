@@ -340,14 +340,11 @@ export default function EditDeliveryPage() {
                   onChange={(e) =>
                     update(
                       "priority",
-                      (e.target as HTMLSelectElement).value as
-                        | "standard"
-                        | "express"
+                      (e.target as HTMLSelectElement).value as "standard"
                     )
                   }
                 >
                   <option value="standard">Standard</option>
-                  <option value="express">Express</option>
                 </Select>
               </div>
               <div>
