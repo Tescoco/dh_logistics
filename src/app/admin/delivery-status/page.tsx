@@ -217,7 +217,7 @@ export default function DeliveryStatusPage() {
       .then((r) => r.json())
       .then((d) => mounted && setRows(d.deliveries ?? []))
       .finally(() => mounted && setLoading(false));
-    
+
     // Load active drivers/couriers for dropdown
     setCouriersLoading(true);
     fetch("/api/users")
@@ -237,7 +237,7 @@ export default function DeliveryStatusPage() {
           setCouriersLoading(false);
         }
       });
-    
+
     return () => {
       mounted = false;
     };
