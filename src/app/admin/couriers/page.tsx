@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 
 import Switch from "@/components/ui/Switch";
 import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "@/components/icons";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
 
 type CourierCompany = {
@@ -56,11 +56,7 @@ export default function CouriersPage() {
 
   const [serviceAreaInput, setServiceAreaInput] = useState("");
 
-  useEffect(() => {
-    loadCouriers();
-  }, [loadCouriers]);
-
-  async function loadCouriers() {
+  const loadCouriers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/couriers");
@@ -75,7 +71,11 @@ export default function CouriersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [showError]);
+
+  useEffect(() => {
+    loadCouriers();
+  }, [loadCouriers]);
 
   const filteredCouriers = useMemo(() => {
     const q = query.trim().toLowerCase();
