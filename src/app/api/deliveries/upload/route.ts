@@ -9,7 +9,7 @@ import { parseFile, validateDeliveryRow } from "@/lib/fileParser";
 export const runtime = "nodejs";
 
 // Supported file formats: CSV and XLSX
-// Expected headers: reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryDistrict,deliveryPostalCode,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes
+// Expected headers: reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderPostalCode,deliveryAddress,deliveryCity,deliveryPostalCode,packageType,description,priority,paymentMethod,deliveryFee,codAmount,notes
 // Example CSV:
 // REF001,John Doe,+1234567890,Jane Sender,+9876543210,789 Sender St,Riyadh,Al-Malaz,12345,123 Main St,Riyadh,Al-Malaz,12345,Package,Description,Standard,COD,10,50,Notes
 // REF002,Jane Smith,+9876543210,Bob Sender,+1234567890,456 Sender Ave,Jeddah,Al-Hamra,54321,456 Oak Ave,Jeddah,Al-Hamra,54321,Document,Important docs,Express,Prepaid,15,0,Handle with care
@@ -21,46 +21,69 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const form = await req.formData();
-    const file = form.get("file");
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    const contentType = req.headers.get("content-type");
+    let rows, headers, fileName, isCSV, isXLSX;
+
+    // Check if this is JSON data (edited data) or FormData (original file upload)
+    if (contentType?.includes("application/json")) {
+      // Handle JSON data from edited preview
+      const jsonData = await req.json();
+      if (!jsonData.rows || !jsonData.headers || !jsonData.fileName) {
+        return NextResponse.json(
+          { error: "Missing required data: rows, headers, or fileName" },
+          { status: 400 }
+        );
+      }
+
+      rows = jsonData.rows;
+      headers = jsonData.headers;
+      fileName = jsonData.fileName.toLowerCase();
+      isCSV = jsonData.fileType === "csv" || fileName.endsWith(".csv");
+      isXLSX = jsonData.fileType === "xlsx" || fileName.endsWith(".xlsx");
+    } else {
+      // Handle FormData (original file upload - for backward compatibility)
+      const form = await req.formData();
+      const file = form.get("file");
+      if (!file || !(file instanceof File)) {
+        return NextResponse.json({ error: "Missing file" }, { status: 400 });
+      }
+
+      // Validate file type
+      fileName = file.name.toLowerCase();
+      const fileType = file.type;
+      isCSV = fileType === "text/csv" || fileName.endsWith(".csv");
+      isXLSX =
+        fileType ===
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        fileName.endsWith(".xlsx");
+
+      if (!isCSV && !isXLSX) {
+        return NextResponse.json(
+          {
+            error: "Unsupported file type. Please upload a CSV or XLSX file.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Parse the file
+      let parseResult;
+      try {
+        parseResult = await parseFile(file);
+      } catch (parseError) {
+        return NextResponse.json(
+          {
+            error: `Failed to parse file: ${
+              parseError instanceof Error ? parseError.message : "Unknown error"
+            }`,
+          },
+          { status: 400 }
+        );
+      }
+
+      rows = parseResult.rows;
+      headers = parseResult.headers;
     }
-
-    // Validate file type
-    const fileName = file.name.toLowerCase();
-    const fileType = file.type;
-    const isCSV = fileType === "text/csv" || fileName.endsWith(".csv");
-    const isXLSX =
-      fileType ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      fileName.endsWith(".xlsx");
-
-    if (!isCSV && !isXLSX) {
-      return NextResponse.json(
-        {
-          error: "Unsupported file type. Please upload a CSV or XLSX file.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Parse the file
-    let parseResult;
-    try {
-      parseResult = await parseFile(file);
-    } catch (parseError) {
-      return NextResponse.json(
-        {
-          error: `Failed to parse file: ${
-            parseError instanceof Error ? parseError.message : "Unknown error"
-          }`,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { rows, headers } = parseResult;
 
     if (rows.length === 0) {
       return NextResponse.json(

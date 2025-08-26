@@ -319,14 +319,25 @@ export default function DeliveryStatusPage() {
   }
 
   async function startUpload() {
-    if (!uploadFile) return;
+    if (!uploadFile || previewRows.length === 0) return;
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", uploadFile);
+      // Instead of sending the original file, send the edited data
+      const editedData = {
+        headers: columns,
+        rows: previewRows.map((row) => row.row), // Use the edited row data
+        fileName: uploadFile.name,
+        fileType: uploadFile.name.toLowerCase().endsWith(".xlsx")
+          ? "xlsx"
+          : "csv",
+      };
+
       const res = await fetch("/api/deliveries/upload", {
         method: "POST",
-        body: form,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editedData),
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
