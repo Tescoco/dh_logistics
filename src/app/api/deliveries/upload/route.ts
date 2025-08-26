@@ -118,12 +118,13 @@ export async function POST(req: NextRequest) {
       deliveryAddress: string;
       deliveryCity?: string;
       deliveryPostalCode?: string;
-      packageType: string;
+      serviceType?: string;
+      packageType?: string;
       description: string;
-      priority: string;
-      paymentMethod: string;
-      deliveryFee: number;
-      codAmount: number;
+      priority?: string;
+      paymentMethod?: string;
+      deliveryFee?: number;
+      codAmount?: number;
       notes: string;
       status: string;
       createdById: string | ObjectId;
@@ -152,6 +153,7 @@ export async function POST(req: NextRequest) {
         deliveryAddress: data.deliveryAddress,
         deliveryCity: data.deliveryCity || undefined,
         deliveryPostalCode: data.deliveryPostalCode || undefined,
+        serviceType: data.serviceType || "1",
         packageType: data.packageType,
         description: data.description,
         priority: data.priority || "standard",

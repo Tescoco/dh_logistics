@@ -253,6 +253,7 @@ export function validateDeliveryRow(
   isValid: boolean;
   reason: string;
   data?: {
+    serviceType: string;
     reference: string;
     customerName: string;
     customerPhone: string;
@@ -371,6 +372,7 @@ export function validateDeliveryRow(
       "Payment Method",
       "Payment",
     ]) || "prepaid";
+  const serviceType = getFieldValue(["serviceType", "Service Type"]) || "1";
   const deliveryFee =
     parseFloat(
       getFieldValue([
@@ -437,6 +439,7 @@ export function validateDeliveryRow(
       description,
       priority,
       paymentMethod,
+      serviceType,
       deliveryFee,
       codAmount,
       notes,
