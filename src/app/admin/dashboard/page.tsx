@@ -72,6 +72,20 @@ export default function AdminDashboardPage() {
   const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
   const [bulkIds, setBulkIds] = useState<string>("");
 
+  // Selection and assignment state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  type CourierLite = {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    courierCompanyName?: string;
+    isActive?: boolean;
+    role?: string;
+  };
+  const [couriers, setCouriers] = useState<CourierLite[]>([]);
+  const [couriersLoading, setCouriersLoading] = useState(false);
+  const [selectedCourierId, setSelectedCourierId] = useState<string>("");
+
   // Activity log state
   const [activityLog, setActivityLog] = useState<
     Array<{
@@ -105,6 +119,27 @@ export default function AdminDashboardPage() {
         if (mounted) setRecent((d.deliveries || []).slice(0, 4));
       })
       .catch(() => {});
+    
+    // Load active drivers/couriers for dropdown
+    setCouriersLoading(true);
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((d: { users?: CourierLite[] }) => {
+        if (!mounted) return;
+        const driverList: CourierLite[] = (d.users || []).filter(
+          (u) => u.role === "driver" && u.isActive
+        );
+        const courierList: CourierLite[] = (d.users || []).filter(
+          (u) => u.role === "courier" && u.isActive
+        );
+        setCouriers([...courierList, ...driverList]);
+      })
+      .finally(() => {
+        if (mounted) {
+          setCouriersLoading(false);
+        }
+      });
+    
     return () => {
       mounted = false;
     };
@@ -170,6 +205,74 @@ export default function AdminDashboardPage() {
     return rows;
   }, [recent, statusFilter, searchQuery]);
   const COD_DRIVER_ID = "68992b3ad5eb3b93c40396dc";
+
+  // Selection helper functions
+  const allVisibleSelected = useMemo(
+    () => filteredRecent.length > 0 && filteredRecent.every((d) => selectedIds.has(d._id)),
+    [filteredRecent, selectedIds]
+  );
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const ids = filteredRecent.map((d) => d._id);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  async function handleCourierAssignment() {
+    if (!selectedCourierId || selectedIds.size === 0) return;
+
+    try {
+      const res = await fetch("/api/deliveries/assign-courier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deliveryIds: Array.from(selectedIds),
+          courierId: selectedCourierId,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showError(
+          "Assignment Failed",
+          data?.error ?? "Failed to assign parcels to courier"
+        );
+        return;
+      }
+
+      showSuccess(
+        "Assignment Successful",
+        `Successfully assigned ${data.updatedCount} parcel${
+          data.updatedCount > 1 ? "s" : ""
+        } to ${data.courierName}`
+      );
+
+      setSelectedIds(new Set());
+      setSelectedCourierId("");
+
+      // Refresh data
+      setRefreshKey((k) => k + 1);
+    } catch {
+      showError("Assignment Failed", "Failed to assign parcels to courier");
+    }
+  }
 
   function openViewDelivery(id: string) {
     setViewOpen(true);
@@ -507,10 +610,58 @@ export default function AdminDashboardPage() {
             />
           </div>
         </div>
+
+        {/* Courier Assignment Section */}
+        {selectedIds.size > 0 && (
+          <div className="px-6 pb-4 border-t border-slate-100">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="text-[13px] text-slate-500 whitespace-nowrap">
+                {selectedIds.size} parcel{selectedIds.size > 1 ? "s" : ""}{" "}
+                selected
+              </div>
+              <Select
+                className="w-full md:w-56"
+                value={selectedCourierId}
+                onChange={(e) =>
+                  setSelectedCourierId((e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="" disabled>
+                  {couriersLoading
+                    ? "Loading couriers…"
+                    : "Assign to driver / courier"}
+                </option>
+                {couriers.map((c: CourierLite) => (
+                  <option key={c._id} value={c._id}>
+                    {c.courierCompanyName ||
+                      `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
+                      c._id}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                disabled={!selectedCourierId || selectedIds.size === 0}
+                onClick={handleCourierAssignment}
+                className="w-full md:w-auto whitespace-nowrap"
+              >
+                Assign to Driver / Courier
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-slate-50/50">
               <tr className="text-left text-slate-600 text-sm">
+                <th className="px-6 py-4 font-semibold first:rounded-tl-xl">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    aria-label="Select all visible"
+                  />
+                </th>
                 {[
                   "Delivery ID",
                   "Client",
@@ -521,7 +672,7 @@ export default function AdminDashboardPage() {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-6 py-4 font-semibold first:rounded-tl-xl last:rounded-tr-xl"
+                    className="px-6 py-4 font-semibold last:rounded-tr-xl"
                   >
                     {h}
                   </th>
@@ -534,6 +685,14 @@ export default function AdminDashboardPage() {
                   key={delivery._id}
                   className="hover:bg-slate-50/50 transition-colors"
                 >
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(delivery._id)}
+                      onChange={() => toggleSelectOne(delivery._id)}
+                      aria-label={`Select ${delivery._id}`}
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <span className="font-semibold text-slate-900">
                       {delivery._id.slice(-8).toUpperCase()}

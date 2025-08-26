@@ -188,14 +188,23 @@ export default function BulkDeliveriesUploadPage() {
   }
 
   async function startUpload() {
-    if (!file) return;
+    if (!file || rows.length === 0) return;
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
+      // Instead of sending the original file, send the edited data
+      const editedData = {
+        headers: columns,
+        rows: rows.map((row) => row.row), // Use the edited row data
+        fileName: file.name,
+        fileType: file.name.toLowerCase().endsWith(".xlsx") ? "xlsx" : "csv",
+      };
+
       const res = await fetch("/api/deliveries/upload", {
         method: "POST",
-        body: form,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editedData),
       });
       if (!res.ok) {
         const error = await res.json();

@@ -78,6 +78,20 @@ export default function DeliveryStatusPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Selection and assignment state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  type CourierLite = {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    courierCompanyName?: string;
+    isActive?: boolean;
+    role?: string;
+  };
+  const [couriers, setCouriers] = useState<CourierLite[]>([]);
+  const [couriersLoading, setCouriersLoading] = useState(false);
+  const [selectedCourierId, setSelectedCourierId] = useState<string>("");
+
   // Inline editing state
   const [editingRow, setEditingRow] = useState<PreviewRow | null>(null);
   const [editValues, setEditValues] = useState<string[]>([]);
@@ -203,6 +217,27 @@ export default function DeliveryStatusPage() {
       .then((r) => r.json())
       .then((d) => mounted && setRows(d.deliveries ?? []))
       .finally(() => mounted && setLoading(false));
+    
+    // Load active drivers/couriers for dropdown
+    setCouriersLoading(true);
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((d: { users?: CourierLite[] }) => {
+        if (!mounted) return;
+        const driverList: CourierLite[] = (d.users || []).filter(
+          (u) => u.role === "driver" && u.isActive
+        );
+        const courierList: CourierLite[] = (d.users || []).filter(
+          (u) => u.role === "courier" && u.isActive
+        );
+        setCouriers([...courierList, ...driverList]);
+      })
+      .finally(() => {
+        if (mounted) {
+          setCouriersLoading(false);
+        }
+      });
+    
     return () => {
       mounted = false;
     };
@@ -217,6 +252,81 @@ export default function DeliveryStatusPage() {
         .some((v) => (v || "").toLowerCase().includes(q))
     );
   }, [rows, query]);
+
+  // Selection helper functions
+  const allVisibleSelected = useMemo(
+    () => filtered.length > 0 && filtered.every((d) => selectedIds.has(d._id)),
+    [filtered, selectedIds]
+  );
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const ids = filtered.map((d) => d._id);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  async function handleCourierAssignment() {
+    if (!selectedCourierId || selectedIds.size === 0) return;
+
+    try {
+      const res = await fetch("/api/deliveries/assign-courier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deliveryIds: Array.from(selectedIds),
+          courierId: selectedCourierId,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showError(
+          "Assignment Failed",
+          data?.error ?? "Failed to assign parcels to courier"
+        );
+        return;
+      }
+
+      // Update local state - mark assigned parcels as assigned
+      setRows((prev) =>
+        prev.map((r) =>
+          selectedIds.has(r._id) ? { ...r, status: "assigned" } : r
+        )
+      );
+
+      showSuccess(
+        "Assignment Successful",
+        `Successfully assigned ${data.updatedCount} parcel${
+          data.updatedCount > 1 ? "s" : ""
+        } to ${data.courierName}`
+      );
+
+      setSelectedIds(new Set());
+      setSelectedCourierId("");
+
+      // Refresh data
+      setRefreshKey((k) => k + 1);
+    } catch {
+      showError("Assignment Failed", "Failed to assign parcels to courier");
+    }
+  }
 
   async function handleBulkUpdate() {
     const newStatus = bulkStatusFilter || "in_transit";
@@ -609,10 +719,58 @@ export default function DeliveryStatusPage() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
+
+        {/* Courier Assignment Section */}
+        {selectedIds.size > 0 && (
+          <div className="px-5 pb-5 border-t border-slate-100">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="text-[13px] text-slate-500 whitespace-nowrap">
+                {selectedIds.size} parcel{selectedIds.size > 1 ? "s" : ""}{" "}
+                selected
+              </div>
+              <Select
+                className="w-full md:w-56"
+                value={selectedCourierId}
+                onChange={(e) =>
+                  setSelectedCourierId((e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="" disabled>
+                  {couriersLoading
+                    ? "Loading couriers…"
+                    : "Assign to driver / courier"}
+                </option>
+                {couriers.map((c: CourierLite) => (
+                  <option key={c._id} value={c._id}>
+                    {c.courierCompanyName ||
+                      `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
+                      c._id}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                disabled={!selectedCourierId || selectedIds.size === 0}
+                onClick={handleCourierAssignment}
+                className="w-full md:w-auto whitespace-nowrap"
+              >
+                Assign to Driver / Courier
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
+                <th className="px-5 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    aria-label="Select all visible"
+                  />
+                </th>
                 {[
                   "Delivery ID",
                   "Customer",
@@ -630,6 +788,14 @@ export default function DeliveryStatusPage() {
             <tbody>
               {filtered.map((d) => (
                 <tr key={d._id} className="border-t border-slate-100">
+                  <td className="px-5 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(d._id)}
+                      onChange={() => toggleSelectOne(d._id)}
+                      aria-label={`Select ${d._id}`}
+                    />
+                  </td>
                   <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.deliveryAddress}</td>
