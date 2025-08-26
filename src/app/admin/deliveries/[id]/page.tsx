@@ -6,10 +6,13 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
 import { getDistrictsForCity } from "@/lib/districts";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/contexts/ToastContext";
+import { IMILE_CITIES } from "@/lib/imile_cities";
+import { JNT_CITIES } from "@/lib/jnt_cities";
+import { RGS_CITIES } from "@/lib/rgs_cities";
 
 type ActivityLogEntry = {
   action: string;
@@ -51,6 +54,7 @@ type DeliveryResponse = {
     codAmount?: number;
     notes?: string;
     assignedDriverId?: { _id: string; firstName: string; lastName: string };
+    serviceType?: string;
   };
 };
 
@@ -100,6 +104,7 @@ export default function AdminEditDeliveryPage() {
     codAmount: string;
     notes: string;
     assignedDriverId: string;
+    serviceType: string;
   }>({
     reference: "",
     selectedClientId: "",
@@ -125,6 +130,7 @@ export default function AdminEditDeliveryPage() {
     codAmount: "",
     notes: "",
     assignedDriverId: "",
+    serviceType: "1",
   });
 
   function update<K extends keyof typeof form>(
@@ -133,6 +139,13 @@ export default function AdminEditDeliveryPage() {
   ) {
     setForm((f) => ({ ...f, [key]: value }));
   }
+
+  const serviceCities = useMemo(() => {
+    if (form.serviceType === "1") return RGS_CITIES;
+    if (form.serviceType === "5") return JNT_CITIES;
+    if (form.serviceType === "9") return IMILE_CITIES;
+    return SAUDI_CITIES;
+  }, [form.serviceType]);
 
   // Fetch clients on component mount
   useEffect(() => {
@@ -190,6 +203,7 @@ export default function AdminEditDeliveryPage() {
           codAmount: d.codAmount != null ? String(d.codAmount) : "",
           notes: d.notes || "",
           assignedDriverId: d.assignedDriverId?._id || "",
+          serviceType: d.serviceType || "1",
         });
       } finally {
         if (mounted) setLoading(false);
@@ -260,7 +274,7 @@ export default function AdminEditDeliveryPage() {
       <Card padded={false}>
         <div className="p-5 space-y-8">
           <section className="space-y-4 cl">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Sender Name
@@ -280,6 +294,28 @@ export default function AdminEditDeliveryPage() {
                   readOnly
                   className="bg-gray-50"
                 />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Service Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <Select
+                    value={form.serviceType}
+                    onChange={(e) =>
+                      update(
+                        "serviceType",
+                        (e.target as HTMLSelectElement).value
+                      )
+                    }
+                    className="flex-1"
+                  >
+                    <option value="">Select Service Type</option>
+                    <option value="1">Shipz Solutions</option>
+                    <option value="5">JNT</option>
+                    <option value="9">IMILE</option>
+                  </Select>
+                </div>
               </div>
             </div>
             <div>
@@ -394,8 +430,8 @@ export default function AdminEditDeliveryPage() {
                 }}
               >
                 <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
+                {serviceCities.map((c, i) => (
+                  <option key={i} value={c}>
                     {c}
                   </option>
                 ))}

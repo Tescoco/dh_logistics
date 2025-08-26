@@ -206,9 +206,7 @@ export default function CreateDeliveryPage() {
     if (!form.deliveryCity || form.deliveryCity.trim().length === 0) {
       problems.push("Delivery city is required");
     }
-    if (!form.deliveryDistrict || form.deliveryDistrict.trim().length === 0) {
-      problems.push("Delivery district is required");
-    }
+
     if (!form.description || form.description.trim().length === 0) {
       problems.push("Package description is required");
     }
