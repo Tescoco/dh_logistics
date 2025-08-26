@@ -744,12 +744,14 @@ function CODTab() {
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDeleteDelivery(d._id)}
-                        className="text-rose-600 hover:underline"
-                      >
-                        Delete
-                      </button>
+                      {d.status === "pending" && (
+                        <button
+                          onClick={() => handleDeleteDelivery(d._id)}
+                          className="text-rose-600 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -1415,12 +1417,14 @@ function InternalTab() {
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDeleteDelivery(d._id)}
-                        className="text-rose-600 hover:underline"
-                      >
-                        Delete
-                      </button>
+                      {d.status === "pending" && (
+                        <button
+                          onClick={() => handleDeleteDelivery(d._id)}
+                          className="text-rose-600 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -2081,12 +2085,14 @@ function CourierTab() {
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDeleteDelivery(d._id)}
-                        className="text-rose-600 hover:underline"
-                      >
-                        Delete
-                      </button>
+                      {d.status === "pending" && (
+                        <button
+                          onClick={() => handleDeleteDelivery(d._id)}
+                          className="text-rose-600 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
