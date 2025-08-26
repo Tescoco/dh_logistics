@@ -57,9 +57,11 @@ export default function ReportsPage() {
   const { showError, showSuccess } = useToast();
   const [activeTab, setActiveTab] = useState("daily");
 
-  // Date filters
+  // Date filters , one month ago
   const [fromDate, setFromDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date(new Date().setDate(new Date().getDate() - 30))
+      .toISOString()
+      .split("T")[0]
   );
   const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
 
