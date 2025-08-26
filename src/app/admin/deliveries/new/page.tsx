@@ -448,7 +448,7 @@ export default function AdminNewDeliveryPage() {
                 <Input
                   placeholder="SS1000"
                   value={form.reference}
-                  disabled={loadingReference}
+                  disabled
                   onChange={(e) => update("reference", e.target.value)}
                   className="bg-gray-50"
                 />
@@ -607,8 +607,6 @@ export default function AdminNewDeliveryPage() {
                 onChange={(e) => {
                   const city = (e.target as HTMLSelectElement).value;
                   update("senderCity", city);
-                  // Reset district when city changes
-                  update("senderDistrict", "");
                 }}
                 disabled={form.assignedDriverId === restrictedDriverId}
               >
@@ -701,13 +699,11 @@ export default function AdminNewDeliveryPage() {
                 onChange={(e) => {
                   const city = (e.target as HTMLSelectElement).value;
                   update("deliveryCity", city);
-                  // Reset district when city changes
-                  update("deliveryDistrict", "");
                 }}
               >
                 <option value="">Select City</option>
-                {serviceCities.map((c) => (
-                  <option key={c} value={c}>
+                {serviceCities.map((c, i) => (
+                  <option key={i} value={c}>
                     {c}
                   </option>
                 ))}

@@ -27,7 +27,7 @@ export interface DeliveryDocument {
   dimensions?: string;
   packageType?: string;
   description: string;
-  priority?: "standard";
+  priority?: "standard" | "express";
   paymentMethod?: "cod";
   deliveryFee?: number;
   codAmount?: number;
@@ -78,7 +78,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     description: { type: String, required: true },
     priority: {
       type: String,
-      enum: ["standard"],
+      enum: ["standard", "express"],
       default: "standard",
     },
     paymentMethod: {
