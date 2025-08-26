@@ -428,7 +428,7 @@ export default function CreateDeliveryPage() {
                     className="flex-1"
                   >
                     <option value="">Select Service Type</option>
-                    <option value="1">ShipZ</option>
+                    <option value="1">Shipz Solutions</option>
                     <option value="5">JNT</option>
                     <option value="9">IMILE</option>
                   </Select>
