@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Tabs from "@/components/ui/Tabs";
 import { DownloadIcon, SearchIcon } from "@/components/icons";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
 
 type ReportData = {
@@ -85,26 +85,6 @@ export default function ReportsPage() {
     uniqueClients: 0,
   });
 
-  useEffect(() => {
-    loadClients();
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === "daily" && fromDate && toDate) {
-      loadReports();
-    } else if (activeTab === "monthly" && selectedMonth) {
-      loadReports();
-    }
-  }, [
-    activeTab,
-    fromDate,
-    toDate,
-    selectedMonth,
-    selectedClient,
-    statusFilter,
-    loadReports,
-  ]);
-
   async function loadClients() {
     try {
       const res = await fetch("/api/users/clients");
@@ -117,7 +97,7 @@ export default function ReportsPage() {
     }
   }
 
-  async function loadReports() {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     try {
       const url = new URL("/api/deliveries", window.location.origin);
@@ -167,7 +147,35 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [
+    activeTab,
+    fromDate,
+    toDate,
+    selectedMonth,
+    selectedClient,
+    statusFilter,
+    showError,
+  ]);
+
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "daily" && fromDate && toDate) {
+      loadReports();
+    } else if (activeTab === "monthly" && selectedMonth) {
+      loadReports();
+    }
+  }, [
+    activeTab,
+    fromDate,
+    toDate,
+    selectedMonth,
+    selectedClient,
+    statusFilter,
+    loadReports,
+  ]);
 
   const groupedReports = useMemo(() => {
     const grouped: Record<string, GroupedReport> = {};
