@@ -500,7 +500,7 @@ export default function AdminNewDeliveryPage() {
                   }
                 >
                   <option value="">Select Service Type</option>
-                  <option value="1">RGS</option>
+                  <option value="1">ShipZ</option>
                   <option value="5">JNT</option>
                   <option value="9">IMILE</option>
                 </Select>

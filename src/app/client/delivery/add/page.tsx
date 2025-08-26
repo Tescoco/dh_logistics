@@ -4,308 +4,14 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusIcon } from "@/components/icons";
 import { useToast } from "@/contexts/ToastContext";
-
-// Saudi districts data
-const SAUDI_DISTRICTS: { [city: string]: string[] } = {
-  Riyadh: [
-    "Al Olaya",
-    "Al Malaz",
-    "Al Naseem",
-    "Al Rawdah",
-    "Al Sulaimaniyah",
-    "Al Nakheel",
-    "Al Sahafah",
-    "Al Falah",
-    "Al Murabba",
-    "Al Batha",
-    "Al Dirah",
-    "Al Masif",
-    "Al Mansourah",
-    "Al Yarmouk",
-    "Al Rehab",
-    "Al Narjis",
-    "Al Aqiq",
-    "Al Hamra",
-    "Al Wurud",
-    "Al Sabeq",
-    "Al Nada",
-    "Al Rihab",
-    "Al Naseem",
-    "Al Rawdah",
-    "Al Sahafah",
-    "Al Falah",
-    "Al Murabba",
-    "Al Batha",
-    "Al Dirah",
-    "Al Masif",
-    "Al Mansourah",
-    "Al Yarmouk",
-    "Al Rehab",
-    "Al Narjis",
-    "Al Aqiq",
-    "Al Hamra",
-    "Al Wurud",
-    "Al Sabeq",
-    "Al Nada",
-    "Al Rihab",
-  ],
-  Jeddah: [
-    "Al Balad",
-    "Al Hamra",
-    "Al Zahra",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Rawdah",
-    "Al Safa",
-    "Al Salamah",
-    "Al Zahra",
-    "Al Hamra",
-    "Al Balad",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Rawdah",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Abha: [
-    "Al Andalus",
-    "Al Faisaliyah",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  "Khamis Mushait": [
-    "Al Andalus",
-    "Al Faisaliyah",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Dammam: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Dhahran: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Khobar: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  "Ras Tanura": [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Safwa: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Anak: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Qatif: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Saihat: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Tarut: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Hofuf: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  AlMubarraz: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Hassa: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Jubail: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Jizan: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  "Abu Arish": [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Sabya: [
-    "Al Faisaliyah",
-    "Al Andalus",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Madinah: [
-    "Al Andalus",
-    "Al Faisaliyah",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Makkah: [
-    "Al Andalus",
-    "Al Faisaliyah",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-  Tabuk: [
-    "Al Andalus",
-    "Al Faisaliyah",
-    "Al Zahra",
-    "Al Rawdah",
-    "Al Sabeel",
-    "Al Rehab",
-    "Al Naeem",
-    "Al Safa",
-    "Al Salamah",
-  ],
-};
+import { RGS_CITIES } from "@/lib/rgs_cities";
+import { JNT_CITIES } from "@/lib/jnt_cities";
+import { IMILE_CITIES } from "@/lib/imile_cities";
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
@@ -359,11 +65,6 @@ export default function CreateDeliveryPage() {
       const timestamp = Date.now();
       return `SS${timestamp}`;
     }
-  }
-
-  // Get districts for selected city
-  function getDistrictsForCity(city: string): string[] {
-    return SAUDI_DISTRICTS[city] || [];
   }
 
   // Fetch user profile and auto-populate address fields
@@ -422,7 +123,7 @@ export default function CreateDeliveryPage() {
     deliveryAddress: "",
     deliveryCity: "",
     deliveryDistrict: "",
-    serviceType: "",
+    serviceType: "1",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -436,6 +137,13 @@ export default function CreateDeliveryPage() {
     senderName: "",
     senderPhone: "",
   });
+
+  const serviceCities = useMemo(() => {
+    if (form.serviceType === "1") return RGS_CITIES;
+    if (form.serviceType === "5") return JNT_CITIES;
+    if (form.serviceType === "9") return IMILE_CITIES;
+    return SAUDI_CITIES;
+  }, [form.serviceType]);
 
   // Initialize reference number on component mount
   useEffect(() => {
@@ -742,8 +450,8 @@ export default function CreateDeliveryPage() {
                     className="flex-1"
                   >
                     <option value="">Select City</option>
-                    {SAUDI_CITIES.map((c) => (
-                      <option key={c} value={c}>
+                    {serviceCities.map((c, i) => (
+                      <option key={i} value={c}>
                         {c}
                       </option>
                     ))}
