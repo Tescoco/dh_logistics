@@ -899,11 +899,11 @@ export default function DeliveryStatusPage() {
                     {header}
                   </label>
                   <Input
-                    // type={
-                    //   header === "customerPhone" || header === "senderPhone"
-                    //     ? "number"
-                    //     : "text"
-                    // }
+                    type={
+                      header === "customerPhone" || header === "senderPhone"
+                        ? "number"
+                        : "text"
+                    }
                     value={editValues[index] || ""}
                     onChange={(e) => {
                       const newValues = [...editValues];

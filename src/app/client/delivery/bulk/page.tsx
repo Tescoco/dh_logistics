@@ -528,6 +528,56 @@ export default function BulkDeliveriesUploadPage() {
                       const newValues = [...editValues];
                       newValues[index] = e.target.value;
                       setEditValues(newValues);
+
+                      // Build full row data from all edited values
+                      const newRowData: ParsedRow = {};
+                      columns.forEach((col, idx) => {
+                        newRowData[col] = newValues[idx] || "";
+                      });
+
+                      // Validate full row on each change
+                      const validation = validateDeliveryRow(
+                        newRowData,
+                        columns
+                      );
+
+                      // Reflect current validation state live in the modal
+                      setEditingRow((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              row: newRowData,
+                              values: newValues,
+                              valid: validation.isValid,
+                              reason: validation.reason || undefined,
+                            }
+                          : prev
+                      );
+
+                      // If the row becomes valid, save immediately
+                      if (validation.isValid && editingRow) {
+                        const updatedRows = rows.map((r) => {
+                          if (r.index === editingRow.index) {
+                            return {
+                              ...r,
+                              row: newRowData,
+                              valid: true,
+                              reason: undefined,
+                              values: newValues,
+                            };
+                          }
+                          return r;
+                        });
+
+                        setRows(updatedRows);
+                        setShowEditModal(false);
+                        setEditingRow(null);
+                        setEditValues([]);
+                        showSuccess(
+                          "Row Updated",
+                          "Row has been successfully updated and is now valid."
+                        );
+                      }
                     }}
                     placeholder={`Enter ${header}`}
                     className="w-full"
