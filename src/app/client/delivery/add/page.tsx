@@ -422,6 +422,7 @@ export default function CreateDeliveryPage() {
     deliveryAddress: "",
     deliveryCity: "",
     deliveryDistrict: "",
+    serviceType: "",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -703,6 +704,28 @@ export default function CreateDeliveryPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Service Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <Select
+                    value={form.serviceType}
+                    onChange={(e) =>
+                      update(
+                        "serviceType",
+                        (e.target as HTMLSelectElement).value
+                      )
+                    }
+                    className="flex-1"
+                  >
+                    <option value="">Select Service Type</option>
+                    <option value="1">ShipZ</option>
+                    <option value="5">JNT</option>
+                    <option value="9">IMILE</option>
+                  </Select>
+                </div>
+              </div>
               <div>
                 <label className="text-[13px] text-slate-600">
                   City <span className="text-red-500">*</span>
