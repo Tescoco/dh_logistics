@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
         deliveryPostalCode: data.deliveryPostalCode || undefined,
         packageType: data.packageType,
         description: data.description,
-        priority: data.priority,
+        priority: data.priority || "standard",
         paymentMethod: data.paymentMethod || "cod",
         deliveryFee: data.deliveryFee || defaultDeliveryFee,
         codAmount: data.codAmount,
