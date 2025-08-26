@@ -91,11 +91,9 @@ export async function POST(req: NextRequest) {
       senderPhone: string;
       senderAddress?: string;
       senderCity?: string;
-      senderDistrict?: string;
       senderPostalCode?: string;
       deliveryAddress: string;
       deliveryCity?: string;
-      deliveryDistrict?: string;
       deliveryPostalCode?: string;
       packageType: string;
       description: string;
@@ -130,7 +128,6 @@ export async function POST(req: NextRequest) {
         customerPhone: data.customerPhone,
         deliveryAddress: data.deliveryAddress,
         deliveryCity: data.deliveryCity || undefined,
-        deliveryDistrict: data.deliveryDistrict || undefined,
         deliveryPostalCode: data.deliveryPostalCode || undefined,
         packageType: data.packageType,
         description: data.description,
@@ -147,7 +144,6 @@ export async function POST(req: NextRequest) {
         senderPhone: data.senderPhone || senderPhone,
         senderAddress: data.senderAddress || undefined,
         senderCity: data.senderCity || undefined,
-        senderDistrict: data.senderDistrict || undefined,
         senderPostalCode: data.senderPostalCode || undefined,
       });
     }

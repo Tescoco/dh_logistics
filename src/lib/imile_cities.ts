@@ -1,393 +1,393 @@
-export const IMILE_CITIES: string[] = (() => {
-  const fnBody = function () {
-    /*
-Al Rasiea'ah Wa Al Khadhra
-Zaharah Aleawdat Gharb
-Mijannah
-Al 'Uqul
-Hadah
-Al Mulaylih
-Utayiq
-Al Hulaylah
-Al Kulabiyah
-Al Nuzha
-Hazem Aljalamid
-Al Qadisiyah
-Al Mubarraz
-Almuqabil
-Al Farshah
-Al Edabi
-Namerah
-Qilwah
-Al Ghulah
-Dahaban
-Ar Rihab
-Radifah
-Shoqsan
-Algorn
-Yadamah
-Al Makhwah
-Almuzaylif
-Al Jafer
-Al Jifah
-Al Abdellia
-Harmah
-Ash Shu'bah
-Salam
-Al Humayman
-Ad Dawhah
-Al-Nasfah
-Ad Darb
-Hijlah
-Al Runah
-Ghomygah
-Al Khobh
-Harub
-Al Haqu
-Mizhirah
-Aljabhan
-Al Butayn
-Dayhamah
-Bahrah
-Abu Hajar
-Samtah
-Arim
-An Nawwariyyah
-Alnaayfia
-Al Ain
-Al Aziziyah
-Alsultanih
-Al Sudaid
-Al Muthallth
-Al-Barza
-Hail Regional Airport
-Algawharah Subdivsion
-Alkanfseh
-Al Ash ariyah
-Al Nagaf
-Al Hujrah
-Al Uferiah
-Abu Muloh
-Raghib
-Al-Rahmania
-Taymaa
-Aljazeera
-Al Jehfa
-Al Radha
-Ghizlan
-Al Madha
-Yaara
-Khaiber Al-Janoub
-Lahumah
-Al Buriekah
-Mudaysis
-Suq al Sabt
-Tabab
-Guraiger
-Abha International Airport
-As Silayyil
-Al Juaima'h
-Alkharitah-Tabuk Road
-Jazzat Al Thlooth
-Talala
-Hiswah
-Bani Mazin
-Alsourah
-Sabt Shamran
-Tammania
-Nahud
-Al Niqirah
-Al Qar'aa
-Al Hadan
-Sabah
-Sha'ar
-Azizya_Street
-Al Moatala
-AL Zuaira
-Salhiya
-Wadi Al Dawasir Airport
-Al Aziziya
-Mustashfa Al Askariya
-Mukhatat Al Khamasin
-Mukhatat Alolamin
-Mukhatat Al Masri
-Mukhatat Al Ayaf
-Lidam Al Janoubi
-Lidam Shamaliya
-Al Quwayz
-Kumdah
-Jazan Economic City
-Ash Sharafa
-Al Farah
-Al Amoah
-Alshaghz
-QURTUBAH
-As Shiqah Al Olya
-Alnaseem
-Al Hazim
-Khurayyim Sa'id
-Al Wajh Domestic Airport
-Alras
-Hanak
-Naam
-Harazat 4
-Harazat 3
-Harazat 2
-Harazat 1
-Sulaymiyah
-Al Azaherah
-Alola
-Mogayra
-Al Nashifah
-Al samdah
-Ras Gasabah
-Alsharaf
-Al Qalibah
-Al Negea'ah
-Al Ghreydh
-Alghawbia Agricultural Region
-Ad duriyat
-Malates
-Abu Hadriya
-Al Kabrit
-Al Mish ab
-Sadral Gharbaiyah
-Masader
-Al Qararah
-Khubayb Al Reem
-Tibrak
-Alsih
-Jilah
-Almurjan
-Al Qidrawiyah
-Al Akhdar
-alsiyahiat alshamalia
-samah
-alkhays
-alfayha
-dahis
-masil
-faydat almafas
-Al Hufayyirah
-Ar Rafa'i'
-Ash Shu'ara
-Saud bin Abdul Mohsen-An Naqrah
-Fahd Al-Arifi-An Naqrah
-Al Iskan-Hail
-Preparatory Year, University of Hail-Khuzama
-Al Nafl
-Al Yasamin
-University of Hail
-Girls Colleges Complex in Aja
-Allaqitah
-Al Laqitah
-Second industrial City
-Al-Mamlakih
-Alsalam
-Barzan
-Alshifa
-Al-Kfâr
-Qufar
-Qasr Aleashrawat
-Al Wudayy
-Al-Mada'in
-Alshabili Alsharqi
-Alshabili Algharbi
-Albadnah
-Al jamieiayn
-Salah Al-Din Al-Garbi
-Salah Al-Din Al-Shargi
-Dahiat almalik fahd
-Al Suwayfilah
-Naqbayn
-Mishar
-Al-Fajr
-Dakhila
-Al Rawdah
-Al Busairah
-Al hair
-At Tuwaim
-Ghayfa
-Manzilah
-Wadi Al For a'a
-Al Aksal
-Wadi Badhan
-Al Rweidh
-Al Araeyd
-Al 'Uqiylah
-Al Mangi
-Al Mudawih
-Alsafq Al Hmar
-Ash Shurayf
-Rahbat Al Hosni
-Zobran
-Al Deelah
-Al Lahien
-Umm Hushim
-Istabl Antar
-As Suhaylat
-Dil' al Kharwa'
-Al 'Asibat
-Al Hufrah
-Ad Dulu
-Wadi Jinn
-Al Regabiyah
-Hedban
-Um Shka'ah
-Thrab
-Al Taweylah
-Al Faidhah
-Al Bdaya
-Al Mendassah
-As Sabeyah
-Alrmthyh
-Sehllat Al Mazrea
-Khinqh Al Mazrea
-Al A'ad
-Al Hegrieah
-Al Roknah
-Al Hammad
-Hazrah
-Al Mesba'ah
-Al Qafif
-Khils
-Al Melha
-Aliat Aldodaa
-Al Doda'a
-Juwai
-Abu Khusayfa'
-Ash Shib
-hunaidar
-jirab
-badayie aleadyan
-rawdat alniyr
-albatin
-fireat jafnan
-Hawi al-Shall
-faydat alriyshia
-alriyashia
-khatama
-shurtha
-Alsalhiya
-Munifah
-Al Qaiyah
-badieat alnafea
-Roudhat Jaham
-Al-Azmiya
-alhamada
-Jaham
-surura
-aljarfia
-Awada
-Rafia Awada
-altalhia
-jadidat mutayaeib
-alsharaf bialjamsh
-birahat jiham
-alkashf
-salihiat halayt
-alzalmawi
-matkha
-eibada
-Essam
-Fayzia Al Hadba
-Badaie Al-Dalabha
-Umm Radmah
-Nahdet El Sherif
-badieat almurashada
-Abu Asher
-aleadhiria
-Uqla Al-Ghuwairi
-asma'
-alwasitaa
-umu talihatan
-rashaasha
-alhashif
-Umm Al-Hamam
-Ain Albaraha
-aldaara
-Badie bin Najm
-eatishana
-almabari
-alhayd aljadid
-sultana
-alnaqea
-mushrifa
-Al-Maghmi
-masawi
-Mubayid
-Baudha
-Tumair
-Ushairat Sudair
-Al Husoun
-Al Khutamah
-Tuwaym al 'Abd
-Audat Sudair
-Ad Dakhilah
-Al Hurayyiq
-Mishlah
-Umm Sudayrah
-An Nughayq
-An Nukhayl
-Khunayfisan
-As Suhaymi
-Al Qaiyah
-Al Butayra
-Huwaimdah
-Al Uqlah
-Mushrifah
-Al Mishash
-Harmah
-Jwai
-Al Hagbaa
-Abu Khashabah
-Shari
-Al Qaraa
-At Tiraq
-kabid
-Qulayb At Turmus
-Khabra At Turmus
-Azizat Atturmos
-muhayir altirmus
-dayida
-Tanuma
-Al Baaethah
-altarafayh alsharqiah
-Al-Swidah
-Asilan
-Al-Bandriya
-Nabqia
-Ar Rubayiyah
-Ghuwaymid
-Qalib Bulayhi
-Ad Duwaysirah
-Barjisiyah
-Industrial City 2
-Umm Tulayhah
-Rubayq
-Alba
-An Na'ayim
-Rawdat ash Shuqayyiqah
-Al Kharma
-Khurayman
-Al Amar
-easilat alwustaa
-easilat alnnyr
-tinan
-alhakimia
-althaamiria
-Sulaysan
-Al 'Ukayshah
-faydat alqawaazin
-talhat khunuqa
-Abu Sidayrah
-rawdat alqawaazin
-alsubihia
-alrafiea
-alshatinia
-Shararah
-Ar Ramadiyat
-mutribat
+export const IMILE_CITIES: string[] = [
+  "Al Rasiea'ah Wa Al Khadhra",
+  "Zaharah Aleawdat Gharb",
+  "Mijannah",
+  "Al 'Uqul",
+  "Hadah",
+  "Al Mulaylih",
+  "Utayiq",
+  "Al Hulaylah",
+  "Al Kulabiyah",
+  "Al Nuzha",
+  "Hazem Aljalamid",
+  "Al Qadisiyah",
+  "Al Mubarraz",
+  "Almuqabil",
+  "Al Farshah",
+  "Al Edabi",
+  "Namerah",
+  "Qilwah",
+  "Al Ghulah",
+  "Dahaban",
+  "Ar Rihab",
+  "Radifah",
+  "Shoqsan",
+  "Algorn",
+  "Yadamah",
+  "Al Makhwah",
+  "Almuzaylif",
+  "Al Jafer",
+  "Al Jifah",
+  "Al Abdellia",
+  "Harmah",
+  "Ash Shu'bah",
+  "Salam",
+  "Al Humayman",
+  "Ad Dawhah",
+  "Al-Nasfah",
+  "Ad Darb",
+  "Hijlah",
+  "Al Runah",
+  "Ghomygah",
+  "Al Khobh",
+  "Harub",
+  "Al Haqu",
+  "Mizhirah",
+  "Aljabhan",
+  "Al Butayn",
+  "Dayhamah",
+  "Bahrah",
+  "Abu Hajar",
+  "Samtah",
+  "Arim",
+  "An Nawwariyyah",
+  "Alnaayfia",
+  "Al Ain",
+  "Al Aziziyah",
+  "Alsultanih",
+  "Al Sudaid",
+  "Al Muthallth",
+  "Al-Barza",
+  "Hail Regional Airport",
+  "Algawharah Subdivsion",
+  "Alkanfseh",
+  "Al Ash ariyah",
+  "Al Nagaf",
+  "Al Hujrah",
+  "Al Uferiah",
+  "Abu Muloh",
+  "Raghib",
+  "Al-Rahmania",
+  "Taymaa",
+  "Aljazeera",
+  "Al Jehfa",
+  "Al Radha",
+  "Ghizlan",
+  "Al Madha",
+  "Yaara",
+  "Khaiber Al-Janoub",
+  "Lahumah",
+  "Al Buriekah",
+  "Mudaysis",
+  "Suq al Sabt",
+  "Tabab",
+  "Guraiger",
+  "Abha International Airport",
+  "As Silayyil",
+  "Al Juaima'h",
+  "Alkharitah-Tabuk Road",
+  "Jazzat Al Thlooth",
+  "Talala",
+  "Hiswah",
+  "Bani Mazin",
+  "Alsourah",
+  "Sabt Shamran",
+  "Tammania",
+  "Nahud",
+  "Al Niqirah",
+  "Al Qar'aa",
+  "Al Hadan",
+  "Sabah",
+  "Sha'ar",
+  "Azizya_Street",
+  "Al Moatala",
+  "AL Zuaira",
+  "Salhiya",
+  "Wadi Al Dawasir Airport",
+  "Al Aziziya",
+  "Mustashfa Al Askariya",
+  "Mukhatat Al Khamasin",
+  "Mukhatat Alolamin",
+  "Mukhatat Al Masri",
+  "Mukhatat Al Ayaf",
+  "Lidam Al Janoubi",
+  "Lidam Shamaliya",
+  "Al Quwayz",
+  "Kumdah",
+  "Jazan Economic City",
+  "Ash Sharafa",
+  "Al Farah",
+  "Al Amoah",
+  "Alshaghz",
+  "QURTUBAH",
+  "As Shiqah Al Olya",
+  "Alnaseem",
+  "Al Hazim",
+  "Khurayyim Sa'id",
+  "Al Wajh Domestic Airport",
+  "Alras",
+  "Hanak",
+  "Naam",
+  "Harazat 4",
+  "Harazat 3",
+  "Harazat 2",
+  "Harazat 1",
+  "Sulaymiyah",
+  "Al Azaherah",
+  "Alola",
+  "Mogayra",
+  "Al Nashifah",
+  "Al samdah",
+  "Ras Gasabah",
+  "Alsharaf",
+  "Al Qalibah",
+  "Al Negea'ah",
+  "Al Ghreydh",
+  "Alghawbia Agricultural Region",
+  "Ad duriyat",
+  "Malates",
+  "Abu Hadriya",
+  "Al Kabrit",
+  "Al Mish ab",
+  "Sadral Gharbaiyah",
+  "Masader",
+  "Al Qararah",
+  "Khubayb Al Reem",
+  "Tibrak",
+  "Alsih",
+  "Jilah",
+  "Almurjan",
+  "Al Qidrawiyah",
+  "Al Akhdar",
+  "Alsiyahiat alshamalia",
+  "Samah",
+  "Alkhays",
+  "Alfayha",
+  "Dahis",
+  "Masil",
+  "Faydat almafas",
+  "Al Hufayyirah",
+  "Ar Rafa'i",
+  "Ash Shu'ara",
+  "Saud bin Abdul Mohsen-An Naqrah",
+  "Fahd Al-Arifi-An Naqrah",
+  "Al Iskan-Hail",
+  "Preparatory Year, University of Hail-Khuzama",
+  "Al Nafl",
+  "Al Yasamin",
+  "University of Hail",
+  "Girls Colleges Complex in Aja",
+  "Allaqitah",
+  "Al Laqitah",
+  "Second industrial City",
+  "Al-Mamlakih",
+  "Alsalam",
+  "Barzan",
+  "Alshifa",
+  "Al-Kfâr",
+  "Qufar",
+  "Qasr Aleashrawat",
+  "Al Wudayy",
+  "Al-Mada'in",
+  "Alshabili Alsharqi",
+  "Alshabili Algharbi",
+  "Albadnah",
+  "Al jamieiayn",
+  "Salah Al-Din Al-Garbi",
+  "Salah Al-Din Al-Shargi",
+  "Dahiat almalik fahd",
+  "Al Suwayfilah",
+  "Naqbayn",
+  "Mishar",
+  "Al-Fajr",
+  "Dakhila",
+  "Al Rawdah",
+  "Al Busairah",
+  "Al hair",
+  "At Tuwaim",
+  "Ghayfa",
+  "Manzilah",
+  "Wadi Al For a'a",
+  "Al Aksal",
+  "Wadi Badhan",
+  "Al Rweidh",
+  "Al Araeyd",
+  "Al 'Uqiylah",
+  "Al Mangi",
+  "Al Mudawih",
+  "Alsafq Al Hmar",
+  " Ash Shurayf",
+  "Rahbat Al Hosni",
+  "Zobran",
+  "Al Deelah",
+  "Al Lahien",
+  "Umm Hushim",
+  "Istabl Antar",
+  "As Suhaylat",
+  "Dil' al Kharwa'",
+  "Al 'Asibat",
+  "Al Hufrah",
+  "Ad Dulu",
+  "Wadi Jinn",
+  "Al Regabiyah",
+  "Hedban",
+  "Um Shka'ah",
+  "Thrab",
+  "Al Taweylah",
+  "Al Faidhah",
+  "Al Bdaya",
+  "Al Mendassah",
+  "As Sabeyah",
+  "Alrmthyh",
+  "Sehllat Al Mazrea",
+  "Khinqh Al Mazrea",
+  "Al A'ad",
+  "Al Hegrieah",
+  "Al Roknah",
+  "Al Hammad",
+  "Hazrah",
+  "Al Mesba'ah",
+  "Al Qafif",
+  "Khils",
+  "Al Melha",
+  "Aliat Aldodaa",
+  "Al Doda'a",
+  "Juwai",
+  "Abu Khusayfa'",
+  "Ash Shib",
+  "hunaidar",
+  "jirab",
+  "badayie aleadyan",
+  "rawdat alniyr",
+  "albatin",
+  "fireat jafnan",
+  "Hawi al-Shall",
+  "faydat alriyshia",
+  "alriyashia",
+  "khatama",
+  "shurtha",
+  "Alsalhiya",
+  "Munifah",
+  "Al Qaiyah",
+  "badieat alnafea",
+  "Roudhat Jaham",
+  "Al-Azmiya",
+  "alhamada",
+  "Jaham",
+  "surura",
+  "aljarfia",
+  "Awada",
+  "Rafia Awada",
+  "altalhia",
+  "jadidat mutayaeib",
+  "alsharaf bialjamsh",
+  "birahat jiham",
+  "alkashf",
+  "salihiat halayt",
+  "alzalmawi",
+  "matkha",
+  "eibada",
+  "Essam",
+  "Fayzia Al Hadba",
+  "Badaie Al-Dalabha",
+  "Umm Radmah",
+  "Nahdet El Sherif",
+  "badieat almurashada",
+  "Abu Asher",
+  "aleadhiria",
+  "Uqla Al-Ghuwairi",
+  "asma'",
+  "alwasitaa",
+  "umu talihatan",
+  "rashaasha",
+  "alhashif",
+  "Umm Al-Hamam",
+  "Ain Albaraha",
+  "aldaara",
+  "Badie bin Najm",
+  "eatishana",
+  "almabari",
+  "alhayd aljadid",
+  "sultana",
+  "alnaqea",
+  "mushrifa",
+  "Al-Maghmi",
+  "masawi",
+  "Mubayid",
+  "Baudha",
+  "Tumair",
+  "Ushairat Sudair",
+  "Al Husoun",
+  "Al Khutamah",
+  "Tuwaym al 'Abd",
+  "Audat Sudair",
+  "Ad Dakhilah",
+  "Al Hurayyiq",
+  "Mishlah",
+  "Umm Sudayrah",
+  "An Nughayq",
+  "An Nukhayl",
+  "Khunayfisan",
+  "As Suhaymi",
+  "Al Qaiyah",
+  "Al Butayra",
+  "Huwaimdah",
+  "Al Uqlah",
+  "Mushrifah",
+  "Al Mishash",
+  "Harmah",
+  "Jwai",
+  "Al Hagbaa",
+  "Abu Khashabah",
+  "Shari",
+  "Al Qaraa",
+  "At Tiraq",
+  "kabid",
+  "Qulayb At Turmus",
+  "Khabra At Turmus",
+  "Azizat Atturmos",
+  "muhayir altirmus",
+  "dayida",
+  "Tanuma",
+  "Al Baaethah",
+  "altarafayh alsharqiah",
+  "Al-Swidah",
+  "Asilan",
+  "Al-Bandriya",
+  "Nabqia",
+  "Ar Rubayiyah",
+  "Ghuwaymid",
+  "Qalib Bulayhi",
+  "Ad Duwaysirah",
+  "Barjisiyah",
+  "Industrial City 2",
+  "Umm Tulayhah",
+  "Rubayq",
+  "Alba",
+  "An Na'ayim",
+  "Rawdat ash Shuqayyiqah",
+  "Al Kharma",
+  "Khurayman",
+  "Al Amar",
+  "easilat alwustaa",
+  "easilat alnnyr",
+  "tinan",
+  "alhakimia",
+  "althaamiria",
+  "Sulaysan",
+  "Al 'Ukayshah",
+  "faydat alqawaazin",
+  "talhat khunuqa",
+  "Abu Sidayrah",
+  "rawdat alqawaazin",
+  "alsubihia",
+  "alrafiea",
+  "alshatinia",
+  "Shararah",
+  "Ar Ramadiyat",
+  "mutribat",
+];
+/*
 alrashawia
 Al Qurayn
 umm radiyha
@@ -4613,14 +4613,5 @@ Ad Dhubbat
 Ad Dar Al Baida
 Dhahrat Laban
 */
-  }.toString();
-  const start = fnBody.indexOf("/*") + 2;
-  const end = fnBody.lastIndexOf("*/");
-  return fnBody
-    .substring(start, end)
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-})();
 
-export default IMILE_CITIES;
+// export default IMILE_CITIES;

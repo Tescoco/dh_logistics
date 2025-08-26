@@ -727,7 +727,7 @@ export default function CreateDeliveryPage() {
                   </Select>
                 </div>
               </div>
-              <div>
+              {/* <div>
                 <label className="text-[13px] text-slate-600">
                   District <span className="text-red-500">*</span>
                 </label>
@@ -752,7 +752,7 @@ export default function CreateDeliveryPage() {
                       ))}
                   </Select>
                 </div>
-              </div>
+              </div> */}
             </div>
           </section>
 

@@ -713,7 +713,7 @@ export default function AdminNewDeliveryPage() {
                 ))}
               </Select>
             </div>
-            <div>
+            {/* <div>
               <label className="text-[13px] text-slate-600">District</label>
               <Select
                 value={form.deliveryDistrict}
@@ -731,7 +731,7 @@ export default function AdminNewDeliveryPage() {
                   </option>
                 ))}
               </Select>
-            </div>
+            </div> */}
           </section>
 
           <section className="space-y-4">

@@ -14,17 +14,40 @@ export interface FileParseResult {
  * Parse CSV file content
  */
 export function parseCSV(content: string): FileParseResult {
-  const lines = content
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+  // Split into lines but do not trim entire lines so quoted values retain spaces
+  const lines = content.split(/\r?\n/).filter((l) => l.length > 0);
 
   if (lines.length === 0) {
     throw new Error("File is empty");
   }
 
   let startIdx = 0;
-  const headerLower = lines[0].toLowerCase();
+  const parseCsvLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Escaped quote inside quoted field
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current);
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current);
+    return result;
+  };
+
+  const headerLower = parseCsvLine(lines[0]).join(",").toLowerCase();
   let headerUsed = false;
 
   // Check if first line contains common field names
@@ -46,7 +69,7 @@ export function parseCSV(content: string): FileParseResult {
     startIdx = 1;
     headerUsed = true;
   } else {
-    const firstLineParts = lines[0].split(",").map((p) => p.trim());
+    const firstLineParts = parseCsvLine(lines[0]).map((p) => p.trim());
     if (
       firstLineParts.length > 3 &&
       firstLineParts.every((p) => p.length > 0)
@@ -61,9 +84,11 @@ export function parseCSV(content: string): FileParseResult {
 
   let headers: string[];
   if (headerUsed) {
-    headers = lines[0].split(",").map((p) => p.trim());
+    headers = parseCsvLine(lines[0]).map((p) => p.trim());
   } else {
-    const sampleParts = lines[startIdx]?.split(",").map((p) => p.trim()) || [];
+    const sampleParts = parseCsvLine(lines[startIdx] || "").map((p) =>
+      p.trim()
+    );
     headers = sampleParts.map((_, i) => `col${i + 1}`);
   }
 
@@ -82,7 +107,7 @@ export function parseCSV(content: string): FileParseResult {
   };
   for (let i = startIdx; i < lines.length; i++) {
     const raw = lines[i];
-    const parts = raw.split(",").map((p) => p.trim());
+    const parts = parseCsvLine(raw).map((p) => p.trim());
 
     const row: ParsedRow = {};
     headers.forEach((header, index) => {
@@ -233,7 +258,6 @@ export function validateDeliveryRow(
     customerPhone: string;
     deliveryAddress: string;
     deliveryCity: string;
-    deliveryDistrict: string;
     deliveryPostalCode: string;
     packageType: string;
     description: string;
@@ -247,7 +271,6 @@ export function validateDeliveryRow(
     senderPhone: string;
     senderAddress: string;
     senderCity: string;
-    senderDistrict: string;
     senderPostalCode: string;
   };
 } {
@@ -303,11 +326,6 @@ export function validateDeliveryRow(
     "sender_city",
     "Sender City",
   ]);
-  const senderDistrict = getFieldValue([
-    "senderDistrict",
-    "sender_district",
-    "Sender District",
-  ]);
   const senderPostalCode = getFieldValue([
     "senderPostalCode",
     "sender_postal_code",
@@ -327,13 +345,7 @@ export function validateDeliveryRow(
     "City",
     "Delivery City",
   ]);
-  const deliveryDistrict = getFieldValue([
-    "deliveryDistrict",
-    "delivery_district",
-    "district",
-    "District",
-    "Delivery District",
-  ]);
+
   const deliveryPostalCode = getFieldValue([
     "deliveryPostalCode",
     "delivery_postal_code",
@@ -417,11 +429,9 @@ export function validateDeliveryRow(
       senderPhone,
       senderAddress,
       senderCity,
-      senderDistrict,
       senderPostalCode,
       deliveryAddress,
       deliveryCity,
-      deliveryDistrict,
       deliveryPostalCode,
       packageType,
       description,
