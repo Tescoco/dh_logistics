@@ -59,6 +59,7 @@ export interface DeliveryDocument {
   }>;
   createdAt: Date;
   updatedAt: Date;
+  serviceType: "1" | "5" | "9";
 }
 
 const deliverySchema = new Schema<DeliveryDocument>(
@@ -138,6 +139,11 @@ const deliverySchema = new Schema<DeliveryDocument>(
     senderCity: { type: String },
     senderDistrict: { type: String },
     senderPostalCode: { type: String },
+    serviceType: {
+      type: String,
+      enum: ["1", "5", "9"],
+      default: "1",
+    },
   },
   { timestamps: true }
 );

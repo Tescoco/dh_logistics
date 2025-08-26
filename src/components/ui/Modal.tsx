@@ -33,9 +33,9 @@ export default function Modal({
         <div
           className={`w-full ${
             widthClassName ?? "max-w-xl"
-          } rounded-xl bg-white shadow-xl border border-slate-200`}
+          } max-h-[85vh] rounded-xl bg-white shadow-xl border border-slate-200 flex flex-col`}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 shrink-0">
             <div className="text-[15px] font-semibold text-slate-900">
               {title}
             </div>
@@ -46,7 +46,7 @@ export default function Modal({
               ✕
             </button>
           </div>
-          <div className="p-4">{children}</div>
+          <div className="p-4 overflow-y-auto">{children}</div>
         </div>
       </div>
     </div>

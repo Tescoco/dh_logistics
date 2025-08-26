@@ -311,7 +311,7 @@ export default function AdminEditDeliveryPage() {
                 ))}
               </Select>
             </div>
-            <div>
+            {/* <div>
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
@@ -331,7 +331,7 @@ export default function AdminEditDeliveryPage() {
                   </option>
                 ))}
               </Select>
-            </div>
+            </div> */}
           </section>
 
           <section className="space-y-4">

@@ -41,6 +41,7 @@ const CreateDeliverySchema = z.object({
     .string()
     .regex(/^[a-f0-9]{24}$/i, { message: "Invalid courier id format" })
     .optional(),
+  serviceType: z.enum(["1", "5", "9"]).optional(),
 });
 
 export const runtime = "nodejs";
@@ -64,12 +65,29 @@ export async function GET(req: NextRequest) {
   if (payment) query.paymentMethod = payment;
   // if tab is internal get all deliveries with assignedDriverId that is not equal to 68992b3ad5eb3b93c40396dc
   if (tab === "internal") {
-    query.assignedDriverId = { $ne: "68992b3ad5eb3b93c40396dc" };
+    const driverUsers = await User.find({ role: "driver" })
+      .select("_id")
+      .lean();
+    const driverUserIds = driverUsers.map((u: { _id: unknown }) => u._id);
+    query.assignedDriverId = { $in: driverUserIds };
   }
   // if tab is cod get all deliveries with assignedDriverId that is equal to 68992b3ad5eb3b93c40396dc
   if (tab === "cod") {
     query.assignedDriverId = "68992b3ad5eb3b93c40396dc";
   }
+
+  if (tab === "courier") {
+    const courierUsers = await User.find({ role: "courier" })
+      .select("_id")
+      .lean();
+    const courierUserIds = courierUsers.map((u: { _id: unknown }) => u._id);
+    if (courierUserIds.length > 0) {
+      query.assignedDriverId = { $in: courierUserIds };
+    } else {
+      return NextResponse.json({ deliveries: [] });
+    }
+  }
+
   if (client) query.createdById = client;
   if (from && to) {
     query.createdAt = { $gte: new Date(from), $lte: new Date(to) };
@@ -191,7 +209,8 @@ export async function POST(req: NextRequest) {
             insurance: "No",
             client_id: 82589,
             location: input.deliveryDistrict,
-            Service: 1,
+            Service:
+              input.serviceType === "1" ? 1 : input.serviceType === "5" ? 5 : 9,
           };
           const r = await fetch(
             "https://codsolution.co/ship/Api/order_create",

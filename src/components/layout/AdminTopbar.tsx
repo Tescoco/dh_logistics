@@ -167,7 +167,7 @@ export default function AdminTopbar({
 
 function getTitleFromPath(path: string): string {
   if (path.startsWith("/admin/deliveries")) return "Deliveries";
-  if (path.startsWith("/admin/delivery-status")) return "Delivery Status";
+  if (path.startsWith("/admin/delivery-status")) return "Delivery Management";
   if (path.startsWith("/admin/users")) return "Users";
   if (path.startsWith("/admin/settings")) return "Settings";
   if (path.startsWith("/admin/profile")) return "Profile";

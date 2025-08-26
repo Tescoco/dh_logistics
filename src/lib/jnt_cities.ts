@@ -1,0 +1,897 @@
+export const JNT_CITIES: string[] = (() => {
+  const fnBody = function () {
+    /*
+Abu Sidayrah
+Ad Dilam
+Ad Diriyah
+Ad Dubaiyah
+Afif
+Aflaj
+Afqara
+Al Ahmar
+Al Amaaria
+Al Artawi
+Al Artawiyah
+Al Badie Al Janobi
+Al Badie Al Shamali
+Al Bijadyah
+Al Bir
+Al Duwadimi
+Al Furuthi
+Al Ghat
+Al Ghayl
+Al Ghurabah
+Al Haddar
+Al Hariq
+Al Hayathem
+Al Hazim
+Al Hefnah
+Al Hulwah
+Al Humiyat
+Al Hurayyiq
+Al Ijliyah
+Al Jubaylah
+Al Jurayfah
+Al Kharj
+Al Khasrah
+Al Majmaah
+Al Mu'ashibah
+Al Muzahimiyah
+Al Qaiyah
+Al Qasab
+Al Qurainah
+Al Qarin
+Al Quwaiiyah
+Al Ulu
+Al Uqlah
+Al 'Uwainid
+Al Uyaynah
+Al Wusayyiah
+Aljfarah
+Almuzayri
+Alsalhiya
+An Nafiah
+An Nughayq
+Ar Rayn
+Ar Ruwaidah
+Ar Ruwaidhah
+Arja
+As Suh
+As Sulayyil
+As Sumayrah
+Ash Shahmah
+Ash Shu'ara
+At Tawdihiyah
+At Tuwaim
+Az Zulfi
+Banban
+Burudan
+Dhurma
+Ein As Suwaine
+Hadri
+Hafirat Nisah
+Hafr Al Atk
+Halban
+Hautat Sudair
+Hazwa
+Howtat Bani Tamim
+Huraymila
+Jalajil
+Jefin
+Jilah
+Khairan
+Khamaseen
+Kumdah
+Layla
+Malham
+Marat
+Mubayid
+Muhayriqah
+Mulayh
+Musaddah
+Naajan
+Nifi
+Nkheelan
+Rafaya Al Jamsh
+Raudat Sudair
+Rumah
+Ruwayghib
+Sa'Ad
+Sajir
+Salbukh
+Shaqra
+Shawyah
+Starah
+Sudair Industry and Business City
+SuhailahHail
+Tebrak
+Thadiq
+Tharmda
+Tuhayyi
+Tumair
+Umm Al Jamajm
+Umm Rujoum
+Ushaiqer
+Ushairat Sudair
+Wabrah
+Wadi Al Dawasir
+Waset
+Wushai
+Abo Halaefa
+Abu Muloh
+Abu Rakh
+Adham
+Ahad Bani Zayd
+Al Abar
+Al Abwa
+Al Abyar
+Al Amlah
+Al Awamer
+Al Barzah
+Al Braber
+Al Ghulah
+Al Hada
+Al Hawiyah
+Al Jaizah
+Al Jumum
+Al Ju'ranah
+Al Kadis
+Al Kamil
+Al Khalas
+Al Khurma
+Al Lith
+Al Mahani
+Al Mahdam
+Al Maqrah
+Al Massamah
+Al Mubarak
+Al Mudhaylif
+Al Muwayh
+Al Nuaibea'a
+Al Qa'
+Al Qadeimah
+Al Qouz
+Al Quamah
+Al Qunfudhah
+Al Sir
+Al Uferiah
+Al Umrah Al Jadidah
+Al Wuhait
+AlFareeq
+Alhrateem
+Alhumaimah
+Almnadh
+Almorshediah
+Alqalh
+Alqarei
+Alquaba
+Alsadyah
+Alshwaaq
+Alwasqah
+An Nawwariyyah
+Arya
+As Saddain
+As Saddain Balharith
+As Sail Al Kabeer
+As Sayl as Saghir
+As Sudayrah
+Asfan
+Ash Shafa
+Ash Shamiyah
+Ash Sharai
+Ash Shumaysi
+Ashayrah
+Ateef
+Az Zalal
+Az Zemah
+Bahrah
+Bani Saad
+Bilad Biny Suhaim
+Bny Yazed
+Dahaban
+Dhalm
+Dhubaya Jumah
+Doqah
+Enaker
+Ghazaial
+Ghomygah
+Ghran
+Habil
+Hadaad Bani Malek
+Hadda
+Haddat Ash Sham
+Hafir Kishb
+Hajar
+Hajrah
+Hefar
+Husnah
+Keyad
+Khamis Harb
+Khulais
+King Abdullah Economic City
+Madrakah
+Makshosh
+Malakan
+Mastorah
+Maysaan
+Namerah
+New Muwayh
+Nimran
+Qia
+Qudaid
+Rabigh
+Radwan
+Rahat
+Ranyah
+Saabar
+Sabbath Shumran
+Sabt Aljarah
+Salm Alzwaher
+Sammed
+Sayaa
+Sayadah
+Shoaiba
+Shoqsan
+Taiba
+Thuwal
+Tirah
+Turbah
+Um Aljerem
+Umm Aldoom
+Yalamlam
+Abqaiq
+Ain Al Nakhal
+Airj
+Al 'Adhiriyah
+Al Awjam
+Al Batha
+Al Dughaimiyah
+Al Farridah
+Al Hafayer
+Al Hinnah
+Al Hunayy / As Summan
+Al Husayy
+Al Jesh
+Al Lahabah
+Al Nuzha
+Al Oyun
+Al Qaisumah
+Al Qarah
+Al Qulayyib
+Al Qurayyah
+Al Shuqaiq
+Al Tarf
+Al Thuqbah
+Al Umran
+Al Wannan
+Al Wozeyh
+AlKhhafah
+Alkwifriah
+Almihdar
+An Nabiyah
+An Nazim
+Ar Rafiah
+Ar Ruqi
+As Sadawi
+As Saffaniyah
+As Sarrar
+As Sihaf
+As Suairah
+As Sufayri
+Ash Shamiyah
+Ash Shamlul
+Ash Shihiyah
+Ath Thybiyah
+Awamiah
+Az Zughayn
+Ghanwa
+Ghizlan
+Hafar Al Batin
+Hanidh
+Haradh
+Hawiyah
+Hijrat Al Harah
+Hijrat Fadila
+Juatha
+Judah
+Julayjilah
+Khafji
+Khurais
+Khursaniyah
+King Khalid Military City
+Marj Allsoban
+Mishalah
+Mulayjah
+Munifah
+Nairyah
+Nebak
+New Ain Dar
+Nita
+Old Ain Dar
+Qaryat Al Ulya
+Rahima
+Ras Al Khair
+Salasil
+Salwa
+Satorp
+Shaybah
+Shedgum
+Shifiyah
+Tanajib
+Thaj
+Udhailiyah
+Um Alerrad
+Um Ash Shifallah
+Urayarah
+Utayiq
+Uthmaniyah
+Yabreen
+Aba Alworood
+Ad Dalfaah
+Al Aithmah
+Al Amar
+Al Assiyah
+Al Badayea
+Al Bukayriyah
+Al Butayn
+Al Dhahreyah
+Al Dulaymiyah
+Al Fawwarah
+Al Hadidiyah
+Al Hasuniyyah
+Al Jialah
+Al Khabra
+Al Kharma Al Shimaliah
+Yabbu Alnakhal
+Al Khuffiyah
+Al Khushaybi
+Al Mithnab
+Al Mukaily
+Al Petra
+Al Qaraa
+Al Quwarah
+Al Tarafayh Al Sharqiyah
+Al Tiraq
+Al-Fuwayliq
+An Nabhaniyah
+Ar Rass
+As Sam'uriyah
+As Sulubiayh
+Ash Shihyah
+Ash Shimasiyah
+Ash Shubaykiyah
+At Tuwalah
+Ath Thamiriyah
+Ayn Ibn Fuhayd
+Buraydah
+Dariyah
+Dayida
+Deli Rashid
+Dremeha
+Duhknah
+Ghaf Al Jawa
+Kahlah
+Maraghan
+Mishash Jurud
+Mubhel
+Mudarraj
+Nubayha
+Qasr Ibn Ogail
+Qbah
+Qusaiba
+Rawdat Al Hisu
+Riyadh Al Khabra
+Saq
+Shari
+Subaih
+Tanumah
+Thebea
+Uglat Asugour
+Umm Hazim
+Unayzah
+Uthal
+Uyun Al Jawa
+Al Ajfar
+Al Aradiyah
+Al Awshaziyah
+Al Birkah
+Al Farhaniyah
+Al Fatkha
+Al Ghazalah
+Al Hait
+Al Hati
+Al Hayyaniyah
+Al Hufayr
+Al Hulayfah As Sufla
+Al Humaimah
+Al Huwayd
+Al Jabriyah
+Al Jadida
+Al Jara
+Al Jihfah
+Al Kahafah
+Al Khabbah
+Al Khitah
+Al Kihayfiyah
+Al Matrafiyah
+Al Mayyah
+Al Mudayyih
+Al Mushaytiyah
+Al Mustajiddah
+Al Qaid
+Al Rafaya
+Al Sulaimi
+Al Uzaym
+Al Wasah
+Al Wusayta'
+Al Zabira
+Amaaer Ben Sanaa
+An Nuqrah
+Ar Rawdah
+Ar Rishawiyah
+As Saban
+As Safra
+As Shwimes
+As Siayyirah
+As Silayyil
+As Sufun
+As Sunayna
+Asbtar
+Ash Shaalaniyah
+Ash Shamli
+Ash Sharqiyah
+Ash Shinan
+Ash Shuqayq
+Badaa'i Alsadiah
+Baqaa
+Bayda Natheel
+Beda'a Ben Khalaf
+Dubay'ah
+Dulayhan
+Fayd
+Faydat Athqab
+Faydat Ibn Suwaylim
+Ghezlanh
+Hadabah
+Hail
+Hibran
+Hulayfa
+Jubbah
+Mawqaq
+Naylat
+Qina
+Qufar
+Rawd Ibn Hadi
+Riaa Albekr
+Saqf
+Su'aydan
+Sumairaa
+Tabah
+Takhayil
+Trubah
+Ubayrah
+Uqlat Ibn Dani
+Uqlat Ibn Twalah
+Urayja
+Abu Ajram
+Al Adari
+Al Hadithah
+Al Laqayit
+Al Nasfah
+Al Qurayyat
+An Nabk Abu Qasr
+Ar Rafi'ah
+As Sulaimaniyah
+Asfan
+At Tuwayr
+Dumah Al Jandal
+Feyadh Tabrjal
+Ghtai
+Hadban
+Hedeb
+Ithrah
+Jamajm
+Meegowa
+Minwa
+Qara
+Qlayyb Khedr
+Radifah
+Sakaka
+Sude'a
+Suwayr
+Tabrjal
+Zalom
+Al Hamad
+Al Judaida
+Al Uwayqilah
+Alduwaid
+Arar
+Ash Shubah
+Hazem Aljalamid
+Linah
+Nisab
+Rafha
+Rawdat Habbas
+Turaif
+Waad Al Shaamaal
+Alya
+Al Eshash
+Al Mothalath
+Yanbu
+Yanbu Al Baher
+Bader
+Al Ula
+Khaybar
+Madain Saleh
+Al Akhal
+Abu Dhiba
+Abu Haramel
+Abu Shakeyr
+Ad Dumayriyah
+Al-Ahmar
+Al Ais
+Al Atheeb
+Al Barakah
+Al Dheelah
+Al Faqa'ali
+Al Faqirah
+Al Faraah
+Al Figrah
+Al Furaysh
+Al Ghuzlani
+Al Hamrah
+Al Harara
+Al Henakiyah
+Al Hendeyah
+Al Heno
+Al Jafdor
+Al Jafer
+Al Jerisiyah
+Al Jernafh
+Al Kharma
+Al Lahien
+Al Marameh
+Al Mindassah
+Al Muaeliah
+Al Mufrihat
+Al Mulaylih
+Al Muraba'a
+Al Musayjid
+Al Nabah
+Al Nagaf
+Al Nkheel
+Al Omaq
+Al Qrash
+Al Ramdhah
+Al Rathaya
+Al Rehab
+Al Salhaniyah
+Al Sedr
+Al Selselah
+Al Sharjah
+Al Shegrah
+Al Shfeah
+Al Thamad
+Al Shlayil
+Al Torkiyah
+Alfera
+AlMu'tadil
+Al Mawarid
+Al Wastah
+Alyutamah
+Ar Rayis
+As Suwadirah
+As Suwayriqyah
+Asuwayq
+Bi'r Al Mashi
+Da'a
+Fadhla
+Ghamrah
+Husayniyah
+Isharah
+Khef Hussain
+Mahad Adh Dhahab
+Maqra
+Masader
+Mogayra
+Nabat
+Safinah
+Samhah
+Sulailah Juhainah
+Tala'at Naza
+Tara'ah
+Wadi Al Fora'a
+Wadi Badhan
+Wadi Reem
+Yanbu Al Nakhal
+Yanbu Al Sinaiyah
+Abayt
+Abu Salama
+Al Bad'
+Al Disah
+Al Faarah
+Al Fuqayyir
+Al Humidah
+Al Jadid
+Al Maqnah
+Al Muwaileh
+Al Qalibah
+Al Shabhah
+Al Shadakh
+Al Wajh
+Alkhuraybah
+Alsharaf
+Alsourah
+Bir Ibn Hirmas
+Duba
+Gayal
+Halat Ammar
+Hanak
+Haql
+Khuff
+Magna
+Mudaysis
+Shaghab
+Sharma
+Shigry
+Shuwaq
+Tawala
+Tayma
+Umluj
+Abha Al Jadidah
+Afraa
+Ahad Rafidah
+Al Amoah
+Al An Nanisah
+Al Arin
+Al Assim
+Al Azzah
+Maskhyah
+Al Bashair
+Al Bashayer
+Al Batilah
+Al Birk
+Al Fara
+Al Farshah
+Al Gafrat
+Habeel
+Al Harajah
+Al Haridhah
+Al Jarf
+Al Madeed
+Al Madha
+Al Masgi
+Al Namas
+Al Ous
+Al Qahma
+Al Qirah
+Al Runah
+Al Sarhan
+Al Shaaf
+Al Shabain
+Al Subaykhah
+Al Wadeen
+Alfaraaien
+Aljanadriyah
+Almahalah
+Almajaridah
+Amaq
+Bahr Abu Sukaynah
+Balqarn
+Bani Amr
+Bani Mazin
+Bariq
+Bashout
+Billahmar
+Billasmar
+Bisha
+Dhahran Al Janub
+Edadh
+Halaba
+Jash
+Khaiber Al Janoub
+Khamis Mutair
+Khathaam
+Marabah
+Morighan
+Muhayil
+Osran
+Qana
+Reghawah
+Rijal Alma
+Sabt Al Alayah
+Samakh
+Sarat Abidah
+Shumran
+Sirr ad Ghalidh
+Tabab
+Tabalah
+Tabashah
+Tamniah
+Tanomah
+Tareeb
+Tathleeth
+Tendaha
+Thloth Al Mandhar
+Waaer
+Wadi Al Hayat
+Wadi Ibn Hashbal
+Yaara
+Abu Al Arj
+Abu Arradeef
+Abu Hajar
+Ad Darb
+Addayer
+Ahad Al Masarihah
+Al Abadilah
+Al Araq
+Al Aridhah
+Al Aroos
+Al Aseelh
+Al Badawi
+Al Badi Al Qarafi
+Al Bkhtah
+Al Dagharir
+Al Duraeah
+Al Edabi
+Al Fatiha
+Al Gamri
+Al Gawamshah
+Al Gofol
+Al Hadror
+Al Haqu
+Al Harth
+Al Hasamah
+Al Hathera
+Al Henayah
+Al Husayni
+Al Jaradiyah
+Al Jawah
+Al Jouf
+Al Judaieen
+Al Kadami
+Al Kadarah
+Al Kadhra Al Shamalia
+Al Karbus
+Al Khadra'
+Al Khadra Al Janoubia
+Al Khashabiyah
+Al Khashah
+Al Khuznah
+Al Madaya
+Al Mejammah
+Al Mejannah
+Al Meqarqam
+Al Mogali
+Al Mubarakah
+Al Muwassam
+Al Najameiah
+Al Qanboor
+Al Radha
+Al Rayyan
+Al Reeth
+Al Rokobah
+Al Salamah
+Al Sawarima
+Al Ser
+Al Shaafoleiah
+Al Shabitah
+Al Shuqaiq
+Al Tuwal
+Al Wahla
+Alaliya
+Alarjeen
+Al-Asamlah Alkobra
+Al-Batna
+Aldhabyah
+Algayed
+Alkhdra
+Almajdirah
+Almansoria
+Al-Matan
+Al-Mnsala
+Aloqdah
+Alsadliyah
+Alshuqayri
+Alsilaa
+Ardah
+As Sirr
+Baish
+Baish Alolia
+Dabir
+Damad
+Dayhamah
+Either
+Farasan
+Fayfa
+Gizan Economic City
+Habbes
+Hajanbah
+Hakimat Abu Arish
+Hakimat Al Dagharir
+Harub
+Hullatal Ahwass
+Jamalah
+Joraibah
+Khabt Saeed
+Khathirah
+Khawarah
+King Abdullah Housing
+Madrak
+Maghsheiah
+Mahalah
+Malha
+Manshabah
+Masliyah
+Mizhirah
+Qaim Aldash
+Salamh Al Darraj
+Samrat Al Jed
+Samtah
+Sayyabah
+Seddeqah
+Sunbah
+Tallan
+Um Saad
+Wadi Amoud
+Zamzam
+Az Zafir
+Bani Horairah
+Al Karra
+Bani Hasan
+Atawleh
+Allaghamees
+Baljurashi
+Bani Mouhamad
+Bani Kabir
+Bidah Valley
+Musaylah
+Al Aqiq
+Al Atawilah
+Alhumaid
+Awirah
+Al Baha
+Al Salamah
+Albarek
+Almandaq
+Al Azaherah
+Al Makhwah
+Wadi Shora
+Doos
+Qilwah
+Jarab
+Al Hajrah
+Al Hijf
+Al Husayniyah
+Al Jawshan
+Al Jifah
+Al Khaniq
+Al Kharkhir
+Al Mishaliah
+Al Sufah
+Al Wadiah
+Badr Al Janoub
+Bani Hamim
+Bir Askar
+Haddadah
+Hubuna
+Khbash
+Lahumah
+Mu'fija
+Najran
+Sharorah
+Thar
+Yadamah
+Taif
+*/
+  }.toString();
+  const start = fnBody.indexOf("/*") + 2;
+  const end = fnBody.lastIndexOf("*/");
+  return fnBody
+    .substring(start, end)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+})();
+
+export default JNT_CITIES;

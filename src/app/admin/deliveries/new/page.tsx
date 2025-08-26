@@ -5,7 +5,10 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
 import { getDistrictsForCity } from "@/lib/districts";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { RGS_CITIES } from "@/lib/rgs_cities";
+import { JNT_CITIES } from "@/lib/jnt_cities";
+import { IMILE_CITIES } from "@/lib/imile_cities";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/contexts/ToastContext";
@@ -129,6 +132,7 @@ export default function AdminNewDeliveryPage() {
     codAmount: "",
     notes: "",
     assignedDriverId: "",
+    serviceType: "1" as "1" | "5" | "9",
   });
 
   type Driver = {
@@ -193,6 +197,22 @@ export default function AdminNewDeliveryPage() {
       setForm((f) => ({ ...f, paymentMethod: "cod" }));
     }
   }, [form.assignedDriverId, form.paymentMethod]);
+
+  const serviceCities = useMemo(() => {
+    if (form.serviceType === "1") return RGS_CITIES;
+    if (form.serviceType === "5") return JNT_CITIES;
+    if (form.serviceType === "9") return IMILE_CITIES;
+    return SAUDI_CITIES;
+  }, [form.serviceType]);
+
+  useEffect(() => {
+    if (form.senderCity && !serviceCities.includes(form.senderCity)) {
+      setForm((f) => ({ ...f, senderCity: "", senderDistrict: "" }));
+    }
+    if (form.deliveryCity && !serviceCities.includes(form.deliveryCity)) {
+      setForm((f) => ({ ...f, deliveryCity: "", deliveryDistrict: "" }));
+    }
+  }, [serviceCities]);
 
   function update<K extends keyof typeof form>(
     key: K,
@@ -356,6 +376,7 @@ export default function AdminNewDeliveryPage() {
         notes: form.notes || undefined,
         isDraft,
         assignedDriverId: form.assignedDriverId || undefined,
+        serviceType: form.serviceType as "1" | "5" | "9",
       };
       const res = await fetch("/api/deliveries", {
         method: "POST",
@@ -419,7 +440,7 @@ export default function AdminNewDeliveryPage() {
             <h2 className="text-[15px] font-semibold text-slate-900">
               Basic Information
             </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Reference Number
@@ -463,6 +484,25 @@ export default function AdminNewDeliveryPage() {
                         : `${d.courierCompanyName}`}
                     </option>
                   ))}
+                </Select>
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Service Type
+                </label>
+                <Select
+                  value={form.serviceType}
+                  onChange={(e) =>
+                    update(
+                      "serviceType",
+                      (e.target as HTMLSelectElement).value as "1" | "5" | "9"
+                    )
+                  }
+                >
+                  <option value="">Select Service Type</option>
+                  <option value="1">RGS</option>
+                  <option value="5">JNT</option>
+                  <option value="9">IMILE</option>
                 </Select>
               </div>
             </div>
@@ -573,14 +613,14 @@ export default function AdminNewDeliveryPage() {
                 disabled={form.assignedDriverId === restrictedDriverId}
               >
                 <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
+                {serviceCities.map((c, i) => (
+                  <option key={i} value={c}>
                     {c}
                   </option>
                 ))}
               </Select>
             </div>
-            <div>
+            {/* <div>
               <label className="text-[13px] text-slate-600">
                 Sender District
               </label>
@@ -601,7 +641,7 @@ export default function AdminNewDeliveryPage() {
                   </option>
                 ))}
               </Select>
-            </div>
+            </div> */}
           </section>
 
           <section className="space-y-4">
@@ -666,7 +706,7 @@ export default function AdminNewDeliveryPage() {
                 }}
               >
                 <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
+                {serviceCities.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>

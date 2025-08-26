@@ -8,6 +8,7 @@ import {
   SearchIcon,
   DownloadIcon,
   EditIcon,
+  PlusIcon,
 } from "@/components/icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
@@ -63,7 +64,6 @@ export default function DeliveryStatusPage() {
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [activeTab, setActiveTab] = useState<"details" | "activity">("details");
   const fileRef = useRef<HTMLInputElement | null>(null);
-
   // Bulk upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   type PreviewRow = {
@@ -353,8 +353,18 @@ export default function DeliveryStatusPage() {
     }
   }
 
+  const router = useRouter();
+
   return (
     <div className="space-y-6">
+      <Button
+        onClick={() => {
+          router.push("/admin/deliveries/new");
+        }}
+        leftIcon={<PlusIcon size={18} />}
+      >
+        Add New Delivery
+      </Button>
       <Card header={<div className="font-semibold">Bulk Delivery Upload</div>}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>

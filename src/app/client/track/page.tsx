@@ -897,12 +897,6 @@ export default function TrackDeliveriesPage() {
               </span>
             </div>
             <div>
-              <span className="text-slate-500">Delivery Fee:</span>{" "}
-              <span className="font-medium">
-                ﷼{Number(viewData.deliveryFee || 0).toFixed(2)}
-              </span>
-            </div>
-            <div>
               <span className="text-slate-500">Created:</span>{" "}
               <span className="font-medium">
                 {new Date(viewData.createdAt ?? Date.now()).toLocaleString()}

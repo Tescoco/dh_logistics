@@ -112,7 +112,7 @@ export function generateReportName(
   const year = new Date(fromDate).getFullYear();
   const randomSuffix = Math.random().toString(36).substring(2, 6);
 
-  return `COD_Report_${clientName}_${month}_${year}_${randomSuffix}`.replace(
+  return `COD_Report_${clientName}_${month}_${year}_${randomSuffix}.csv`.replace(
     /\s+/g,
     "_"
   );

@@ -48,6 +48,7 @@ const UpdateDeliverySchema = z.object({
     .optional(),
   assignedDriverId: z.string().optional(),
   thirdPartyShipmentNumber: z.string().optional(),
+  serviceType: z.enum(["1", "5", "9"]).optional(),
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -213,7 +214,8 @@ export async function PATCH(req: NextRequest, context: any) {
             client_id: 82589,
             location:
               input.deliveryDistrict || currentDelivery.deliveryDistrict,
-            Service: 1,
+            Service:
+              input.serviceType === "1" ? 1 : input.serviceType === "5" ? 5 : 9,
           };
 
           const r = await fetch(

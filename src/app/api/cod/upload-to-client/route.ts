@@ -67,9 +67,9 @@ export async function POST(req: NextRequest) {
         name: reportName,
         from: new Date(input.from),
         to: new Date(input.to),
-        format: "PDF", // Default to PDF for client reports
+        format: "CSV", // Default to PDF for client reports
         status: "ready",
-        url: `/download/${reportName}.pdf`,
+        url: `/download/${reportName}.csv`,
         createdById: clientId,
       });
 

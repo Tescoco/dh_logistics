@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { getAuthUser } from "@/lib/session";
+import { User } from "@/models/User";
 
 export const runtime = "nodejs";
 
@@ -15,11 +16,31 @@ export async function GET(req: NextRequest) {
   const tab = url.searchParams.get("tab");
   const query: Record<string, unknown> = {};
   if (tab === "internal") {
-    query.assignedDriverId = { $ne: "68992b3ad5eb3b93c40396dc" };
+    const driverUsers = await User.find({ role: "driver" })
+      .select("_id")
+      .lean();
+    const driverUserIds = driverUsers.map((u: { _id: unknown }) => u._id);
+    if (driverUserIds.length > 0) {
+      query.assignedDriverId = { $in: driverUserIds };
+    } else {
+      return NextResponse.json({ deliveries: [] });
+    }
   }
   // if tab is cod get all deliveries with assignedDriverId that is equal to 68992b3ad5eb3b93c40396dc
   if (tab === "cod") {
     query.assignedDriverId = "68992b3ad5eb3b93c40396dc";
+  }
+
+  if (tab === "courier") {
+    const courierUsers = await User.find({ role: "courier" })
+      .select("_id")
+      .lean();
+    const courierUserIds = courierUsers.map((u: { _id: unknown }) => u._id);
+    if (courierUserIds.length > 0) {
+      query.assignedDriverId = { $in: courierUserIds };
+    } else {
+      return NextResponse.json({ deliveries: [] });
+    }
   }
 
   const paymentFilter = payment ? { paymentMethod: payment } : {};

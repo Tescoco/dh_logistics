@@ -33,9 +33,14 @@ const topLevel: NavItem[] = [
     children: [
       { href: "/admin/deliveries?tab=cod", label: "COD Deliveries" },
       { href: "/admin/deliveries?tab=internal", label: "Internal Deliveries" },
+      { href: "/admin/deliveries?tab=courier", label: "Courier Deliveries" },
     ],
   },
-  { href: "/admin/delivery-status", label: "Delivery Status", icon: "package" },
+  {
+    href: "/admin/delivery-status",
+    label: "Delivery Management",
+    icon: "package",
+  },
   { href: "/admin/cod-reports", label: "COD Reports", icon: "list" },
   { href: "/admin/reports", label: "Client Reports", icon: "list" },
   { href: "/admin/users", label: "Users", icon: "users" },
