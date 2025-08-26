@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
         packageType: data.packageType,
         description: data.description,
         priority: data.priority,
-        paymentMethod: data.paymentMethod,
+        paymentMethod: data.paymentMethod || "cod",
         deliveryFee: data.deliveryFee || defaultDeliveryFee,
         codAmount: data.codAmount,
         notes: data.notes,
