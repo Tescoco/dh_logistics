@@ -90,10 +90,10 @@ export default function DeliveryChart({
           usePointStyle: true,
           pointStyle: "circle",
           padding: 20,
-          font: {
-            size: 12,
-            weight: "500" as const,
-          },
+                      font: {
+              size: 12,
+              weight: 500,
+            },
         },
       },
       tooltip: {
@@ -105,11 +105,13 @@ export default function DeliveryChart({
         cornerRadius: 8,
         displayColors: true,
         callbacks: {
-          title: function (context: any) {
-            return `${context[0].label}`;
+          title: function (context: unknown) {
+            const ctx = context as { label: string }[];
+            return `${ctx[0]?.label || ''}`;
           },
-          label: function (context: any) {
-            return `${context.dataset.label}: ${context.parsed.y}`;
+          label: function (context: unknown) {
+            const ctx = context as { dataset: { label: string }; parsed: { y: number } };
+            return `${ctx.dataset.label}: ${ctx.parsed.y}`;
           },
         },
       },
@@ -139,8 +141,8 @@ export default function DeliveryChart({
           font: {
             size: 11,
           },
-          callback: function (value: any) {
-            return Number.isInteger(value) ? value : "";
+          callback: function (value: unknown) {
+            return Number.isInteger(value as number) ? (value as number) : "";
           },
         },
       },

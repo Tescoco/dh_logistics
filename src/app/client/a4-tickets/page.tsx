@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -23,7 +23,7 @@ type DeliveryTicket = {
   createdAt: string;
 };
 
-export default function A4TicketsPage() {
+function A4TicketsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showError } = useToast();
@@ -336,5 +336,13 @@ export default function A4TicketsPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function A4TicketsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><div className="text-slate-500">Loading...</div></div>}>
+      <A4TicketsContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   CheckIcon,
   XIcon,
@@ -33,12 +33,12 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleRemove = () => {
+  const handleRemove = useCallback(() => {
     setIsRemoving(true);
     setTimeout(() => {
       onRemove(toast.id);
     }, 300);
-  };
+  }, [onRemove, toast.id]);
 
   useEffect(() => {
     const duration = toast.duration || 3000;

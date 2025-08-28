@@ -165,7 +165,7 @@ export default function EditDeliveryPage() {
     }
   }
 
-  const totalAmount = Number(form.codAmount || 0) || 0;
+
 
   if (loading) {
     return <div className="p-6 text-slate-500">Loading delivery…</div>;

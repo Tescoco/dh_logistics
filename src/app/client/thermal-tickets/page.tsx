@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -23,7 +23,7 @@ type DeliveryTicket = {
   createdAt: string;
 };
 
-export default function ThermalTicketsPage() {
+function ThermalTicketsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showError, showSuccess } = useToast();
@@ -515,7 +515,7 @@ export default function ThermalTicketsPage() {
       >
         <div className="p-6 print:p-0">
           <div className="grid gap-6 print:gap-0">
-            {tickets.map((ticket, index) => (
+            {tickets.map((ticket) => (
               <div
                 key={ticket._id}
                 className="thermal-ticket border-2 border-black bg-white print:page-break-after-always print:border-0"
@@ -603,6 +603,8 @@ export default function ThermalTicketsPage() {
                       src={qrCodes[ticket._id]}
                       alt="QR Code"
                       className="w-20 h-20 mx-auto"
+                      width={80}
+                      height={80}
                     />
                   ) : (
                     <div className="w-20 h-20 bg-slate-100 border border-slate-300 mx-auto flex items-center justify-center text-xs text-slate-500">
@@ -618,6 +620,8 @@ export default function ThermalTicketsPage() {
                       src={barcodes[ticket._id]}
                       alt="Barcode"
                       className="h-10 mx-auto"
+                      width={200}
+                      height={40}
                     />
                   ) : (
                     <div className="font-mono text-2xl tracking-wider">
@@ -680,5 +684,19 @@ export default function ThermalTicketsPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function ThermalTicketsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-slate-500">Loading...</div>
+        </div>
+      }
+    >
+      <ThermalTicketsContent />
+    </Suspense>
   );
 }

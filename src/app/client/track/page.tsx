@@ -65,7 +65,7 @@ type DeliveryApiLite = {
 
 export default function TrackDeliveriesPage() {
   const router = useRouter();
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [date, setDate] = useState<string>("");

@@ -9,7 +9,6 @@ import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import {
   SearchIcon,
-
   DownloadIcon,
   LinkIcon,
   TrashIcon,
@@ -50,7 +49,7 @@ export default function CodReportPage() {
       .toISOString()
       .split("T")[0]
   );
-  const [format, setFormat] = useState<ReportRow["format"]>("PDF");
+  const [format] = useState<ReportRow["format"]>("PDF");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState({
     totalAmount: 0,
@@ -60,6 +59,7 @@ export default function CodReportPage() {
   });
   const [history, setHistory] = useState<ReportRow[]>([]);
   const [generating, setGenerating] = useState(false);
+
   const [clickedFrom, setClickedFrom] = useState<"preview" | "generate">(
     "generate"
   );
@@ -123,29 +123,7 @@ export default function CodReportPage() {
     }
   }
 
-  async function handlePreview() {
-    setPreviewLoading(true);
-    try {
-      const url = new URL("/api/cod", window.location.origin);
-      url.searchParams.set("from", fromDate);
-      url.searchParams.set("to", toDate);
-      url.searchParams.set("detailed", "true");
 
-      const res = await fetch(url.toString());
-      if (!res.ok) {
-        showError("Preview Failed", "Failed to load preview data");
-        return;
-      }
-
-      const data = await res.json();
-      setPreviewData(data.deliveries || []);
-      setPreviewOpen(true);
-    } catch (error) {
-      showError("Preview Failed", "Failed to load preview data");
-    } finally {
-      setPreviewLoading(false);
-    }
-  }
 
   function extractDatesFromRange(rangeString: string) {
     // Extract dates from format "MM/DD/YYYY - MM/DD/YYYY"
@@ -170,7 +148,7 @@ export default function CodReportPage() {
           String(toDateObj.getDate()).padStart(2, "0");
 
         return { from, to };
-      } catch (error) {
+      } catch {
         // Fallback to current dates if parsing fails
         return { from: fromDate, to: toDate };
       }
@@ -390,7 +368,7 @@ export default function CodReportPage() {
                             const data = await res.json();
                             setPreviewData(data.deliveries || []);
                             setPreviewOpen(true);
-                          } catch (error) {
+                          } catch {
                             showError(
                               "Load Failed",
                               "Failed to load report data"
@@ -495,7 +473,7 @@ export default function CodReportPage() {
                         const data = await res.json();
                         setPreviewData(data.deliveries || []);
                         setPreviewOpen(true);
-                      } catch (error) {
+                      } catch {
                         showError("Load Failed", "Failed to load report data");
                       } finally {
                         setPreviewLoading(false);
@@ -559,7 +537,7 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-emerald-600">
-                SAR 
+                SAR
                 {previewData
                   .reduce((sum, d) => sum + (d.codAmount || 0), 0)
                   .toLocaleString()}

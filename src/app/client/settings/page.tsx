@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { UserIcon } from "@/components/icons";
 import Select from "@/components/ui/Select";
-import { SAUDI_CITIES } from "@/lib/cities";
+
 
 export default function ClientSettingsPage() {
   const [firstName, setFirstName] = useState("");

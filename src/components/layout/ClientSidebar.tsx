@@ -94,6 +94,8 @@ export default function ClientSidebar({
               src="/favicon.png"
               alt="Shipz Logo"
               className="h-10 w-10 object-contain"
+              width={40}
+              height={40}
             />
             <div className="flex items-baseline gap-2 whitespace-nowrap flex-col ml-2">
               <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">
@@ -130,6 +132,8 @@ export default function ClientSidebar({
                 src={me.avatarUrl}
                 alt="Avatar"
                 className="h-10 w-10 rounded-full object-cover"
+                width={40}
+                height={40}
               />
             ) : (
               <div className="h-10 w-10 rounded-full bg-slate-200 grid place-items-center">

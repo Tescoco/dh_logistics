@@ -3,6 +3,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import Modal from "@/components/ui/Modal";
 import { SAUDI_CITIES } from "@/lib/cities";
 
 import { useEffect, useMemo, useState } from "react";
@@ -36,6 +37,7 @@ export default function AdminNewDeliveryPage() {
   const [loadingClients, setLoadingClients] = useState(true);
   const [loadingReference, setLoadingReference] = useState(true);
   const [referenceError, setReferenceError] = useState<string | null>(null);
+  const [insuranceModalOpen, setInsuranceModalOpen] = useState(false);
   const restrictedDriverId = "68992b3ad5eb3b93c40396dc";
 
   // Auto-generate reference number based on existing orders
@@ -927,15 +929,14 @@ export default function AdminNewDeliveryPage() {
                   />
                   Insurance required
                 </label>
-                {form.insuranceRequired && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <Input
-                      value="2%"
-                      disabled
-                      className="w-20 h-8 text-xs bg-gray-50"
-                    />
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setInsuranceModalOpen(true)}
+                  className="text-blue-600 hover:text-blue-800 text-lg font-bold"
+                  title="Insurance Information"
+                >
+                  ℹ️
+                </button>
               </div>
             </div>
             <div>
@@ -967,6 +968,62 @@ export default function AdminNewDeliveryPage() {
           </Button>
         </div>
       </Card>
+
+      <Modal
+        open={insuranceModalOpen}
+        onClose={() => setInsuranceModalOpen(false)}
+        title="Insurance Information"
+        widthClassName="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-slate-700 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600 font-semibold">1.</span>
+              <p>
+                Insurance premium will be charged at 2% of the COD amount of an
+                individual shipment.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600 font-semibold">2.</span>
+              <p>
+                Insurance will only be valid for any shipment that is lost
+                during transit.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600 font-semibold">3.</span>
+              <p>
+                The maximum compensation will be 20% of the COD amount of an
+                individual shipment.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600 font-semibold">4.</span>
+              <p>
+                Insurance will not be claimed in case the shipment or its
+                content are damaged.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600 font-semibold">5.</span>
+              <p>
+                Compensation will be released once the company completes its
+                investigation for the reason. It might take up to 15 working
+                days to release the compensation to the client.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => setInsuranceModalOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
