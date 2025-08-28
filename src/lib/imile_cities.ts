@@ -386,620 +386,620 @@ export const IMILE_CITIES: string[] = [
   "Shararah",
   "Ar Ramadiyat",
   "mutribat",
+  "alrashawia",
+  "Al Qurayn",
+  "umm radiyha",
+  "najid",
+  "mutribat aljamsh",
+  "alsaalihia",
+  "aldhiyby",
+  "eablat alyaminii",
+  "aljadida",
+  "alrafiea",
+  "alshaamia",
+  "albadiea",
+  "alfaqara",
+  "Afqara",
+  "faydat manya",
+  "marqabiat alhiisha",
+  "Salmiya",
+  "abu rakab",
+  "earifjan",
+  "abu jalal",
+  "alfakhiria",
+  "eashirat almakhamir",
+  "hifnat alshighar",
+  "daba",
+  "amu almanashir",
+  "alsulaymania",
+  "alfayha",
+  "faydat alhiisha",
+  "almique",
+  "almashnutih",
+  "aleaqilia",
+  "eabla' alrafiea",
+  "albadae",
+  "alraqiba",
+  "alsaalmia",
+  "alsukran",
+  "Jefin",
+  "Hadri",
+  "Ein As Suwaine",
+  "Ein Al Gannor",
+  "Al Artawi",
+  "Mushrif",
+  "almisheania",
+  "aldamathiu",
+  "almarqabia",
+  "alhamada",
+  "alfaydat bialsir",
+  "rawdat altawil",
+  "Sharaf",
+  "almanjur",
+  "almashnutia",
+  "ibn mashnuta",
+  "algharbia",
+  "alkhuzamia",
+  "alraajihia",
+  "alsinaria",
+  "alrifae",
+  "alhayid",
+  "aleaydia",
+  "alsaahid",
+  "aleadama",
+  "aldiyria",
+  "almaghzil",
+  "alsulaimia",
+  "aleamiria",
+  "altasrir",
+  "alhilalia",
+  "althandawa",
+  "zaghala",
+  "aljabiria",
+  "Birkah",
+  "easila",
+  "albrud",
+  "alqury",
+  "Mazari' Sajir",
+  "artawy alraqas",
+  "maghib",
+  "abu hudayd",
+  "alsafra'",
+  "aleatawi",
+  "faydat khuf",
+  "Abu sadra",
+  "Musharaf Alkarashima",
+  "alzinaeif",
+  "Khuff",
+  "alkhafifa",
+  "AlSalih",
+  "rawdat blaeis",
+  "musharafat alqurna",
+  "Al Mahabbah",
+  "Subha alqurna",
+  "Hajir ash Shih",
+  "Al Mishash",
+  "Uthaithiah",
+  "mashash alsuhul",
+  "Rughabah",
+  "Alrweidh",
+  "Al Bir",
+  "Quday'an",
+  "Qafarah",
+  "Aljfarah",
+  "Al Khaldiyah",
+  "Ijzala",
+  "Masariqah",
+  "Muhayriqah",
+  "Halban",
+  "Wadi Usail",
+  "Umm Sarahah",
+  "Tuhayyi",
+  "Sanam",
+  "Sabha",
+  "Al Muharq",
+  "Al Jadaa",
+  "halat eabdan",
+  "lujea",
+  "Al Duwayh",
+  "alfayda",
+  "Khunayfsah",
+  "Arwa",
+  "khadra",
+  "abruqia",
+  "albadayie",
+  "bataha",
+  "Abu Isharah",
+  "Al Jammaniyah",
+  "Wabrah",
+  "alhar",
+  "alhafna",
+  "faydat alhari",
+  "abu urina",
+  "taraf 'abu earina",
+  "Suwaydan",
+  "Marwan",
+  "Al Saih",
+  "Al Rawdah",
+  "Al Jubaylah",
+  "Al Amar",
+  "Al Moudniayh",
+  "Al Ghayl",
+  "Wusayilah",
+  "Al-Mikhlaf",
+  "Al Islamiah",
+  "Al Hulwah",
+  "Bulaysah",
+  "Mawan",
+  "Ad Deerah",
+  "Bida",
+  "Ar Rafaie",
+  "Al Bijadiyah",
+  "Zomaiqah",
+  "Al Kharj Industrial City",
+  "C13",
+  "C19",
+  "C4",
+  "C12",
+  "C20",
+  "C23",
+  "C9",
+  "C8",
+  "C7",
+  "C6",
+  "Qami",
+  "Almaharah",
+  "Aswyq",
+  "Al Morouj",
+  "C39",
+  " C38",
+  "C37",
+  "Al Saifa",
+  "Historicalcenter Hafuf",
+  "Al Wannan",
+  "Ar Rafiah",
+  "Al Bathaa",
+  "Aynmusa",
+  "Rahat",
+  "Al Ukhaydir",
+  "Az Zuwayb",
+  "Hishash",
+  "Rahab",
+  "Al Hamrah",
+  "Al Kharma",
+  "Alya'",
+  "Alfari'ah",
+  "Al Barakah",
+  "Ummal Tabaqan",
+  "Sabil",
+  "Al Mehtagbah",
+  "Al Omaq",
+  "Al Harara",
+  "Al Jmima",
+  "Al Jerisiyah",
+  "Al Ghmir",
+  "Al Mazrea",
+  "Aqailat Al Mahd",
+  "Al-Athaya",
+  "Kharja",
+  "Al Aziziyah",
+  "Heba'",
+  "Safinah",
+  "As Sarheyah",
+  "Qran",
+  "Al Soussiah",
+  "Hazem",
+  "Al Rehab",
+  "Abu Dhiba",
+  "Umm Al Iyal",
+  "Al Madheeg",
+  "Al Faqirah",
+  "Musaith",
+  "Al Sedr",
+  "Al Ramdhah",
+  "Al Atshan",
+  "Ash Shuwāmīn",
+  "Al Shfeah",
+  "Al Saih",
+  "Al Hendeyah",
+  "Abu Rubaiq",
+  "Al Ghzlan",
+  "Al Ragheiah",
+  "Hedhah",
+  "Reem",
+  "Al Torkiyah",
+  "Al Lethamah",
+  "Al Heno",
+  "Haylat Radi al Baham",
+  "Ushayrah",
+  "Al Bardiyah",
+  "Al Wuday",
+  "Bi'r al Mashi",
+  "Alhafah",
+  "Bir Al Ghanem",
+  "Khaev Alhzame",
+  "Habt",
+  "Ber Arrawha",
+  "Al Sawah",
+  "Al Seddarah",
+  "Al Mudheyba'ah",
+  "Al Figrah",
+  "As Sadayir",
+  "Al Mufrihat",
+  "Malal",
+  "C1",
+  "Kadwat al A'waj",
+  "Hubaris",
+  "Galib",
+  "Bani Yahya",
+  "Baydayn",
+  "Alaazir",
+  "Aniker",
+  "Makshosh",
+  "Al Osami",
+  "Al Baydayn",
+  "AlFareeq",
+  "Manjamah",
+  "Industrial Area No.2",
+  "Harub",
+  "Al Kadami",
+  "Hayjah Muraqqah",
+  "Dhiat Al Ezyien",
+  "Koroos Al Ezyien",
+  "Wadi Razan",
+  "Al Aqal",
+  "Al Jazza'h",
+  "Al Sahalil",
+  "Al Salqah",
+  "Al Fagarh",
+  "Hehin Bani Amshikh",
+  "Minjed",
+  "Al Heyaj",
+  "Al Humrah",
+  "Al Jouf",
+  "Dhahiatal Iskan",
+  "Thenew International Airport",
+  "Al Azzah",
+  "Bihan",
+  "Alsumairat",
+  "Samrat Al Jed",
+  "Erg Manshabah",
+  "Um Alhenshan",
+  "C31",
+  "C24",
+  "C29",
+  "C28",
+  "C27",
+  "C26",
+  "C25",
+  "C30",
+  "C32",
+  "C34",
+  "C35",
+  "Newtaif University",
+  "Alurj Al Asfal",
+  "Alamriah 2",
+  "Alfaisaliyyah",
+  "Al Qarah",
+  "Al Dughaimiyah",
+  "Ain Al Nakhal",
+  "Aladwa",
+  "Al Ta'awn",
+  "Al-Watah village",
+  "South Tandaha",
+  "Central Tandaha",
+  "North Tandaha",
+  "Tamniah",
+  "Al-Jinffour",
+  "Al-Mektaa",
+  "Marwah",
+  "Deraa Menfah",
+  "Al Daffrah",
+  "Bokaat Al Elaaj",
+  "Al Dheehe",
+  "Al Oehsear",
+  "Al Khashah",
+  "Al Sarreah",
+  "Al Dathree and Al Mokhshome",
+  "Al Salman",
+  "Al Emame",
+  "Goatt Al Sharahele",
+  "Al Sharahele",
+  "Al Hifah",
+  "Hanidh",
+  "Al Ghafer",
+  "Al Yahea",
+  "Al Zedan",
+  "Al Sheban",
+  "Al Mohammed",
+  "That Almesk",
+  "Al Buhrah",
+  "Al Qateel",
+  "Nama",
+  "Al Qarn",
+  "Al Athowan",
+  "Al Hojfah",
+  "Al Aeen",
+  "Habbes",
+  "Tallan",
+  "Al Salaf",
+  "As Sarrar",
+  "Alwtyat",
+  "Aldyah",
+  "Aljohar",
+  "Alhoseniah",
+  "buraydah",
+  "Sayaa",
+  "Almojermah",
+  "Alqalh",
+  "Rahman",
+  "Riyad",
+  "Frygah",
+  "Jamaha",
+  "Alblhaa",
+  "Almodreg",
+  "Alsmeed",
+  "Albraaket",
+  "Alhrateem",
+  "Alrweas",
+  "Sahdah",
+  "Alquaba",
+  "Al Hada",
+  "Al Jawshan",
+  "Ar Rabbah",
+  "Al Shariah",
+  "Kahlan",
+  "Al Qaa",
+  "Hinayah",
+  "Al Henayah",
+  "Ghalfah",
+  "Abu Ma'raj",
+  "Al Maskhyah",
+  "Al Muhmad",
+  "Hamayyah",
+  "As Sahhar",
+  "Dabir",
+  "Al Foqaha",
+  "Al Mawshit North",
+  "Agricutural Land",
+  "Al Wozeyh-a",
+  "Ad Dumayriyah",
+  "Al Samad",
+  "Qusaiba'a",
+  "Al Oshazi",
+  "Albasatin",
+  "Al Mafraq",
+  "Al Ghuzlani",
+  "Aladwah",
+  "Al-Amsaib",
+  "Alhadaek",
+  "Alamriah 1",
+  "Al Safa'a",
+  "Air Defense Forces",
+  "Marabah",
+  "Alsawaiqa",
+  "Al Lahabah",
+  "Al Wasit",
+  "New Aseer Industrial Zone",
+  "Al Badia",
+  "Al Sharai' Ash Shamaliyyah",
+  "Ummal Earsh",
+  "Mansiyah",
+  "Sabkah",
+  "Abu Al Karsh",
+  "Alzayni",
+  "Alarjeen",
+  "Alhiwaya",
+  "Alamaridah",
+  "Alqasadah",
+  "Alnijabah Wal Jahajih",
+  "Wasit",
+  "Al Rayyan",
+  "Khudair",
+  "Almatry Al Kharby",
+  "Almatry Al Awsat",
+  "Al Gharib",
+  "Shuaiha",
+  "Al-Zubarah",
+  "Az Zahir",
+  "Al Salamah",
+  "Al Kheef",
+  "Fels",
+  "Industrial City",
+  "Abu Al Nurah",
+  "Albeid",
+  "Halahal Rouqeaiey",
+  "Al Khadra Al Janoubia",
+  "Al Kadhra Al Shamalia",
+  "AlJahow",
+  "Algayem",
+  "Harajah",
+  "Redesal Asfal",
+  "Redesal A'laa",
+  "Abu Hadaba",
+  "Aljabalia",
+  "Alhima",
+  "Khumayah",
+  "Alzarqa",
+  "Bani Malik",
+  "Aliskan",
+  "Alkhdra",
+  "Alaliya",
+  "Aliya",
+  "Al Baqasha",
+  "Alhawamidah Jahish",
+  "Alkalabah",
+  "Alfisalah Wal Dagharih",
+  "Shahdah",
+  "Almahasih",
+  "Alashah",
+  "Alsilaa",
+  "Aljarah Al Qadiumah",
+  "Alziniyah",
+  "Al-Shakher",
+  "Shabagah",
+  "Allakhabsia",
+  "Hulatali Bin Musa",
+  "Alsamikh",
+  "Ummal Qahfah",
+  "Jamalah",
+  "Alkhadraa",
+  "Qaryatal Jawabirih",
+  "Halahabu Marei",
+  "Halahattieh",
+  "Halahal Hukmaa",
+  "Halahal Qamiri",
+  "Mukhatat alburj",
+  "Mukhatat alshaati",
+  "Al Fatiha",
+  "Baish alolia",
+  "Qaim Aldash",
+  "Al Khrfosha",
+  "Al Naqash",
+  "Alazamah",
+  "Almelah",
+  "Almajdirah",
+  "Madrak",
+  "Rasman",
+  "Salm Alzwaher",
+  "Kurma",
+  "Abu Hanash",
+  "Nawan",
+  "Al-Sakhr",
+  "Al 'Ataya",
+  "Halahmaruei Bin Shamy",
+  "Halahal Kalabih",
+  "Halahabdullah Qabea",
+  "Hulatal Makki",
+  "Aleasiluh",
+  "Hulatal Earshi",
+  "Halahbin Alwaan",
+  "Zubarahal Jidyeen",
+  "Al Hajrain",
+  "Al Judaieen",
+  "Abu Danqur",
+  "Alhajariah",
+  "Alsawalimah",
+  "Alkhawaliduh",
+  "Alzaydiuh",
+  "Alfaqrah",
+  "Alfeqrah",
+  "Alt Arashah",
+  "Alshamuh",
+  "Albatinah",
+  "Aljaeawunah",
+  "Halahmuhsin Al Muhasana",
+  "Abdullahal Eyafi (Al Eyafi)",
+  "Tyhan(Hulat Tyhan)",
+  "Alqawaea",
+  "Alshiarah",
+  "Khawarah",
+  "Alshawahiyah",
+  "Alkhawajih",
+  "Alshawajirat Wal Jarabiyah",
+  "Abualtuyur",
+  "Either",
+  "Wajahalhasan",
+  "Aleawajimuh",
+  "Abu at Tuyur",
+  "Hanaqfah",
+  "Alshiqafah Wal Musawafa",
+  "Alzaqlah",
+  "Nurah",
+  "Qalbiyah",
+  "Jameema",
+  "Qibah",
+  "Alathlah",
+  "Al-Khushaibi",
+  "Al Sharqiyyah",
+  "Altwaal",
+  "Ajama",
+  "Rass",
+  "Khosh",
+  "Turgech",
+  "Jazirah",
+  "Musabis",
+  "Thloth Al Mandhar",
+  "Quraynah",
+  "Al Farah",
+  "Quraysah",
+  "Qurayha",
+  "Ma`riyah",
+  "Faqah",
+  "Al-Ishy",
+  "Dalham",
+  "Qafeel",
+  "Sahel Village Heritage",
+  "Shahar",
+  "Al Munayzir",
+  "Musaylah",
+  "Almajdiruh",
+  "Al Harf",
+  "Hulat'abu Habibuh",
+  "Zarabah",
+  "Alhadwaa",
+  "Alhaqawih",
+  "Alhimdih",
+  "Alsanif",
+  "Alkawmuh",
+  "Aleabduh",
+  "Alrajie",
+  "Hulat'iibrahim Eisaa",
+  "Eawanah",
+  "Alsidaduh",
+  "Alnzlh",
+  "Albatih",
+  "Ardah",
+  "Alearduh",
+  "Al Rawdah",
+  "Morighan",
+  "alhifar",
+  "Al Nuzha",
+  "Ar Rayan",
+  "Al Wurud",
+  "Ashifa",
+  "Gaabah",
+  "Halahmuhamad Eisa",
+  "Halahalhawa Tyn",
+  "Halahal Sahluli",
+  "Halahmishary",
+  "Halahaleaqibiu",
+  "Al Meghabbasheiah",
+  "Al Hemarah",
+  "Al Hurm",
+  "Albakhtah North",
+  "Al Bkhtah Central",
+  "Albakhtah South",
+  "Mptaryah",
+  "Almchaikh South",
+  "Al Barssh",
+  "Al Mshaykh",
+  "Badee Alkhorm",
+  "Saddeqah",
+  "Rawkhah",
+  "Al Marrekheiah",
+  "Al Shabitah",
+  "Alser Village",
+  "Aljabah",
+  "Maghsheiah",
+  "Haretal Moasheyah",
+  "Alhergah",
+  "Kaalol",
+  "Ka`lul",
+  "Al Aroos",
+  "Albedareiah Village",
+  "Al Khuznah",
+  "Al Gawamshah",
+  "Alasamlah Al Othmaneiah",
+  "Alhadashah",
+  "Al-Asamlah Alkobra",
+  "Al Mahadhin",
+  "Alshaoob",
+  "Al Wase'ah",
+  "AL- Jaghadimah",
+  "Badeeal Maswadah",
 ];
 /*
-alrashawia
-Al Qurayn
-umm radiyha
-najid
-mutribat aljamsh
-alsaalihia
-aldhiyby
-eablat alyaminii
-aljadida
-alrafiea
-alshaamia
-albadiea
-alfaqara
-Afqara
-faydat manya
-marqabiat alhiisha
-Salmiya
-abu rakab
-earifjan
-abu jalal
-alfakhiria
-eashirat almakhamir
-hifnat alshighar
-daba
-amu almanashir
-alsulaymania
-alfayha
-faydat alhiisha
-almique
-almashnutih
-aleaqilia
-eabla' alrafiea
-albadae
-alraqiba
-alsaalmia
-alsukran
-Jefin
-Hadri
-Ein As Suwaine
-Ein Al Gannor
-Al Artawi
-Mushrif
-almisheania
-aldamathiu
-almarqabia
-alhamada
-alfaydat bialsir
-rawdat altawil
-Sharaf
-almanjur
-almashnutia
-ibn mashnuta
-algharbia
-alkhuzamia
-alraajihia
-alsinaria
-alrifae
-alhayid
-aleaydia
-alsaahid
-aleadama
-aldiyria
-almaghzil
-alsulaimia
-aleamiria
-altasrir
-alhilalia
-althandawa
-zaghala
-aljabiria
-Birkah
-easila
-albrud
-alqury
-Mazari' Sajir
-artawy alraqas
-maghib
-abu hudayd
-alsafra'
-aleatawi
-faydat khuf
-Abu sadra
-Musharaf Alkarashima
-alzinaeif
-Khuff
-alkhafifa
-AlSalih
-rawdat blaeis
-musharafat alqurna
-Al Mahabbah
-Subha alqurna
-Hajir ash Shih
-Al Mishash
-Uthaithiah
-mashash alsuhul
-Rughabah
-Alrweidh
-Al Bir
-Quday'an
-Qafarah
-Aljfarah
-Al Khaldiyah
-Ijzala
-Masariqah
-Muhayriqah
-Halban
-Wadi Usail
-Umm Sarahah
-Tuhayyi
-Sanam
-Sabha
-Al Muharq
-Al Jadaa
-halat eabdan
-lujea
-Al Duwayh
-alfayda
-Khunayfsah
-Arwa
-khadra
-abruqia
-albadayie
-bataha
-Abu Isharah
-Al Jammaniyah
-Wabrah
-alhar
-alhafna
-faydat alhari
-abu urina
-taraf 'abu earina
-Suwaydan
-Marwan
-Al Saih
-Al Rawdah
-Al Jubaylah
-Al Amar
-Al Moudniayh
-Al Ghayl
-Wusayilah
-Al-Mikhlaf
-Al Islamiah
-Al Hulwah
-Bulaysah
-Mawan
-Ad Deerah
-Bida
-Ar Rafaie
-Al Bijadiyah
-Zomaiqah
-Al Kharj Industrial City
-C13
-C19
-C4
-C12
-C20
-C23
-C9
-C8
-C7
-C6
-Qami
-Almaharah
-Aswyq
-Al Morouj
-C39
-C38
-C37
-Al Saifa
-Historicalcenter Hafuf
-Al Wannan
-Ar Rafiah
-Al Bathaa
-Aynmusa
-Rahat
-Al Ukhaydir
-Az Zuwayb
-Hishash
-Rahab
-Al Hamrah
-Al Kharma
-`Alya'
-Alfari'ah
-Al Barakah
-Ummal Tabaqan
-Sabil
-Al Mehtagbah
-Al Omaq
-Al Harara
-Al Jmima
-Al Jerisiyah
-Al Ghmir
-Al Mazrea
-Aqailat Al Mahd
-Al-Athaya
-Kharja
-Al Aziziyah
-Heba'a
-Safinah
-As Sarheyah
-Qran
-Al Soussiah
-Hazem
-Al Rehab
-Abu Dhiba
-Umm Al Iyal
-Al Madheeg
-Al Faqirah
-Musaith
-Al Sedr
-Al Ramdhah
-Al Atshan
-Ash Shuwāmīn
-Al Shfeah
-Al Saih
-Al Hendeyah
-Abu Rubaiq
-Al Ghzlan
-Al Ragheiah
-Hedhah
-Reem
-Al Torkiyah
-Al Lethamah
-Al Heno
-Haylat Radi al Baham
-`Ushayrah
-Al Bardiyah
-Al Wuday
-Bi'r al Mashi
-Alhafah
-Bir Al Ghanem
-Khaev Alhzame
-Habt
-Ber Arrawha
-Al Sawah
-Al Seddarah
-Al Mudheyba'ah
-Al Figrah
-As Sadayir
-Al Mufrihat
-Malal
-C1
-Kadwat al A'waj
-Hubaris
-Galib
-Bani Yahya
-Baydayn
-Alaazir
-Aniker
-Makshosh
-Al Osami
-Al Baydayn
-AlFareeq
-Manjamah
-Industrial Area No.2
-Harub
-Al Kadami
-Hayjah Muraqqah
-Dhiat Al Ezyien
-Koroos Al Ezyien
-Wadi Razan
-Al Aqal
-Al Jazza'h
-Al Sahalil
-Al Salqah
-Al Fagarh
-Hehin Bani Amshikh
-Minjed
-Al Heyaj
-Al Humrah
-Al Jouf
-Dhahiatal Iskan
-Thenew International Airport
-Al Azzah
-Bihan
-Alsumairat
-Samrat Al Jed
-Erg Manshabah
-Um Alhenshan
-C31
-C24
-C29
-C28
-C27
-C26
-C25
-C30
-C32
-C34
-C35
-Newtaif University
-Alurj Al Asfal
-Alamriah 2
-Alfaisaliyyah
-Al Qarah
-Al Dughaimiyah
-Ain Al Nakhal
-Aladwa
-Al Ta'awn
-Al-Watah village
-South Tandaha
-Central Tandaha
-North Tandaha
-Tamniah
-Al-Jinffour
-Al-Mektaa
-Marwah
-Deraa Menfah
-Al Daffrah
-Bokaat Al Elaaj
-Al Dheehe
-Al Oehsear
-Al Khashah
-Al Sarreah
-Al Dathree and Al Mokhshome
-Al Salman
-Al Emame
-Goatt Al Sharahele
-Al Sharahele
-Al Hifah
-Hanidh
-Al Ghafer
-Al Yahea
-Al Zedan
-Al Sheban
-Al Mohammed
-That Almesk
-Al Buhrah
-Al Qateel
-Nama
-Al Qarn
-Al Athowan
-Al Hojfah
-Al Aeen
-Habbes
-Tallan
-Al Salaf
-As Sarrar
-Alwtyat
-Aldyah
-Aljohar
-Alhoseniah
-buraydah
-Sayaa
-Almojermah
-Alqalh
-Rahman
-Riyad
-Frygah
-Jamaha
-Alblhaa
-Almodreg
-Alsmeed
-Albraaket
-Alhrateem
-Alrweas
-Sahdah
-Alquaba
-Al Hada
-Al Jawshan
-Ar Rabbah
-Al Shariah
-Kahlan
-Al Qaa
-Hinayah
-Al Henayah
-Ghalfah
-Abu Ma'raj
-Al Maskhyah
-Al Muhmad
-Hamayyah
-As Sahhar
-Dabir
-Al Foqaha
-Al Mawshit North
-Agricutural Land
-Al Wozeyh-a
-Ad Dumayriyah
-Al Samad
-Qusaiba'a
-Al Oshazi
-Albasatin
-Al Mafraq
-Al Ghuzlani
-Aladwah
-Al-Amsaib
-Alhadaek
-Alamriah 1
-Al Safa'a
-Air Defense Forces
-Marabah
-Alsawaiqa
-Al Lahabah
-Al Wasit
-New Aseer Industrial Zone
-Al Badia
-Al Sharai' Ash Shamaliyyah
-Ummal Earsh
-Mansiyah
-Sabkah
-Abu Al Karsh
-Alzayni
-Alarjeen
-Alhiwaya
-Alamaridah
-Alqasadah
-Alnijabah Wal Jahajih
-Wasit
-Al Rayyan
-Khudair
-Almatry Al Kharby
-Almatry Al Awsat
-Al Gharib
-Shuaiha
-Al-Zubarah
-Az Zahir
-Al Salamah
-Al Kheef
-Fels
-Industrial City
-Abu Al Nurah
-Albeid
-Halahal Rouqeaiey
-Al Khadra Al Janoubia
-Al Kadhra Al Shamalia
-AlJahow
-Algayem
-Harajah
-Redesal Asfal
-Redesal A'laa
-Abu Hadaba
-Aljabalia
-Alhima
-Khumayah
-Alzarqa
-Bani Malik
-Aliskan
-Alkhdra
-Alaliya
-Aliya
-Al Baqasha
-Alhawamidah Jahish
-Alkalabah
-Alfisalah Wal Dagharih
-Shahdah
-Almahasih
-Alashah
-Alsilaa
-Aljarah Al Qadiumah
-Alziniyah
-Al-Shakher
-Shabagah
-Allakhabsia
-Hulatali Bin Musa
-Alsamikh
-Ummal Qahfah
-Jamalah
-Alkhadraa
-Qaryatal Jawabirih
-Halahabu Marei
-Halahattieh
-Halahal Hukmaa
-Halahal Qamiri
-Mukhatat alburj
-Mukhatat alshaati
-Al Fatiha
-Baish alolia
-Qaim Aldash
-Al Khrfosha
-Al Naqash
-Alazamah
-Almelah
-Almajdirah
-Madrak
-Rasman
-Salm Alzwaher
-Kurma
-Abu Hanash
-Nawan
-Al-Sakhr
-Al 'Ataya
-Halahmaruei Bin Shamy
-Halahal Kalabih
-Halahabdullah Qabea
-Hulatal Makki
-Aleasiluh
-Hulatal Earshi
-Halahbin Alwaan
-Zubarahal Jidyeen
-Al Hajrain
-Al Judaieen
-Abu Danqur
-Alhajariah
-Alsawalimah
-Alkhawaliduh
-Alzaydiuh
-Alfaqrah
-Alfeqrah
-Alt Arashah
-Alshamuh
-Albatinah
-Aljaeawunah
-Halahmuhsin Al Muhasana
-Abdullahal Eyafi (Al Eyafi)
-Tyhan(Hulat Tyhan)
-Alqawaea
-Alshiarah
-Khawarah
-Alshawahiyah
-Alkhawajih
-Alshawajirat Wal Jarabiyah
-Abualtuyur
-Either
-Wajahalhasan
-Aleawajimuh
-Abu at Tuyur
-Hanaqfah
-Alshiqafah Wal Musawafa
-Alzaqlah
-Nurah
-Qalbiyah
-Jameema
-Qibah
-Alathlah
-Al-Khushaibi
-Al Sharqiyyah
-Altwaal
-Ajama
-Rass
-Khosh
-Turgech
-Jazirah
-Musabis
-Thloth Al Mandhar
-Quraynah
-Al Farah
-Quraysah
-Qurayha
-Ma`riyah
-Faqah
-Al-Ishy
-Dalham
-Qafeel
-Sahel Village Heritage
-Shahar
-Al Munayzir
-Musaylah
-Almajdiruh
-Al Harf
-Hulat'abu Habibuh
-Zarabah
-Alhadwaa
-Alhaqawih
-Alhimdih
-Alsanif
-Alkawmuh
-Aleabduh
-Alrajie
-Hulat'iibrahim Eisaa
-Eawanah
-Alsidaduh
-Alnzlh
-Albatih
-Ardah
-Alearduh
-Al Rawdah
-Morighan
-alhifar
-Al Nuzha
-Ar Rayan
-Al Wurud
-Ashifa
-Gaabah
-Halahmuhamad Eisa
-Halahalhawa Tyn
-Halahal Sahluli
-Halahmishary
-Halahaleaqibiu
-Al Meghabbasheiah
-Al Hemarah
-Al Hurm
-Albakhtah North
-Al Bkhtah Central
-Albakhtah South
-Mptaryah
-Almchaikh South
-Al Barssh
-Al Mshaykh
-Badee Alkhorm
-Saddeqah
-Rawkhah
-Al Marrekheiah
-Al Shabitah
-Alser Village
-Aljabah
-Maghsheiah
-Haretal Moasheyah
-Alhergah
-Kaalol
-Ka`lul
-Al Aroos
-Albedareiah Village
-Al Khuznah
-Al Gawamshah
-Alasamlah Al Othmaneiah
-Alhadashah
-Al-Asamlah Alkobra
-Al Mahadhin
-Alshaoob
-Al Wase'ah
-AL- Jaghadimah
-Badeeal Maswadah
 Ummal Noor Village
 Ummal Hagal
 Al Wahmah

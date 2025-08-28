@@ -97,6 +97,10 @@ export default function DeliveryStatusPage() {
   const [couriersLoading, setCouriersLoading] = useState(false);
   const [selectedCourierId, setSelectedCourierId] = useState<string>("");
 
+  // Ticket generation state
+  const [selectedTicketType, setSelectedTicketType] = useState<string>("");
+  const [generatingTickets, setGeneratingTickets] = useState(false);
+
   // Inline editing state
   const [editingRow, setEditingRow] = useState<PreviewRow | null>(null);
   const [editValues, setEditValues] = useState<string[]>([]);
@@ -330,6 +334,63 @@ export default function DeliveryStatusPage() {
       setRefreshKey((k) => k + 1);
     } catch {
       showError("Assignment Failed", "Failed to assign parcels to courier");
+    }
+  }
+
+  async function handleGenerateTickets() {
+    if (!selectedTicketType || selectedIds.size === 0) return;
+
+    setGeneratingTickets(true);
+    try {
+      const deliveryIds = Array.from(selectedIds).join(",");
+
+      // For thermal tickets, redirect to the thermal tickets page
+      if (selectedTicketType === "thermal") {
+        router.push(`/admin/thermal-tickets?deliveryIds=${deliveryIds}`);
+        return;
+      }
+
+      // For A4 tickets, redirect to the A4 tickets page
+      if (selectedTicketType === "a4") {
+        router.push(`/admin/a4-tickets?deliveryIds=${deliveryIds}`);
+        return;
+      }
+
+      // For other ticket types, use the API (if any future types are added)
+      const res = await fetch("/api/deliveries/generate-tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deliveryIds: Array.from(selectedIds),
+          ticketType: selectedTicketType,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showError(
+          "Ticket Generation Failed",
+          data?.error ?? "Failed to generate tickets"
+        );
+        return;
+      }
+
+      showSuccess(
+        "Tickets Generated",
+        `Successfully generated ${selectedTicketType} tickets for ${
+          selectedIds.size
+        } parcel${selectedIds.size > 1 ? "s" : ""}`
+      );
+
+      setSelectedIds(new Set());
+      setSelectedTicketType("");
+
+      // Refresh data
+      setRefreshKey((k) => k + 1);
+    } catch {
+      showError("Ticket Generation Failed", "Failed to generate tickets");
+    } finally {
+      setGeneratingTickets(false);
     }
   }
 
@@ -759,6 +820,42 @@ export default function DeliveryStatusPage() {
                 className="w-full md:w-auto whitespace-nowrap"
               >
                 Assign to Driver / Courier
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Ticket Generation Section */}
+        {selectedIds.size > 0 && (
+          <div className="px-5 pb-5 border-t border-slate-100">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="text-[13px] text-slate-500 whitespace-nowrap">
+                Generate tickets for {selectedIds.size} parcel
+                {selectedIds.size > 1 ? "s" : ""}
+              </div>
+              <Select
+                className="w-full md:w-56"
+                value={selectedTicketType}
+                onChange={(e) =>
+                  setSelectedTicketType((e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="" disabled>
+                  Select ticket type
+                </option>
+                <option value="thermal">Thermal Parcel Ticket</option>
+                <option value="a4">A4 Parcel Ticket</option>
+              </Select>
+              <Button
+                disabled={
+                  !selectedTicketType ||
+                  selectedIds.size === 0 ||
+                  generatingTickets
+                }
+                onClick={handleGenerateTickets}
+                className="w-full md:w-auto whitespace-nowrap"
+              >
+                {generatingTickets ? "Generating..." : "Generate"}
               </Button>
             </div>
           </div>

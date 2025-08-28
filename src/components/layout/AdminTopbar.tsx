@@ -171,5 +171,9 @@ function getTitleFromPath(path: string): string {
   if (path.startsWith("/admin/users")) return "Users";
   if (path.startsWith("/admin/settings")) return "Settings";
   if (path.startsWith("/admin/profile")) return "Profile";
+  if (path.startsWith("/admin/thermal-tickets")) return "Thermal Tickets";
+  if (path.startsWith("/admin/a4-tickets")) return "A4 Tickets";
+  if (path.startsWith("/admin/reports")) return "Reports";
+  if (path.startsWith("/admin/couriers")) return "Couriers";
   return "Dashboard";
 }

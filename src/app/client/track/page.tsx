@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import { useToast } from "@/contexts/ToastContext";
 import {
   SearchIcon,
   UploadIcon,
@@ -62,6 +64,8 @@ type DeliveryApiLite = {
 };
 
 export default function TrackDeliveriesPage() {
+  const router = useRouter();
+  const { showError, showSuccess } = useToast();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [date, setDate] = useState<string>("");
@@ -69,6 +73,11 @@ export default function TrackDeliveriesPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+
+  // Ticket generation state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedTicketType, setSelectedTicketType] = useState<string>("");
+  const [generatingTickets, setGeneratingTickets] = useState(false);
 
   // Statistics state
   const [stats, setStats] = useState({
@@ -380,6 +389,64 @@ export default function TrackDeliveriesPage() {
     window.location.href = `/client/delivery/${deliveryId}`;
   }
 
+  // Selection helper functions
+  const allVisibleSelected = useMemo(
+    () =>
+      filteredRows.length > 0 &&
+      filteredRows.every((d) => selectedIds.has(d.deliveryId)),
+    [filteredRows, selectedIds]
+  );
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const ids = filteredRows.map((d) => d.deliveryId);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  async function handleGenerateTickets() {
+    if (!selectedTicketType || selectedIds.size === 0) return;
+
+    setGeneratingTickets(true);
+    try {
+      const deliveryIds = Array.from(selectedIds).join(",");
+
+      // For thermal tickets, redirect to the thermal tickets page
+      if (selectedTicketType === "thermal") {
+        router.push(`/client/thermal-tickets?deliveryIds=${deliveryIds}`);
+        return;
+      }
+
+      // For A4 tickets, redirect to the A4 tickets page
+      if (selectedTicketType === "a4") {
+        router.push(`/client/a4-tickets?deliveryIds=${deliveryIds}`);
+        return;
+      }
+
+      showError("Ticket Generation Failed", "Unknown ticket type selected");
+    } catch {
+      showError("Ticket Generation Failed", "Failed to generate tickets");
+    } finally {
+      setGeneratingTickets(false);
+    }
+  }
+
   function exportCsv() {
     const headers = [
       "Tracking ID",
@@ -549,13 +616,56 @@ export default function TrackDeliveriesPage() {
           </div>
         </div>
 
+        {/* Ticket Generation Section */}
+        {selectedIds.size > 0 && (
+          <div className="px-6 py-4 border-t border-slate-100">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="text-[13px] text-slate-500 whitespace-nowrap">
+                Generate tickets for {selectedIds.size} parcel
+                {selectedIds.size > 1 ? "s" : ""}
+              </div>
+              <Select
+                className="w-full md:w-56"
+                value={selectedTicketType}
+                onChange={(e) =>
+                  setSelectedTicketType((e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="" disabled>
+                  Select ticket type
+                </option>
+                <option value="thermal">Thermal Parcel Ticket</option>
+                <option value="a4">A4 Parcel Ticket</option>
+              </Select>
+              <Button
+                disabled={
+                  !selectedTicketType ||
+                  selectedIds.size === 0 ||
+                  generatingTickets
+                }
+                onClick={handleGenerateTickets}
+                className="w-full md:w-auto whitespace-nowrap"
+              >
+                {generatingTickets ? "Generating..." : "Generate"}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Desktop/tablet table */}
         <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-[13px] text-slate-500">
+                <th className="px-6 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    aria-label="Select all visible"
+                  />
+                </th>
                 {[
-                  "",
                   "Tracking ID",
                   "Customer",
                   "Store",
@@ -578,7 +688,10 @@ export default function TrackDeliveriesPage() {
                   <td className="px-6 py-3 align-middle">
                     <input
                       type="checkbox"
+                      checked={selectedIds.has(r.deliveryId)}
+                      onChange={() => toggleSelectOne(r.deliveryId)}
                       className="h-4 w-4 rounded border-slate-300"
+                      aria-label={`Select ${r.trackingId}`}
                     />
                   </td>
                   <td className="px-6 py-3 align-middle">

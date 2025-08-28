@@ -14,6 +14,7 @@ import {
   TrendingUpIcon,
   ArrowUpIcon,
 } from "@/components/icons";
+import DeliveryChart from "@/components/ui/DeliveryChart";
 import Select from "@/components/ui/Select";
 import { useToast } from "@/contexts/ToastContext";
 import { useRouter } from "next/navigation";
@@ -85,6 +86,9 @@ export default function AdminDashboardPage() {
   const [couriers, setCouriers] = useState<CourierLite[]>([]);
   const [couriersLoading, setCouriersLoading] = useState(false);
   const [selectedCourierId, setSelectedCourierId] = useState<string>("");
+
+  // Chart state
+  const [chartPeriod, setChartPeriod] = useState<string>("7");
 
   // Activity log state
   const [activityLog, setActivityLog] = useState<
@@ -444,26 +448,20 @@ export default function AdminDashboardPage() {
                 Deliveries Overview
               </h3>
               <div className="flex items-center gap-2">
-                <select className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-                  <option>Last 7 days</option>
-                  <option>Last 30 days</option>
-                  <option>Last 3 months</option>
+                <select
+                  value={chartPeriod}
+                  onChange={(e) => setChartPeriod(e.target.value)}
+                  className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white"
+                >
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 3 months</option>
                 </select>
               </div>
             </div>
           }
         >
-          <div className="h-64 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl">
-            <div className="text-center">
-              <TrendingUpIcon
-                size={48}
-                className="text-slate-400 mx-auto mb-3"
-              />
-              <p className="text-slate-600 font-medium">
-                Chart visualization would go here
-              </p>
-            </div>
-          </div>
+          <DeliveryChart period={chartPeriod} />
         </Card>
 
         <Card
