@@ -19,6 +19,8 @@ const UploadCODSchema = z.object({
   to: z.string(),
   client: z.string().optional(),
   deliveries: z.array(z.string()),
+  search: z.string().optional(),
+  paymentStatusFilter: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {

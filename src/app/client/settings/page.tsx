@@ -224,20 +224,6 @@ export default function ClientSettingsPage() {
               </Select>
             </div>
             <div>
-              <div className="text-[12px] text-slate-500 mb-1">District</div>
-              <Select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-              >
-                <option value="">Select a district</option>
-                {SAUDI_CITIES.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
               <div className="text-[12px] text-slate-500 mb-1">Postal Code</div>
               <Input
                 placeholder="Enter postal code"

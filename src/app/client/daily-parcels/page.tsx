@@ -331,7 +331,8 @@ export default function DailyParcelsPage() {
             </div>
             {search && (
               <div className="text-sm text-slate-500">
-                Found {filteredRows.length} results for &quot;{search}&quot;
+                Found {filteredRows.length} results for reference ID &quot;
+                {search}&quot;
               </div>
             )}
           </div>
@@ -351,11 +352,13 @@ export default function DailyParcelsPage() {
           </div>
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-6 py-3 rounded-t-xl bg-[linear-gradient(90deg,#0EA5E9_0%,#0284c7_100%)] text-white">
-          <div className="font-medium text-white">Search & Filters</div>
+          <div className="font-medium text-white">
+            Search by Reference ID & Filters
+          </div>
           <div className="flex items-center gap-3">
             <Input
               type="text"
-              placeholder="Search parcels..."
+              placeholder="Search by reference ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-48 text-sm bg-white/10 border-white/20 text-white placeholder-white/70 focus:bg-white/20 focus:border-white/40"
@@ -459,7 +462,9 @@ export default function DailyParcelsPage() {
                     <div className="font-semibold text-slate-800">
                       {r.title}
                     </div>
-                    <div className="text-xs text-slate-500">REF: {r.id}</div>
+                    <div className="text-xs text-slate-500">
+                      Reference ID: {r.id}
+                    </div>
                   </td>
                   <td className="px-6 py-4 align-top hidden sm:table-cell">
                     <div className="font-medium text-slate-800">
@@ -552,13 +557,15 @@ export default function DailyParcelsPage() {
       <Modal
         open={viewOpen}
         onClose={() => setViewOpen(false)}
-        title="Parcel Details"
+        title="Parcel Details - Reference ID: {viewData?.reference}"
       >
         {viewData ? (
           <div className="space-y-2 text-sm">
             <div>
               <span className="text-slate-500">Reference:</span>{" "}
-              <span className="font-medium">{viewData.reference}</span>
+              <span className="font-medium uppercase">
+                {viewData.reference}
+              </span>
             </div>
             <div>
               <span className="text-slate-500">Customer:</span>{" "}

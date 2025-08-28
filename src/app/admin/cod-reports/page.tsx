@@ -27,6 +27,7 @@ type CODDelivery = {
   codPaidDate?: string;
   codNotes?: string;
   deliveryFee: number;
+  rtoAmount?: number;
   status: string;
   createdAt: string;
   assignedDriver?: string;
@@ -64,7 +65,7 @@ export default function AdminCODReportsPage() {
     deliveries: 0,
     pendingAmount: 0,
     paidAmount: 0,
-    partialAmount: 0,
+    deliveryFee: 0,
   });
 
   // Edit modal state
@@ -77,6 +78,7 @@ export default function AdminCODReportsPage() {
   >("pending");
   const [editPaidAmount, setEditPaidAmount] = useState("");
   const [editPaidDate, setEditPaidDate] = useState("");
+  const [editRtoFee, setEditRtoFee] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [updating, setUpdating] = useState(false);
 
@@ -124,19 +126,17 @@ export default function AdminCODReportsPage() {
               sum + (d.codPaidAmount || d.codAmount || 0),
             0
           );
-        const partialAmount = deliveriesData
-          .filter((d: CODDelivery) => d.codPaymentStatus === "partial")
-          .reduce(
-            (sum: number, d: CODDelivery) => sum + (d.codPaidAmount || 0),
-            0
-          );
+        const deliveryFee = deliveriesData.reduce(
+          (sum: number, d: CODDelivery) => sum + (d.deliveryFee || 0),
+          0
+        );
 
         setSummary({
           totalAmount,
           deliveries: deliveriesData.length,
           pendingAmount,
           paidAmount,
-          partialAmount,
+          deliveryFee,
         });
       })
       .catch(() => showError("Error", "Failed to load COD deliveries"))
@@ -171,10 +171,9 @@ export default function AdminCODReportsPage() {
   function openEditModal(delivery: CODDelivery) {
     setEditingDelivery(delivery);
     setEditPaymentStatus(delivery.codPaymentStatus);
-    setEditPaidAmount(String(delivery.codPaidAmount || ""));
-    setEditPaidDate(
-      delivery.codPaidDate ? delivery.codPaidDate.split("T")[0] : ""
-    );
+    setEditPaidAmount(String(delivery.codAmount || 0));
+    setEditPaidDate(new Date().toISOString().split("T")[0]);
+    setEditRtoFee(String(delivery.rtoAmount || 0));
     setEditNotes(delivery.codNotes || "");
     setEditModalOpen(true);
   }
@@ -193,6 +192,7 @@ export default function AdminCODReportsPage() {
           codPaidDate: editPaidDate
             ? new Date(editPaidDate).toISOString()
             : undefined,
+          rtoAmount: editRtoFee ? Number(editRtoFee) : undefined,
           codNotes: editNotes || undefined,
         }),
       });
@@ -217,6 +217,7 @@ export default function AdminCODReportsPage() {
                   ? Number(editPaidAmount)
                   : undefined,
                 codPaidDate: editPaidDate,
+                rtoAmount: editRtoFee ? Number(editRtoFee) : undefined,
                 codNotes: editNotes,
               }
             : d
@@ -254,19 +255,17 @@ export default function AdminCODReportsPage() {
                 sum + (d.codPaidAmount || d.codAmount || 0),
               0
             );
-          const partialAmount = deliveriesData
-            .filter((d: CODDelivery) => d.codPaymentStatus === "partial")
-            .reduce(
-              (sum: number, d: CODDelivery) => sum + (d.codPaidAmount || 0),
-              0
-            );
+          const deliveryFee = deliveriesData.reduce(
+            (sum: number, d: CODDelivery) => sum + (d.deliveryFee || 0),
+            0
+          );
 
           setSummary({
             totalAmount,
             deliveries: deliveriesData.length,
             pendingAmount,
             paidAmount,
-            partialAmount,
+            deliveryFee,
           });
         })
         .catch(() => {});
@@ -278,14 +277,53 @@ export default function AdminCODReportsPage() {
   }
 
   function downloadReport(format: "csv" | "excel" | "pdf") {
-    const url = new URL("/api/cod", window.location.origin);
-    url.searchParams.set("from", fromDate);
-    url.searchParams.set("to", toDate);
-    url.searchParams.set("format", format);
-    url.searchParams.set("download", "true");
-    if (selectedClient) url.searchParams.set("client", selectedClient);
+    // Create a temporary form to submit filtered data
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/api/cod/download";
+    form.target = "_blank";
 
-    window.open(url.toString(), "_blank");
+    // Add the filtered delivery IDs
+    const deliveryIdsInput = document.createElement("input");
+    deliveryIdsInput.type = "hidden";
+    deliveryIdsInput.name = "deliveryIds";
+    deliveryIdsInput.value = JSON.stringify(
+      filteredDeliveries.map((d) => d._id)
+    );
+    form.appendChild(deliveryIdsInput);
+
+    // Add format
+    const formatInput = document.createElement("input");
+    formatInput.type = "hidden";
+    formatInput.name = "format";
+    formatInput.value = format;
+    form.appendChild(formatInput);
+
+    // Add date range
+    const fromDateInput = document.createElement("input");
+    fromDateInput.type = "hidden";
+    fromDateInput.name = "fromDate";
+    fromDateInput.value = fromDate;
+    form.appendChild(fromDateInput);
+
+    const toDateInput = document.createElement("input");
+    toDateInput.type = "hidden";
+    toDateInput.name = "toDate";
+    toDateInput.value = toDate;
+    form.appendChild(toDateInput);
+
+    // Add client filter
+    if (selectedClient) {
+      const clientInput = document.createElement("input");
+      clientInput.type = "hidden";
+      clientInput.name = "client";
+      clientInput.value = selectedClient;
+      form.appendChild(clientInput);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   }
 
   async function handleUploadToClientPortal() {
@@ -299,6 +337,9 @@ export default function AdminCODReportsPage() {
           to: toDate,
           client: selectedClient,
           deliveries: filteredDeliveries.map((d) => d._id),
+          // Include search and payment status filters
+          search: search,
+          paymentStatusFilter: paymentStatusFilter,
         }),
       });
 
@@ -457,9 +498,9 @@ export default function AdminCODReportsPage() {
           </div>
         </Card>
         <Card>
-          <div className="text-[13px] text-slate-500">Partial Amount</div>
+          <div className="text-[13px] text-slate-500">Delivery Fee</div>
           <div className="mt-2 text-2xl font-semibold text-blue-600">
-            ﷼{summary.partialAmount.toFixed(2)}
+            ﷼{summary.deliveryFee.toFixed(2)}
           </div>
         </Card>
       </div>
@@ -577,7 +618,9 @@ export default function AdminCODReportsPage() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <div className="text-[12px] text-slate-500">Reference</div>
-                <div className="font-medium">{editingDelivery.reference}</div>
+                <div className="font-medium uppercase">
+                  {editingDelivery.reference}
+                </div>
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Customer</div>
@@ -607,14 +650,11 @@ export default function AdminCODReportsPage() {
                 <Select
                   value={editPaymentStatus}
                   onChange={(e) =>
-                    setEditPaymentStatus(
-                      e.target.value as "pending" | "paid" | "partial"
-                    )
+                    setEditPaymentStatus(e.target.value as "pending" | "paid")
                   }
                 >
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
-                  <option value="partial">Partial</option>
                 </Select>
               </div>
               <div>
@@ -626,7 +666,8 @@ export default function AdminCODReportsPage() {
                   step="0.01"
                   placeholder="Amount paid"
                   value={editPaidAmount}
-                  onChange={(e) => setEditPaidAmount(e.target.value)}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div>
@@ -637,6 +678,18 @@ export default function AdminCODReportsPage() {
                   type="date"
                   value={editPaidDate}
                   onChange={(e) => setEditPaidDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600 mb-2 block">
+                  RTO Fee (﷼)
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={editRtoFee}
+                  onChange={(e) => setEditRtoFee(e.target.value)}
                 />
               </div>
             </div>

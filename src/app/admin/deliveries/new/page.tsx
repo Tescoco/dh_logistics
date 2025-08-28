@@ -122,6 +122,7 @@ export default function AdminNewDeliveryPage() {
     deliveryCity: "",
     deliveryDistrict: "",
     deliveryPostalCode: "",
+    customerWhatsApp: "",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -132,7 +133,9 @@ export default function AdminNewDeliveryPage() {
     codAmount: "",
     notes: "",
     assignedDriverId: "",
-    serviceType: "1" as "1" | "5" | "9",
+    serviceType: "",
+    insuranceRequired: false,
+    insuranceAmount: "",
   });
 
   type Driver = {
@@ -646,7 +649,7 @@ export default function AdminNewDeliveryPage() {
             <h2 className="text-[15px] font-semibold text-slate-900">
               Receiver Information
             </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Receiver Name
@@ -683,6 +686,29 @@ export default function AdminNewDeliveryPage() {
                   Enter 9 digits only (without country code)
                 </div>
               </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  WhatsApp Number
+                </label>
+                <div className="flex">
+                  <Input
+                    placeholder="XXXXXXXXXXXX"
+                    type="tel"
+                    maxLength={12}
+                    value={form.customerWhatsApp}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 12) {
+                        update("customerWhatsApp", value);
+                      }
+                    }}
+                    className="rounded-l-none"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Optional - Enter 12 digits
+                </div>
+              </div>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Address</label>
@@ -692,23 +718,25 @@ export default function AdminNewDeliveryPage() {
                 onChange={(e) => update("deliveryAddress", e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">City</label>
-              <Select
-                value={form.deliveryCity}
-                onChange={(e) => {
-                  const city = (e.target as HTMLSelectElement).value;
-                  update("deliveryCity", city);
-                }}
-              >
-                <option value="">Select City</option>
-                {serviceCities.map((c, i) => (
-                  <option key={i} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            {form.serviceType && (
+              <div>
+                <label className="text-[13px] text-slate-600">City</label>
+                <Select
+                  value={form.deliveryCity}
+                  onChange={(e) => {
+                    const city = (e.target as HTMLSelectElement).value;
+                    update("deliveryCity", city);
+                  }}
+                >
+                  <option value="">Select City</option>
+                  {serviceCities.map((c, i) => (
+                    <option key={i} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
             {/* <div>
               <label className="text-[13px] text-slate-600">District</label>
               <Select
@@ -767,9 +795,7 @@ export default function AdminNewDeliveryPage() {
                   }
                 >
                   <option>Select Type</option>
-                  <option>Document</option>
                   <option>Parcel</option>
-                  <option>Other</option>
                 </Select>
               </div>
             </div>
@@ -889,9 +915,28 @@ export default function AdminNewDeliveryPage() {
               <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
                 <input type="checkbox" className="h-4 w-4" /> Signature required
               </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Insurance required
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={form.insuranceRequired}
+                    onChange={(e) =>
+                      update("insuranceRequired", e.target.checked)
+                    }
+                  />
+                  Insurance required
+                </label>
+                {form.insuranceRequired && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <Input
+                      value="2%"
+                      disabled
+                      className="w-20 h-8 text-xs bg-gray-50"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">

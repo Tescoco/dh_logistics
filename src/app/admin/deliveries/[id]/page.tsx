@@ -52,6 +52,7 @@ type DeliveryResponse = {
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
+    rtoAmount?: number;
     notes?: string;
     assignedDriverId?: { _id: string; firstName: string; lastName: string };
     serviceType?: string;
@@ -102,6 +103,7 @@ export default function AdminEditDeliveryPage() {
     paymentMethod: string;
     deliveryFee: string;
     codAmount: string;
+    rtoAmount: string;
     notes: string;
     assignedDriverId: string;
     serviceType: string;
@@ -128,9 +130,10 @@ export default function AdminEditDeliveryPage() {
     paymentMethod: "prepaid",
     deliveryFee: "",
     codAmount: "",
+    rtoAmount: "",
     notes: "",
     assignedDriverId: "",
-    serviceType: "1",
+    serviceType: "",
   });
 
   function update<K extends keyof typeof form>(
@@ -201,6 +204,7 @@ export default function AdminEditDeliveryPage() {
           paymentMethod: d.paymentMethod || "prepaid",
           deliveryFee: d.deliveryFee != null ? String(d.deliveryFee) : "",
           codAmount: d.codAmount != null ? String(d.codAmount) : "",
+          rtoAmount: d.rtoAmount != null ? String(d.rtoAmount) : "",
           notes: d.notes || "",
           assignedDriverId: d.assignedDriverId?._id || "",
           serviceType: d.serviceType || "1",
@@ -237,7 +241,9 @@ export default function AdminEditDeliveryPage() {
         description: form.description || undefined,
         priority: form.priority,
         paymentMethod: form.paymentMethod,
+        deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
+        rtoAmount: form.rtoAmount ? Number(form.rtoAmount) : undefined,
         notes: form.notes || undefined,
       };
       const res = await fetch(`/api/deliveries/${id}`, {
@@ -491,9 +497,7 @@ export default function AdminEditDeliveryPage() {
                   }
                 >
                   <option value="">Select Type</option>
-                  <option value="Document">Document</option>
                   <option value="Parcel">Parcel</option>
-                  <option value="Other">Other</option>
                 </Select>
               </div>
             </div>
@@ -535,24 +539,40 @@ export default function AdminEditDeliveryPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
                   Delivery Fee (﷼)
                 </label>
                 <Input
                   type="number"
-                  placeholder="Auto-populated from client"
+                  placeholder="0.00"
                   value={form.deliveryFee || ""}
-                  readOnly
-                  className="bg-gray-50"
+                  onChange={(e) => update("deliveryFee", e.target.value)}
                 />
               </div>
               <div>
-                <label className="text-[13px] text-slate-600">COD Amount</label>
+                <label className="text-[13px] text-slate-600">
+                  COD Amount (﷼)
+                </label>
                 <Input
+                  type="number"
+                  placeholder="0.00"
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  RTO Amount (﷼)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={form.rtoAmount}
+                  onChange={(e) => update("rtoAmount", e.target.value)}
                 />
               </div>
               <div>
@@ -562,7 +582,9 @@ export default function AdminEditDeliveryPage() {
                 <Input
                   readOnly
                   value={(
-                    Number(form.deliveryFee || 0) + Number(form.codAmount || 0)
+                    Number(form.deliveryFee || 0) +
+                    Number(form.codAmount || 0) +
+                    Number(form.rtoAmount || 0)
                   ).toFixed(2)}
                   className="bg-gray-50"
                 />

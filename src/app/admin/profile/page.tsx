@@ -234,20 +234,6 @@ export default function ProfilePage() {
                   <option value="Tabuk">Tabuk</option>
                 </Select>
               </div>
-              <div>
-                <label className="text-[13px] text-slate-600">District</label>
-                <Select
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                >
-                  <option value="">Select a district</option>
-                  {SAUDI_CITIES.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </Select>
-              </div>
             </div>
           </div>
         </div>

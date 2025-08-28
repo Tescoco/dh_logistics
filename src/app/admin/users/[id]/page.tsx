@@ -29,6 +29,8 @@ export default function EditUserPage() {
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [returnOrderRate, setReturnOrderRate] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -49,6 +51,8 @@ export default function EditUserPage() {
           city?: string;
           district?: string;
           postalCode?: string;
+          deliveryFee?: number;
+          returnOrderRate?: number;
         };
         setFirstName(u.firstName || "");
         setLastName(u.lastName || "");
@@ -60,6 +64,8 @@ export default function EditUserPage() {
         setCity(u.city || "");
         setDistrict(u.district || "");
         setPostalCode(u.postalCode || "");
+        setDeliveryFee(u.deliveryFee || 0);
+        setReturnOrderRate(u.returnOrderRate || 0);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -86,6 +92,8 @@ export default function EditUserPage() {
           city: city || undefined,
           district: district || undefined,
           postalCode: postalCode || undefined,
+          deliveryFee: deliveryFee,
+          returnOrderRate: returnOrderRate,
         }),
       });
       if (!res.ok) {
@@ -211,20 +219,37 @@ export default function EditUserPage() {
                     <option value="Tabuk">Tabuk</option>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-[13px] text-slate-600">District</label>
-                  <Select
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                  >
-                    <option value="">Select a district</option>
-                    {SAUDI_CITIES.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Financial Information */}
+          <section className="space-y-4">
+            <h2 className="text-[15px] font-semibold text-slate-900">
+              Financial Information
+            </h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  Delivery Fee (﷼)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={deliveryFee}
+                  onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label className="text-[13px] text-slate-600">
+                  RTO Rate (﷼)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={returnOrderRate}
+                  onChange={(e) => setReturnOrderRate(Number(e.target.value))}
+                />
               </div>
             </div>
           </section>

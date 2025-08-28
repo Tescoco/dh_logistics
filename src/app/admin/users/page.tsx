@@ -27,6 +27,8 @@ type ApiUser = {
   email: string;
   role: string;
   isActive: boolean;
+  deliveryFee?: number;
+  returnOrderRate?: number;
   createdAt: string;
 };
 
@@ -88,6 +90,8 @@ export default function UsersPage() {
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editDeliveryFee, setEditDeliveryFee] = useState<number | null>(null);
+  const [editRtoRate, setEditRtoRate] = useState(0);
   const [editActive, setEditActive] = useState(false);
   const [savingDriver, setSavingDriver] = useState(false);
 
@@ -96,6 +100,8 @@ export default function UsersPage() {
     setEditFirstName(u.firstName || "");
     setEditLastName(u.lastName || "");
     setEditPhone((u as unknown as { phone?: string }).phone || "");
+    setEditDeliveryFee(u.deliveryFee || 0);
+    setEditRtoRate(u.returnOrderRate || 0);
     setEditActive(Boolean(u.isActive));
   }
 
@@ -110,6 +116,8 @@ export default function UsersPage() {
           firstName: editFirstName || undefined,
           lastName: editLastName || undefined,
           phone: editPhone || undefined,
+          deliveryFee: editDeliveryFee,
+          returnOrderRate: editRtoRate,
           isActive: editActive,
         }),
       });
@@ -374,6 +382,18 @@ export default function UsersPage() {
               <span className="text-slate-500">Status:</span>{" "}
               <span className="font-medium">
                 {viewUser.isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">Delivery Fee:</span>{" "}
+              <span className="font-medium">
+                ﷼{Number(viewUser.deliveryFee || 0).toFixed(2)}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-500">RTO Rate:</span>{" "}
+              <span className="font-medium">
+                ﷼{Number(viewUser.returnOrderRate || 0).toFixed(2)}
               </span>
             </div>
             <div>

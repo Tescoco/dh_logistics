@@ -53,6 +53,7 @@ function DeliveriesInner() {
 
 type DeliveryRow = {
   _id: string;
+  reference: string;
   customerName: string;
   customerPhone: string;
   customerStoreName?: string; // Store name for customer tracking
@@ -128,7 +129,9 @@ function CODTab() {
     customerStoreName?: string; // Store name for customer tracking
     deliveryAddress: string;
     paymentMethod?: string;
+    deliveryFee?: number;
     codAmount?: number;
+    rtoAmount?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -194,6 +197,7 @@ function CODTab() {
     if (!q) return rows;
     return rows.filter((r) =>
       [
+        r.reference,
         r.customerName,
         r.customerPhone,
         r.customerStoreName,
@@ -252,7 +256,7 @@ function CODTab() {
 
     // Prepare headers
     const headers = [
-      "Order ID",
+      "Reference ID",
       "Customer Name",
       "Store Name",
       "Assigned Driver/Courier",
@@ -263,7 +267,7 @@ function CODTab() {
 
     // Prepare data
     const data = filtered.map((d) => [
-      d._id.slice(-8).toUpperCase(),
+      d.reference,
       d.customerName,
       d.customerStoreName || "",
       d.assignedDriverId
@@ -326,7 +330,7 @@ function CODTab() {
 
     // Prepare headers
     const headers = [
-      "Order ID",
+      "Reference ID",
       "Customer Name",
       "Store Name",
       "Phone",
@@ -339,7 +343,7 @@ function CODTab() {
 
     // Prepare data
     const data = filtered.map((d) => [
-      d._id.slice(-8).toUpperCase(),
+      d.reference,
       d.customerName,
       d.customerStoreName || "",
       d.customerPhone,
@@ -674,7 +678,7 @@ function CODTab() {
                   />
                 </th>
                 {[
-                  "Order ID",
+                  "Reference ID",
                   "Customer",
                   "Store Name",
                   "Phone",
@@ -700,7 +704,7 @@ function CODTab() {
                       aria-label={`Select ${d._id}`}
                     />
                   </td>
-                  <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
+                  <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
                   <td className="px-5 py-3">{d.customerPhone}</td>
@@ -783,7 +787,7 @@ function CODTab() {
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Reference</div>
-                <div className="font-medium">
+                <div className="font-medium uppercase">
                   {viewDelivery?.reference || "—"}
                 </div>
               </div>
@@ -814,10 +818,26 @@ function CODTab() {
                 <div className="font-medium">{viewDelivery?.paymentMethod}</div>
               </div>
               <div>
+                <div className="text-[12px] text-slate-500">Delivery Fee</div>
+                <div className="font-medium">
+                  {viewDelivery?.deliveryFee
+                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
                     ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">RTO Amount</div>
+                <div className="font-medium">
+                  {viewDelivery?.rtoAmount
+                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -896,7 +916,9 @@ function InternalTab() {
     customerStoreName?: string; // Store name for customer tracking
     deliveryAddress: string;
     paymentMethod?: string;
+    deliveryFee?: number;
     codAmount?: number;
+    rtoAmount?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -948,7 +970,7 @@ function InternalTab() {
     if (!q) return rows;
     return rows.filter((r) =>
       [
-        r._id.slice(-8),
+        r.reference,
         r.customerName,
         r.customerStoreName,
         r.deliveryAddress,
@@ -1009,7 +1031,7 @@ function InternalTab() {
 
     // Prepare headers
     const headers = [
-      "Order ID",
+      "Reference ID",
       "Customer Name",
       "Store Name",
       "Assigned Driver/Courier",
@@ -1020,7 +1042,7 @@ function InternalTab() {
 
     // Prepare data
     const data = filtered.map((d) => [
-      d._id.slice(-8).toUpperCase(),
+      d.reference,
       d.customerName,
       d.customerStoreName || "",
       d.assignedDriverId
@@ -1349,7 +1371,7 @@ function InternalTab() {
                   />
                 </th>
                 {[
-                  "Order ID",
+                  "Reference ID",
                   "Customer",
                   "Store Name",
                   "Assigned Driver/Courier",
@@ -1374,7 +1396,7 @@ function InternalTab() {
                       aria-label={`Select ${d._id}`}
                     />
                   </td>
-                  <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
+                  <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
                   <td className="px-5 py-3">
@@ -1451,7 +1473,7 @@ function InternalTab() {
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Reference</div>
-                <div className="font-medium">
+                <div className="font-medium uppercase">
                   {viewDelivery?.reference || "—"}
                 </div>
               </div>
@@ -1482,10 +1504,26 @@ function InternalTab() {
                 <div className="font-medium">{viewDelivery?.paymentMethod}</div>
               </div>
               <div>
+                <div className="text-[12px] text-slate-500">Delivery Fee</div>
+                <div className="font-medium">
+                  {viewDelivery?.deliveryFee
+                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
                     ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">RTO Amount</div>
+                <div className="font-medium">
+                  {viewDelivery?.rtoAmount
+                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -1564,7 +1602,9 @@ function CourierTab() {
     customerStoreName?: string; // Store name for customer tracking
     deliveryAddress: string;
     paymentMethod?: string;
+    deliveryFee?: number;
     codAmount?: number;
+    rtoAmount?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -1616,7 +1656,7 @@ function CourierTab() {
     if (!q) return rows;
     return rows.filter((r) =>
       [
-        r._id.slice(-8),
+        r.reference,
         r.customerName,
         r.customerStoreName,
         r.deliveryAddress,
@@ -1677,7 +1717,7 @@ function CourierTab() {
 
     // Prepare headers
     const headers = [
-      "Order ID",
+      "Reference ID",
       "Customer Name",
       "Store Name",
       "Assigned Driver/Courier",
@@ -1688,7 +1728,7 @@ function CourierTab() {
 
     // Prepare data
     const data = filtered.map((d) => [
-      d._id.slice(-8).toUpperCase(),
+      d.reference,
       d.customerName,
       d.customerStoreName || "",
       d.assignedDriverId
@@ -1712,7 +1752,7 @@ function CourierTab() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `internal_deliveries_${new Date()
+      a.download = `courier_deliveries_${new Date()
         .toISOString()
         .slice(0, 10)}.csv`;
       document.body.appendChild(a);
@@ -1733,7 +1773,7 @@ function CourierTab() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `internal_deliveries_${new Date()
+      a.download = `courier_deliveries_${new Date()
         .toISOString()
         .slice(0, 10)}.xlsx`;
       document.body.appendChild(a);
@@ -2017,7 +2057,7 @@ function CourierTab() {
                   />
                 </th>
                 {[
-                  "Order ID",
+                  "Reference ID",
                   "Customer",
                   "Store Name",
                   "Assigned Courier",
@@ -2042,7 +2082,7 @@ function CourierTab() {
                       aria-label={`Select ${d._id}`}
                     />
                   </td>
-                  <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
+                  <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
                   <td className="px-5 py-3">
@@ -2119,7 +2159,7 @@ function CourierTab() {
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Reference</div>
-                <div className="font-medium">
+                <div className="font-medium uppercase">
                   {viewDelivery?.reference || "—"}
                 </div>
               </div>
@@ -2150,10 +2190,26 @@ function CourierTab() {
                 <div className="font-medium">{viewDelivery?.paymentMethod}</div>
               </div>
               <div>
+                <div className="text-[12px] text-slate-500">Delivery Fee</div>
+                <div className="font-medium">
+                  {viewDelivery?.deliveryFee
+                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
                     ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-slate-500">RTO Amount</div>
+                <div className="font-medium">
+                  {viewDelivery?.rtoAmount
+                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>

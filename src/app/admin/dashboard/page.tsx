@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
         if (mounted) setRecent((d.deliveries || []).slice(0, 4));
       })
       .catch(() => {});
-    
+
     // Load active drivers/couriers for dropdown
     setCouriersLoading(true);
     fetch("/api/users")
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
           setCouriersLoading(false);
         }
       });
-    
+
     return () => {
       mounted = false;
     };
@@ -208,7 +208,9 @@ export default function AdminDashboardPage() {
 
   // Selection helper functions
   const allVisibleSelected = useMemo(
-    () => filteredRecent.length > 0 && filteredRecent.every((d) => selectedIds.has(d._id)),
+    () =>
+      filteredRecent.length > 0 &&
+      filteredRecent.every((d) => selectedIds.has(d._id)),
     [filteredRecent, selectedIds]
   );
 
@@ -396,7 +398,7 @@ export default function AdminDashboardPage() {
             <option value="lost_damaged">Lost & Damages</option>
           </Select>
           <Input
-            placeholder="ID1, ID2, ID3..."
+            placeholder="Reference ID1, Reference ID2, Reference ID3..."
             value={bulkIds}
             onChange={(e) => setBulkIds((e.target as HTMLInputElement).value)}
           />
@@ -663,7 +665,7 @@ export default function AdminDashboardPage() {
                   />
                 </th>
                 {[
-                  "Delivery ID",
+                  "Reference ID",
                   "Client",
                   "Status",
                   "Date",
@@ -694,8 +696,8 @@ export default function AdminDashboardPage() {
                     />
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-semibold text-slate-900">
-                      {delivery._id.slice(-8).toUpperCase()}
+                    <span className="font-semibold text-slate-900 uppercase">
+                      {delivery.reference}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -797,7 +799,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div>
                     <div className="text-[12px] text-slate-500">Reference</div>
-                    <div className="font-medium">
+                    <div className="font-medium uppercase ">
                       {viewDelivery.reference || "—"}
                     </div>
                   </div>

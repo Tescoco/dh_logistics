@@ -123,7 +123,7 @@ export default function CreateDeliveryPage() {
     deliveryAddress: "",
     deliveryCity: "",
     deliveryDistrict: "",
-    serviceType: "1",
+    serviceType: "",
     weightKg: "",
     dimensions: "",
     packageType: "",
@@ -136,6 +136,8 @@ export default function CreateDeliveryPage() {
     senderPostalCode: "",
     senderName: "",
     senderPhone: "",
+    insuranceRequired: false,
+    insuranceAmount: "",
   });
 
   const serviceCities = useMemo(() => {
@@ -226,7 +228,7 @@ export default function CreateDeliveryPage() {
         customerName: form.customerName,
         customerPhone: `+966${form.customerPhone}`,
         customerWhatsApp: form.customerWhatsApp
-          ? `+966${form.customerWhatsApp}`
+          ? `${form.customerWhatsApp}`
           : undefined,
         deliveryAddress: form.deliveryAddress,
         deliveryCity: form.deliveryCity,
@@ -374,17 +376,14 @@ export default function CreateDeliveryPage() {
                   WhatsApp Number
                 </label>
                 <div className="flex">
-                  <div className="flex items-center px-3 py-2 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm text-gray-600">
-                    +966
-                  </div>
                   <Input
-                    placeholder="5XXXXXXXX"
+                    placeholder="XXXXXXXXX"
                     type="tel"
-                    maxLength={9}
+                    maxLength={12}
                     value={form.customerWhatsApp}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, "");
-                      if (value.length <= 9) {
+                      if (value.length <= 12) {
                         update("customerWhatsApp", value);
                       }
                     }}
@@ -392,7 +391,7 @@ export default function CreateDeliveryPage() {
                   />
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
-                  Optional - Enter 9 digits only
+                  Optional - Enter 12 digits (with country code)
                 </div>
               </div>
             </div>
@@ -432,30 +431,32 @@ export default function CreateDeliveryPage() {
                   </Select>
                 </div>
               </div>
-              <div>
-                <label className="text-[13px] text-slate-600">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <Select
-                    value={form.deliveryCity}
-                    onChange={(e) =>
-                      update(
-                        "deliveryCity",
-                        (e.target as HTMLSelectElement).value
-                      )
-                    }
-                    className="flex-1"
-                  >
-                    <option value="">Select City</option>
-                    {serviceCities.map((c, i) => (
-                      <option key={i} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </Select>
+              {form.serviceType && (
+                <div>
+                  <label className="text-[13px] text-slate-600">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={form.deliveryCity}
+                      onChange={(e) =>
+                        update(
+                          "deliveryCity",
+                          (e.target as HTMLSelectElement).value
+                        )
+                      }
+                      className="flex-1"
+                    >
+                      <option value="">Select City</option>
+                      {serviceCities.map((c, i) => (
+                        <option key={i} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
-              </div>
+              )}
               {/* <div>
                 <label className="text-[13px] text-slate-600">
                   District <span className="text-red-500">*</span>
@@ -524,9 +525,7 @@ export default function CreateDeliveryPage() {
                   }
                 >
                   <option value="">Select Type</option>
-                  <option value="doscument">Document</option>
                   <option value="parcel">Parcel</option>
-                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>
@@ -595,9 +594,28 @@ export default function CreateDeliveryPage() {
                 <input type="checkbox" className="h-4 w-4" /> Fragile - Handle
                 with care
               </label>
-              <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
-                <input type="checkbox" className="h-4 w-4" /> Insurance required
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="inline-flex items-center gap-2 text-[14px] text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={form.insuranceRequired}
+                    onChange={(e) =>
+                      update("insuranceRequired", e.target.checked)
+                    }
+                  />
+                  Insurance required
+                </label>
+                {form.insuranceRequired && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <Input
+                      value="2%"
+                      disabled
+                      className="w-20 h-8 text-xs bg-gray-50"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-[13px] text-slate-600">

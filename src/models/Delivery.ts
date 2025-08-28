@@ -28,9 +28,10 @@ export interface DeliveryDocument {
   packageType?: string;
   description: string;
   priority?: "standard" | "express";
-  paymentMethod?: "cod";
+  paymentMethod?: "cod" | "prepaid";
   deliveryFee?: number;
   codAmount?: number;
+  rtoAmount?: number;
   codPaymentStatus?: CODPaymentStatus; // COD payment status
   codPaidAmount?: number; // Amount actually paid for COD
   codPaidDate?: Date; // Date when COD was paid
@@ -83,11 +84,12 @@ const deliverySchema = new Schema<DeliveryDocument>(
     },
     paymentMethod: {
       type: String,
-      enum: ["cod"],
+      enum: ["cod", "prepaid"],
       default: "cod",
     },
     deliveryFee: { type: Number, default: 0 },
     codAmount: { type: Number, default: 0 },
+    rtoAmount: { type: Number, default: 0 },
     codPaymentStatus: {
       type: String,
       enum: ["pending", "paid", "partial"],

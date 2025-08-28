@@ -310,9 +310,7 @@ export default function EditDeliveryPage() {
                   }
                 >
                   <option value="">Select Type</option>
-                  <option value="document">Document</option>
                   <option value="parcel">Parcel</option>
-                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>

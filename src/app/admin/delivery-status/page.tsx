@@ -31,6 +31,7 @@ export default function DeliveryStatusPage() {
   const [rows, setRows] = useState<
     {
       _id: string;
+      reference: string;
       customerName: string;
       deliveryAddress: string;
       status: string;
@@ -40,6 +41,7 @@ export default function DeliveryStatusPage() {
   const [loading, setLoading] = useState(false);
   const [viewRow, setViewRow] = useState<null | {
     _id: string;
+    reference: string;
     customerName: string;
     deliveryAddress: string;
     status: string;
@@ -682,7 +684,7 @@ export default function DeliveryStatusPage() {
             <option value="lost_damaged">Lost & Damages</option>
           </Select>
           <Input
-            placeholder="ID1, ID2, ID3..."
+            placeholder="Reference ID1, Reference ID2, Reference ID3..."
             value={id}
             onChange={(e) => setId((e.target as HTMLInputElement).value)}
           />
@@ -772,7 +774,7 @@ export default function DeliveryStatusPage() {
                   />
                 </th>
                 {[
-                  "Delivery ID",
+                  "Reference ID",
                   "Customer",
                   "Address",
                   "Status",
@@ -796,7 +798,7 @@ export default function DeliveryStatusPage() {
                       aria-label={`Select ${d._id}`}
                     />
                   </td>
-                  <td className="px-5 py-3">{d._id.slice(-8).toUpperCase()}</td>
+                  <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.deliveryAddress}</td>
                   <td className="px-5 py-3">

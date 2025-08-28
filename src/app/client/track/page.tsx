@@ -651,12 +651,14 @@ export default function TrackDeliveriesPage() {
                       >
                         <EditIcon size={16} />
                       </IconButton>
-                      <IconButton
-                        label="Cancel"
-                        onClick={() => handleCancel(r.deliveryId)}
-                      >
-                        <span className="text-[#0EA5E9] text-lg">✕</span>
-                      </IconButton>
+                      {r.status !== "Cancelled" && (
+                        <IconButton
+                          label="Cancel"
+                          onClick={() => handleCancel(r.deliveryId)}
+                        >
+                          <span className="text-[#0EA5E9] text-lg">✕</span>
+                        </IconButton>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -752,12 +754,14 @@ export default function TrackDeliveriesPage() {
                   >
                     <EditIcon size={16} />
                   </IconButton>
-                  <IconButton
-                    label="Cancel"
-                    onClick={() => handleCancel(r.deliveryId)}
-                  >
-                    <span className="text-[#0EA5E9] text-lg">✕</span>
-                  </IconButton>
+                  {r.status !== "Cancelled" && (
+                    <IconButton
+                      label="Cancel"
+                      onClick={() => handleCancel(r.deliveryId)}
+                    >
+                      <span className="text-[#0EA5E9] text-lg">✕</span>
+                    </IconButton>
+                  )}
                 </div>
               </div>
             ))}

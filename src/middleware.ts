@@ -3,6 +3,8 @@ import { verifyJwt, type JwtPayload } from "@/lib/jwt";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Admin routes protection
   if (pathname.startsWith("/admin")) {
     // Allow the public login route without auth
     if (pathname === "/admin/login") {
@@ -27,9 +29,30 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  // Client routes protection
+  if (pathname.startsWith("/client") && pathname !== "/client/login") {
+    const token = req.cookies.get("auth_token")?.value;
+    if (!token) {
+      const url = new URL("/client/login", req.url);
+      return NextResponse.redirect(url);
+    }
+    try {
+      const payload = await verifyJwt<JwtPayload>(token);
+      const role = payload.role;
+      if (role !== "customer" && role !== "admin") {
+        const url = new URL("/", req.url);
+        return NextResponse.redirect(url);
+      }
+    } catch {
+      const url = new URL("/client/login", req.url);
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/client/:path*"],
 };

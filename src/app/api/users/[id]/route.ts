@@ -18,7 +18,9 @@ const UpdateUserSchema = z.object({
 export async function GET(_req: NextRequest, { params }: any) {
   await connectToDatabase();
   const user = await User.findById(params.id)
-    .select("firstName lastName email role isActive phone createdAt")
+    .select(
+      "firstName lastName email role isActive phone createdAt deliveryFee returnOrderRate"
+    )
     .lean();
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ user });
@@ -39,7 +41,9 @@ export async function PATCH(req: NextRequest, { params }: any) {
       { $set: input },
       { new: true }
     )
-      .select("firstName lastName email role isActive phone createdAt")
+      .select(
+        "firstName lastName email role isActive phone createdAt deliveryFee returnOrderRate"
+      )
       .lean();
     if (!updated)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
