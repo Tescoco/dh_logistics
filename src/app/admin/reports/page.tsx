@@ -54,7 +54,7 @@ const tabs = [
 ];
 
 export default function ReportsPage() {
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
   const [activeTab, setActiveTab] = useState("daily");
 
   // Date filters , one month ago

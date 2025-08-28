@@ -4,7 +4,7 @@ import path from "node:path";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 // User model is imported to register schema for Mongoose population
-import { User } from "@/models/User";
+
 import { getAuthUser } from "@/lib/session";
 import {
   PDFDocument as PDFLibDocument,

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { DownloadIcon } from "@/components/icons";
+
 import { useToast } from "@/contexts/ToastContext";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
@@ -26,11 +26,11 @@ type DeliveryTicket = {
 export default function A4TicketsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
   const [tickets, setTickets] = useState<DeliveryTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [printing, setPrinting] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
   const [barcodes, setBarcodes] = useState<Record<string, string>>({});
 
@@ -289,6 +289,8 @@ export default function A4TicketsPage() {
                     src={barcodes[ticket._id]}
                     alt="Barcode"
                     className="h-20"
+                    width={200}
+                    height={80}
                   />
                 ) : (
                   <div className="text-xs">Loading Barcode...</div>
@@ -321,6 +323,8 @@ export default function A4TicketsPage() {
                       src={qrCodes[ticket._id]}
                       alt="QR Code"
                       className="w-16 h-16 mt-1"
+                      width={64}
+                      height={64}
                     />
                   ) : (
                     <div className="text-xs">...</div>

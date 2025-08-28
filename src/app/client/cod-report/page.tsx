@@ -4,12 +4,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
+
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import {
   SearchIcon,
-  UploadIcon,
+
   DownloadIcon,
   LinkIcon,
   TrashIcon,

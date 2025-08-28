@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const format = formData.get("format") as string;
     const fromDate = formData.get("fromDate") as string;
     const toDate = formData.get("toDate") as string;
-    const client = formData.get("client") as string;
+
 
     // Get the filtered deliveries by IDs
     const deliveriesData = await Delivery.find({

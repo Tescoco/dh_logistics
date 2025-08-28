@@ -514,7 +514,7 @@ export default function ThermalTicketsPage() {
       >
         <div className="p-6 print:p-0">
           <div className="grid gap-6 print:gap-0">
-            {tickets.map((ticket, index) => (
+            {tickets.map((ticket) => (
               <div
                 key={ticket._id}
                 className="thermal-ticket border-2 border-black bg-white"
@@ -602,6 +602,8 @@ export default function ThermalTicketsPage() {
                       src={qrCodes[ticket._id]}
                       alt="QR Code"
                       className="w-20 h-20 mx-auto"
+                      width={80}
+                      height={80}
                     />
                   ) : (
                     <div className="w-20 h-20 bg-slate-100 border border-slate-300 mx-auto flex items-center justify-center text-xs text-slate-500">
@@ -617,6 +619,8 @@ export default function ThermalTicketsPage() {
                       src={barcodes[ticket._id]}
                       alt="Barcode"
                       className="h-10 mx-auto"
+                      width={200}
+                      height={40}
                     />
                   ) : (
                     <div className="font-mono text-2xl tracking-wider">

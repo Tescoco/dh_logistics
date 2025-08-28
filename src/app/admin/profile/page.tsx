@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useToast } from "@/contexts/ToastContext";
 import Select from "@/components/ui/Select";
-import { SAUDI_CITIES } from "@/lib/cities";
+
 
 export default function ProfilePage() {
   const { showError, showSuccess } = useToast();
@@ -104,6 +104,8 @@ export default function ProfilePage() {
                   src={avatarUrl}
                   alt="Avatar"
                   className="h-16 w-16 rounded-full object-cover"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-slate-200" />

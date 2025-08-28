@@ -881,6 +881,9 @@ function InternalTab() {
   const { showError, showSuccess } = useToast();
   const [driverName, setDriverName] = useState("");
   const [driverPhone, setDriverPhone] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [counts, setCounts] = useState({
     activeDrivers: 0,
@@ -1568,6 +1571,7 @@ function CourierTab() {
   const [employeeId, setEmployeeId] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
   const [counts, setCounts] = useState({
     activeDrivers: 0,
     assigned: 0,
