@@ -13,6 +13,7 @@ import {
   LinkIcon,
   TrashIcon,
   EyeIcon,
+  ChevronDownIcon,
 } from "@/components/icons";
 import { useToast } from "@/contexts/ToastContext";
 
@@ -38,6 +39,23 @@ type CODDelivery = {
 
 export default function CodReportPage() {
   const { showError, showSuccess } = useToast();
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdowns = document.querySelectorAll(".dropdown-menu");
+      dropdowns.forEach((dropdown) => {
+        if (!dropdown.contains(event.target as Node)) {
+          dropdown.classList.add("hidden");
+        }
+      });
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   // 30 days range from now
   const [fromDate, setFromDate] = useState(
     new Date(new Date().setDate(new Date().getDate() - 30))
@@ -49,7 +67,7 @@ export default function CodReportPage() {
       .toISOString()
       .split("T")[0]
   );
-  const [format] = useState<ReportRow["format"]>("PDF");
+  const [format, setFormat] = useState<ReportRow["format"]>("PDF");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState({
     totalAmount: 0,
@@ -122,8 +140,6 @@ export default function CodReportPage() {
       setGenerating(false);
     }
   }
-
-
 
   function extractDatesFromRange(rangeString: string) {
     // Extract dates from format "MM/DD/YYYY - MM/DD/YYYY"
@@ -314,7 +330,51 @@ export default function CodReportPage() {
                     {r.generatedOn}
                   </td>
                   <td className="px-6 py-3 hidden sm:table-cell">
-                    <Badge variant="neutral">{r.format}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="neutral">{r.format}</Badge>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const dropdown = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            dropdown.classList.toggle("hidden");
+                          }}
+                          className="p-1 hover:bg-slate-100 rounded"
+                        >
+                          <ChevronDownIcon size={12} />
+                        </button>
+                        <div className="dropdown-menu absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-10 hidden min-w-[120px]">
+                          {(["PDF", "CSV", "Excel"] as const)
+                            .filter((f) => f !== r.format)
+                            .map((formatOption) => (
+                              <button
+                                key={formatOption}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const { from, to } = extractDatesFromRange(
+                                    r.range
+                                  );
+                                  const link = document.createElement("a");
+                                  link.href = `/api/cod?from=${from}&to=${to}&format=${formatOption}&download=true`;
+                                  link.download = `${
+                                    r.name
+                                  }.${formatOption.toLowerCase()}`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  (
+                                    e.currentTarget.parentElement as HTMLElement
+                                  ).classList.add("hidden");
+                                }}
+                                className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50 first:rounded-t-md last:rounded-b-md"
+                              >
+                                {formatOption}
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-3 hidden sm:table-cell capitalize">
                     <Badge
@@ -432,7 +492,53 @@ export default function CodReportPage() {
                   </div>
                   <div>
                     <span className="text-slate-500">Format:</span>
-                    <div className="font-medium text-slate-700">{r.format}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-700">
+                        {r.format}
+                      </span>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const dropdown = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            dropdown.classList.toggle("hidden");
+                          }}
+                          className="p-1 hover:bg-slate-100 rounded"
+                        >
+                          <ChevronDownIcon size={12} />
+                        </button>
+                        <div className="dropdown-menu absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-10 hidden min-w-[120px]">
+                          {(["PDF", "CSV", "Excel"] as const).map(
+                            (formatOption) => (
+                              <button
+                                key={formatOption}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const { from, to } = extractDatesFromRange(
+                                    r.range
+                                  );
+                                  const link = document.createElement("a");
+                                  link.href = `/api/cod?from=${from}&to=${to}&format=${formatOption}&download=true`;
+                                  link.download = `${
+                                    r.name
+                                  }.${formatOption.toLowerCase()}`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  (
+                                    e.currentTarget.parentElement as HTMLElement
+                                  ).classList.add("hidden");
+                                }}
+                                className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50 first:rounded-t-md last:rounded-b-md"
+                              >
+                                Download as {formatOption}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
