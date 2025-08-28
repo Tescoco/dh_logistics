@@ -17,7 +17,8 @@ const UpdateUserSchema = z.object({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(_req: NextRequest, { params }: any) {
   await connectToDatabase();
-  const user = await User.findById(params.id)
+  const { id } = await params;
+  const user = await User.findById(id)
     .select(
       "firstName lastName email role isActive phone createdAt deliveryFee returnOrderRate"
     )
@@ -36,8 +37,9 @@ export async function PATCH(req: NextRequest, { params }: any) {
   try {
     const body = await req.json();
     const input = UpdateUserSchema.parse(body);
+    const { id } = await params;
     const updated = await User.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: input },
       { new: true }
     )
@@ -66,6 +68,7 @@ export async function DELETE(req: NextRequest, { params }: any) {
   if (!auth || (auth.role !== "admin" && auth.role !== "manager")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  await User.findByIdAndDelete(params.id);
+  const { id } = await params;
+  await User.findByIdAndDelete(id);
   return NextResponse.json({ ok: true });
 }

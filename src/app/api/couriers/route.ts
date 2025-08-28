@@ -8,17 +8,16 @@ import { getAuthUser } from "@/lib/session";
 const CreateCourierSchema = z.object({
   courierCompanyName: z.string().min(1),
   firstName: z.string().min(1),
-  lastName: z.string().optional(),
+  lastName: z.union([z.string().min(1), z.literal("")]).optional(),
   email: z.string().email(),
-  phone: z.string().optional(),
-  courierContactEmail: z.string().email().optional(),
-  courierContactPhone: z.string().optional(),
+  phone: z.union([z.string().min(1), z.literal("")]).optional(),
+  courierContactEmail: z.union([z.string().email(), z.literal("")]).optional(),
+  courierContactPhone: z.union([z.string().min(1), z.literal("")]).optional(),
   courierServiceAreas: z.array(z.string()).optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
-  postalCode: z.string().optional(),
-  password: z.string().min(8),
+  address: z.union([z.string().min(1), z.literal("")]).optional(),
+  city: z.union([z.string().min(1), z.literal("")]).optional(),
+  district: z.union([z.string().min(1), z.literal("")]).optional(),
+  postalCode: z.union([z.string().min(1), z.literal("")]).optional(),
 });
 
 export const runtime = "nodejs";
@@ -57,22 +56,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const passwordHash = await hashPassword(input.password);
+    // Generate a default password for couriers
+    const defaultPassword = `courier_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+    const passwordHash = await hashPassword(defaultPassword);
+
     const courier = await User.create({
       firstName: input.firstName,
       lastName: input.lastName || "",
       email: input.email,
-      phone: input.phone,
+      phone: input.phone || undefined,
       role: "courier",
       passwordHash,
       courierCompanyName: input.courierCompanyName,
       courierContactEmail: input.courierContactEmail || input.email,
-      courierContactPhone: input.courierContactPhone || input.phone,
+      courierContactPhone:
+        input.courierContactPhone || input.phone || undefined,
       courierServiceAreas: input.courierServiceAreas || [],
-      address: input.address,
-      city: input.city,
-      district: input.district,
-      postalCode: input.postalCode,
+      address: input.address || undefined,
+      city: input.city || undefined,
+      district: input.district || undefined,
+      postalCode: input.postalCode || undefined,
     });
     return NextResponse.json({ id: courier._id.toString() }, { status: 201 });
   } catch (err) {

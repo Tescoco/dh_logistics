@@ -51,7 +51,6 @@ export default function CouriersPage() {
     city: "",
     district: "",
     postalCode: "",
-    password: "testing12345",
   });
 
   const [serviceAreaInput, setServiceAreaInput] = useState("");
@@ -108,7 +107,6 @@ export default function CouriersPage() {
       city: "",
       district: "",
       postalCode: "",
-      password: "testing12345",
     });
     setServiceAreaInput("");
     setModalOpen(true);
@@ -129,7 +127,6 @@ export default function CouriersPage() {
       city: "",
       district: "",
       postalCode: "",
-      password: "", // Don't pre-fill password for editing
     });
     setServiceAreaInput("");
     setModalOpen(true);
@@ -166,14 +163,6 @@ export default function CouriersPage() {
       return;
     }
 
-    if (!editingCourier && !formData.password) {
-      showError(
-        "Validation Error",
-        "Password is required for new courier companies"
-      );
-      return;
-    }
-
     setSubmitting(true);
     try {
       const url = editingCourier
@@ -182,9 +171,6 @@ export default function CouriersPage() {
       const method = editingCourier ? "PATCH" : "POST";
 
       const payload: Partial<typeof formData> = { ...formData };
-      if (editingCourier && !formData.password) {
-        delete payload.password; // Don't send empty password for updates
-      }
 
       const res = await fetch(url, {
         method,
@@ -194,11 +180,35 @@ export default function CouriersPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        showError(
-          editingCourier ? "Update Failed" : "Creation Failed",
-          data?.error ||
-            `Failed to ${editingCourier ? "update" : "create"} courier company`
-        );
+
+        // Handle Zod validation errors
+        if (data?.error?.fieldErrors || data?.error?.formErrors) {
+          const fieldErrors = data.error.fieldErrors || {};
+          const formErrors = data.error.formErrors || [];
+
+          const errorMessages = [
+            ...formErrors,
+            ...Object.entries(fieldErrors).map(([field, errors]) => {
+              if (Array.isArray(errors)) {
+                return `${field}: ${errors.join(", ")}`;
+              }
+              return `${field}: ${errors}`;
+            }),
+          ];
+
+          showError(
+            editingCourier ? "Validation Error" : "Validation Error",
+            errorMessages.join(" • ")
+          );
+        } else {
+          showError(
+            editingCourier ? "Update Failed" : "Creation Failed",
+            data?.error ||
+              `Failed to ${
+                editingCourier ? "update" : "create"
+              } courier company`
+          );
+        }
         return;
       }
 
@@ -519,22 +529,6 @@ export default function CouriersPage() {
               />
             </div>
           </div>
-          {/* 
-          {!editingCourier && (
-            <div>
-              <label className="text-[13px] text-slate-600 mb-2 block">
-                Password *
-              </label>
-              <Input
-                type="password"
-                placeholder="Password for courier login"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, password: e.target.value }))
-                }
-              />
-            </div>
-          )} */}
 
           <div>
             <label className="text-[13px] text-slate-600 mb-2 block">
