@@ -67,14 +67,8 @@ export default function CodReportPage() {
       .toISOString()
       .split("T")[0]
   );
-  const [format, setFormat] = useState<ReportRow["format"]>("PDF");
+  const [format] = useState<ReportRow["format"]>("PDF");
   const [search, setSearch] = useState("");
-  const [summary, setSummary] = useState({
-    totalAmount: 0,
-    deliveries: 0,
-    pendingAmount: 0,
-    collectedAmount: 0,
-  });
   const [history, setHistory] = useState<ReportRow[]>([]);
   const [generating, setGenerating] = useState(false);
 
@@ -85,16 +79,6 @@ export default function CodReportPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<CODDelivery[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
-
-  useEffect(() => {
-    const url = new URL("/api/cod", window.location.origin);
-    url.searchParams.set("from", fromDate);
-    url.searchParams.set("to", toDate);
-    fetch(url.toString())
-      .then((r) => r.json())
-      .then((d) => setSummary(d))
-      .catch(() => {});
-  }, [fromDate, toDate]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

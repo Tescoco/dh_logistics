@@ -166,6 +166,10 @@ export async function POST(req: NextRequest) {
         packageType: data.packageType?.toLowerCase() || "parcel",
         description: data.description,
         priority: data.priority?.toLowerCase() || "standard",
+        // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
+        // and does NOT accept "COD" (uppercase) for the paymentMethod field.
+        // This was discovered during testing where bulk uploads failed with uppercase COD values.
+        // The toLowerCase() conversion ensures compatibility with both formats.
         paymentMethod: data.paymentMethod?.toLowerCase() || "cod",
         deliveryFee: data.deliveryFee || defaultDeliveryFee,
         codAmount: data.codAmount,

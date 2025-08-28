@@ -1,5 +1,5 @@
 export const RGS_CITIES: string[] = [
-  " Riyadh",
+  "Riyadh",
   "Jeddah",
   "Abha",
   "Khamis Mushait",

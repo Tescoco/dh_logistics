@@ -479,9 +479,14 @@ export default function DeliveryStatusPage() {
     }
   }
 
-  function downloadTemplate() {
+  async function downloadTemplate() {
+    // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
+    // and does NOT accept "COD" (uppercase) for the paymentMethod field.
+    // This was discovered during testing where bulk uploads failed with uppercase COD values.
+
+    // Download empty template
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -492,6 +497,35 @@ export default function DeliveryStatusPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Wait a moment before downloading the example file to avoid browser blocking
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Also download example template with sample data
+    const exampleData = [
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
+      "SS10001,Ahmed Al-Rashid,501234567,John Smith,502345678,123 Sender St,Riyadh,456 Customer Ave,Jeddah,parcel,Electronics package,standard,cod,150.00,Sample delivery,25.00,1",
+      "SS10002,Sarah Johnson,503456789,Mike Wilson,504567890,456 Sender Blvd,Dammam,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,standard,cod,75.50,Handle with care,20.00,5",
+      "SS10003,Mohammed Ali,505678901,Lisa Brown,506789012,789 Sender Ave,Jeddah,123 Customer St,Mijannah,parcel,Books and documents,standard,cod,45.00,No signature required,15.00,9",
+    ].join("\n");
+
+    const exampleBlob = new Blob([exampleData], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const exampleUrl = URL.createObjectURL(exampleBlob);
+    const exampleLink = document.createElement("a");
+    exampleLink.href = exampleUrl;
+    exampleLink.download = "deliveries_example.csv";
+    document.body.appendChild(exampleLink);
+    exampleLink.click();
+    document.body.removeChild(exampleLink);
+    URL.revokeObjectURL(exampleUrl);
+
+    // Show success message
+    showSuccess(
+      "Templates Downloaded",
+      "Both empty template and example template have been downloaded successfully."
+    );
   }
 
   async function startUpload() {
@@ -556,7 +590,9 @@ export default function DeliveryStatusPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-[13px] text-slate-600">
-              Upload a CSV or XLSX file containing delivery information
+              Upload a CSV or XLSX file containing delivery information. Click
+              &quot;Download Templates&quot; to get both empty and example
+              templates.
             </div>
           </div>
           <Button
@@ -564,7 +600,7 @@ export default function DeliveryStatusPage() {
             leftIcon={<DownloadIcon size={16} />}
             onClick={downloadTemplate}
           >
-            Download Template
+            Download Templates
           </Button>
         </div>
         <div className="mt-4 border-2 border-dashed border-sky-200 rounded-xl p-8 text-center">

@@ -317,11 +317,17 @@ export default function CreateUserPage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-[13px] text-slate-600">States</label>
-                  <Select>
-                    <option>Downtown District</option>
-                    <option>Uptown</option>
-                    <option>Westside</option>
+                  <label className="text-[13px] text-slate-600">District</label>
+                  <Select
+                    value={district}
+                    onChange={(e) =>
+                      setDistrict((e.target as HTMLSelectElement).value)
+                    }
+                  >
+                    <option value="">Select District</option>
+                    <option value="Downtown District">Downtown District</option>
+                    <option value="Uptown">Uptown</option>
+                    <option value="Westside">Westside</option>
                   </Select>
                 </div>
               </div>

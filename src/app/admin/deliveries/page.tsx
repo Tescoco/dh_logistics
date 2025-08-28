@@ -89,18 +89,6 @@ function CODTab() {
     | "rto"
     | "lost_damaged";
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState<DeliveryStatus | "">("");
-  const [bulkUpdating, setBulkUpdating] = useState(false);
-  type DriverLite = {
-    _id: string;
-    firstName?: string;
-    lastName?: string;
-    isActive?: boolean;
-    role?: string;
-  };
-  const [drivers, setDrivers] = useState<DriverLite[]>([]);
-  const [driversLoading, setDriversLoading] = useState(false);
-  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
   type CourierLite = {
     _id: string;
     firstName?: string;
@@ -165,25 +153,22 @@ function CODTab() {
             deliveredToday: d.deliveredToday ?? 0,
           })
       );
-    // load active drivers for dropdown
-    setDriversLoading(true);
+    // load active couriers for dropdown
     setCouriersLoading(true);
     fetch("/api/users")
       .then((r) => r.json())
-      .then((d: { users?: DriverLite[] }) => {
+      .then((d: { users?: CourierLite[] }) => {
         if (!mounted) return;
-        const driverList: DriverLite[] = (d.users || []).filter(
+        const driverList: CourierLite[] = (d.users || []).filter(
           (u) => u.role === "driver" && u.isActive
         );
         const courierList: CourierLite[] = (d.users || []).filter(
           (u) => u.role === "courier" && u.isActive
         );
-        setDrivers(driverList);
         setCouriers([...courierList, ...driverList]);
       })
       .finally(() => {
         if (mounted) {
-          setDriversLoading(false);
           setCouriersLoading(false);
         }
       });
@@ -459,50 +444,6 @@ function CODTab() {
       showSuccess("Deleted", "Delivery deleted successfully");
     } catch {
       showError("Delete Failed", "Failed to delete");
-    }
-  }
-
-  async function handleBulkUpdate() {
-    if (!bulkStatus || selectedIds.size === 0) return;
-    setBulkUpdating(true);
-    try {
-      const res = await fetch("/api/deliveries/bulk-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: Array.from(selectedIds),
-          status: bulkStatus,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        showError("Update Failed", data?.error ?? "Failed to update status");
-        return;
-      }
-      setRows((prev) =>
-        prev.map((r) =>
-          selectedIds.has(r._id) ? { ...r, status: bulkStatus } : r
-        )
-      );
-      showSuccess(
-        "Status Updated",
-        `Successfully updated ${selectedIds.size} deliveries`
-      );
-      setSelectedIds(new Set());
-      // Optionally refresh counts
-      fetch("/api/deliveries/stats?payment=cod")
-        .then((r) => r.json())
-        .then((d) =>
-          setCounts({
-            total: d.total ?? 0,
-            pendingAssignment: d.pendingAssignment ?? 0,
-            inTransit: d.inTransit ?? 0,
-            deliveredToday: d.deliveredToday ?? 0,
-          })
-        )
-        .catch(() => {});
-    } finally {
-      setBulkUpdating(false);
     }
   }
 

@@ -37,14 +37,7 @@ export default function BulkDeliveriesUploadPage() {
   const [rows, setRows] = useState<PreviewRow[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [validAddress, setValidAddress] = useState(true);
-  const [checkDuplicate, setCheckDuplicate] = useState(true);
-  const [skipInvalid, setSkipInvalid] = useState(false);
-  const [emailNotify, setEmailNotify] = useState(false);
-  const [priority, setPriority] = useState("Standard");
-  const [batchName, setBatchName] = useState(
-    `Batch_${new Date().toISOString().slice(0, 10).replace(/-/g, "_")}`
-  );
+
   const [uploading, setUploading] = useState(false);
 
   // Inline editing state
@@ -175,7 +168,12 @@ export default function BulkDeliveriesUploadPage() {
     }
   }
 
-  function downloadTemplate() {
+  async function downloadTemplate() {
+    // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
+    // and does NOT accept "COD" (uppercase) for the paymentMethod field.
+    // This was discovered during testing where bulk uploads failed with uppercase COD values.
+
+    // Download empty template
     const headers = [
       "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType",
     ].join("\n");
@@ -188,6 +186,35 @@ export default function BulkDeliveriesUploadPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Wait a moment before downloading the example file to avoid browser blocking
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Also download example template with sample data
+    const exampleData = [
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType",
+      "SS10001,Ahmed Al-Rashid,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery,1",
+      "SS10002,Sarah Johnson,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care,5",
+      "SS10003,Mohammed Ali,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required,9",
+    ].join("\n");
+
+    const exampleBlob = new Blob([exampleData], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const exampleUrl = URL.createObjectURL(exampleBlob);
+    const exampleLink = document.createElement("a");
+    exampleLink.href = exampleUrl;
+    exampleLink.download = "deliveries_example.csv";
+    document.body.appendChild(exampleLink);
+    exampleLink.click();
+    document.body.removeChild(exampleLink);
+    URL.revokeObjectURL(exampleUrl);
+
+    // Show success message
+    showSuccess(
+      "Templates Downloaded",
+      "Both empty template and example template have been downloaded successfully."
+    );
   }
 
   async function startUpload() {
@@ -256,7 +283,8 @@ export default function BulkDeliveriesUploadPage() {
           <div>
             <div className="font-semibold">File Template</div>
             <div className="text-[12px] text-slate-500">
-              Download the CSV template file to ensure proper formatting
+              Download both empty and example CSV templates to ensure proper
+              formatting
             </div>
           </div>
           <Button
@@ -264,7 +292,7 @@ export default function BulkDeliveriesUploadPage() {
             leftIcon={<DownloadIcon size={16} />}
             onClick={downloadTemplate}
           >
-            Download Template
+            Download Templates
           </Button>
         </div>
       </Card>
@@ -384,122 +412,16 @@ export default function BulkDeliveriesUploadPage() {
         </Card>
       )}
 
-      {/* Validation Options */}
-      <Card header={<div className="font-semibold">Validation Options</div>}>
-        <div className="space-y-3 text-sm">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={validAddress}
-              onChange={(e) => setValidAddress(e.target.checked)}
-            />
-            Validate addresses before processing
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={checkDuplicate}
-              onChange={(e) => setCheckDuplicate(e.target.checked)}
-            />
-            Check for duplicate entries
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={skipInvalid}
-              onChange={(e) => setSkipInvalid(e.target.checked)}
-            />
-            Skip invalid entries and process valid ones
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={emailNotify}
-              onChange={(e) => setEmailNotify(e.target.checked)}
-            />
-            Send email notification when processing is complete
-          </label>
-        </div>
-      </Card>
-
-      {/* Processing Options */}
-      <Card header={<div className="font-semibold">Processing Options</div>}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* <div>
-            <div className="text-[12px] text-slate-500 mb-1">
-              Default Service Type
-            </div>
-            <div className="relative">
-              <select
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value)}
-                className="w-full appearance-none rounded-md border border-slate-200 bg-white py-2 pl-3 pr-9 text-sm"
-              >
-                <option>Standard Delivery</option>
-                <option>Jeddah Operations</option>
-              </select>
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-                ▾
-              </span>
-            </div>
-          </div> */}
-          <div>
-            <div className="text-[12px] text-slate-500 mb-1">
-              Default Priority
-            </div>
-            <div className="relative">
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full appearance-none rounded-md border border-slate-200 bg-white py-2 pl-3 pr-9 text-sm"
-              >
-                <option>Standard</option>
-                <option>Express</option>
-              </select>
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-                ▾
-              </span>
-            </div>
-          </div>
-          <div>
-            <div className="text-[12px] text-slate-500 mb-1">Batch Name</div>
-            <Input
-              value={batchName}
-              onChange={(e) => setBatchName(e.target.value)}
-            />
-          </div>
-          {/* <div>
-            <div className="text-[12px] text-slate-500 mb-1">
-              Processing Mode
-            </div>
-            <div className="relative">
-              <select
-                value={mode}
-                onChange={(e) => setMode(e.target.value)}
-                className="w-full appearance-none rounded-md border border-slate-200 bg-white py-2 pl-3 pr-9 text-sm"
-              >
-                <option>Process Immediately</option>
-                <option>Save as Draft</option>
-              </select>
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-                ▾
-              </span>
-            </div>
-          </div> */}
-        </div>
-        <div className="mt-4 flex items-center gap-3">
-          {/* <Button variant="secondary" disabled>
-            Preview Data
-          </Button> */}
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              variant="gradient"
-              onClick={startUpload}
-              disabled={!canStart || uploading}
-            >
-              {uploading ? "Uploading..." : "Start Upload"}
-            </Button>
-          </div>
+      {/* Upload Button */}
+      <Card>
+        <div className="flex justify-end">
+          <Button
+            variant="gradient"
+            onClick={startUpload}
+            disabled={!canStart || uploading}
+          >
+            {uploading ? "Uploading..." : "Start Upload"}
+          </Button>
         </div>
       </Card>
 

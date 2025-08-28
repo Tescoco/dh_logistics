@@ -367,6 +367,9 @@ export function validateDeliveryRow(
     ]) || "Package";
   const description = getFieldValue(["description", "Description"]);
   const priority = getFieldValue(["priority", "Priority"]) || "standard";
+  // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
+  // and does NOT accept "COD" (uppercase) for the paymentMethod field.
+  // This was discovered during testing where bulk uploads failed with uppercase COD values.
   const paymentMethod =
     getFieldValue([
       "paymentMethod",
@@ -460,32 +463,32 @@ export function validateDeliveryRow(
   }
 
   // Sender city validation (if provided)
-  if (senderCity && serviceType) {
-    let validCities: string[] = [];
-    let serviceName = "";
+  // if (senderCity && serviceType) {
+  //   let validCities: string[] = [];
+  //   let serviceName = "";
 
-    switch (serviceType) {
-      case "1":
-        validCities = RGS_CITIES;
-        serviceName = "Shipz Solutions";
-        break;
-      case "5":
-        validCities = JNT_CITIES;
-        serviceName = "JNT";
-        break;
-      case "9":
-        validCities = IMILE_CITIES;
-        serviceName = "IMILE";
-        break;
-    }
+  //   switch (serviceType) {
+  //     case "1":
+  //       validCities = RGS_CITIES;
+  //       serviceName = "Shipz Solutions";
+  //       break;
+  //     case "5":
+  //       validCities = JNT_CITIES;
+  //       serviceName = "JNT";
+  //       break;
+  //     case "9":
+  //       validCities = IMILE_CITIES;
+  //       serviceName = "IMILE";
+  //       break;
+  //   }
 
-    if (!validCities.includes(senderCity)) {
-      return {
-        isValid: false,
-        reason: `Sender city "${senderCity}" is not available for ${serviceName} service. Please check the city name or select a different service type.`,
-      };
-    }
-  }
+  // if (!validCities.includes(senderCity)) {
+  //   return {
+  //     isValid: false,
+  //     reason: `Sender city "${senderCity}" is not available for ${serviceName} service. Please check the city name or select a different service type.`,
+  //   };
+  // }
+  // }
 
   return {
     isValid: true,
