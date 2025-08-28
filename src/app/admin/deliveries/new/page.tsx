@@ -16,6 +16,8 @@ import { useToast } from "@/contexts/ToastContext";
 
 // metadata is set at a parent server component level
 
+import { InfoIcon } from "@/components/icons";
+
 type ClientUser = {
   _id: string;
   firstName: string;
@@ -935,7 +937,7 @@ export default function AdminNewDeliveryPage() {
                   className="text-blue-600 hover:text-blue-800 text-lg font-bold"
                   title="Insurance Information"
                 >
-                  ℹ️
+                  <InfoIcon className="w-4 h-4" />
                 </button>
               </div>
             </div>

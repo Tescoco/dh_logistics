@@ -13,6 +13,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { RGS_CITIES } from "@/lib/rgs_cities";
 import { JNT_CITIES } from "@/lib/jnt_cities";
 import { IMILE_CITIES } from "@/lib/imile_cities";
+import { InfoIcon } from "@/components/icons";
 
 export default function CreateDeliveryPage() {
   const router = useRouter();
@@ -614,7 +615,7 @@ export default function CreateDeliveryPage() {
                   className="text-blue-600 hover:text-blue-800 text-lg font-bold"
                   title="Insurance Information"
                 >
-                  ℹ️
+                  <InfoIcon className="w-4 h-4" />
                 </button>
               </div>
             </div>
