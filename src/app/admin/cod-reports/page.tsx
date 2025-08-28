@@ -476,7 +476,7 @@ export default function AdminCODReportsPage() {
         <Card>
           <div className="text-[13px] text-slate-500">Total COD Amount</div>
           <div className="mt-2 text-2xl font-semibold">
-            ﷼{summary.totalAmount.toFixed(2)}
+            SAR {summary.totalAmount.toFixed(2)}
           </div>
         </Card>
         <Card>
@@ -488,19 +488,19 @@ export default function AdminCODReportsPage() {
         <Card>
           <div className="text-[13px] text-slate-500">Pending Amount</div>
           <div className="mt-2 text-2xl font-semibold text-amber-600">
-            ﷼{summary.pendingAmount.toFixed(2)}
+            SAR {summary.pendingAmount.toFixed(2)}
           </div>
         </Card>
         <Card>
           <div className="text-[13px] text-slate-500">Paid Amount</div>
           <div className="mt-2 text-2xl font-semibold text-green-600">
-            ﷼{summary.paidAmount.toFixed(2)}
+            SAR {summary.paidAmount.toFixed(2)}
           </div>
         </Card>
         <Card>
           <div className="text-[13px] text-slate-500">Delivery Fee</div>
           <div className="mt-2 text-2xl font-semibold text-blue-600">
-            ﷼{summary.deliveryFee.toFixed(2)}
+            SAR {summary.deliveryFee.toFixed(2)}
           </div>
         </Card>
       </div>
@@ -559,7 +559,7 @@ export default function AdminCODReportsPage() {
                       {delivery.customerStoreName || "—"}
                     </td>
                     <td className="px-5 py-3">
-                      ﷼{(delivery.codAmount || 0).toFixed(2)}
+                      SAR {(delivery.codAmount || 0).toFixed(2)}
                     </td>
                     <td className="px-5 py-3">
                       <span
@@ -576,7 +576,7 @@ export default function AdminCODReportsPage() {
                     </td>
                     <td className="px-5 py-3">
                       {delivery.codPaidAmount
-                        ? `﷼${delivery.codPaidAmount.toFixed(2)}`
+                        ? `SAR ${delivery.codPaidAmount.toFixed(2)}`
                         : "—"}
                     </td>
                     <td className="px-5 py-3">
@@ -637,7 +637,7 @@ export default function AdminCODReportsPage() {
               <div>
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
-                  ﷼{(editingDelivery.codAmount || 0).toFixed(2)}
+                  SAR {(editingDelivery.codAmount || 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -682,7 +682,7 @@ export default function AdminCODReportsPage() {
               </div>
               <div>
                 <label className="text-[13px] text-slate-600 mb-2 block">
-                  RTO Fee (﷼)
+                  RTO Fee (SAR )
                 </label>
                 <Input
                   type="number"

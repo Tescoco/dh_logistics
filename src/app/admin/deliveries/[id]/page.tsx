@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
-import { getDistrictsForCity } from "@/lib/districts";
+
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,19 +14,7 @@ import { IMILE_CITIES } from "@/lib/imile_cities";
 import { JNT_CITIES } from "@/lib/jnt_cities";
 import { RGS_CITIES } from "@/lib/rgs_cities";
 
-type ActivityLogEntry = {
-  action: string;
-  performedBy: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-  performedAt: string;
-  details?: string;
-  oldValue?: string;
-  newValue?: string;
-};
+
 
 type DeliveryResponse = {
   delivery: {
@@ -170,7 +158,7 @@ export default function AdminEditDeliveryPage() {
     };
 
     fetchClients();
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     let mounted = true;

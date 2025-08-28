@@ -347,7 +347,7 @@ function CODTab() {
       d.customerName,
       d.customerStoreName || "",
       d.customerPhone,
-      d.codAmount ? `﷼${d.codAmount.toFixed(2)}` : "",
+      d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "",
       d.deliveryAddress,
       d.status.replace("_", " "),
       d.assignedDriverId
@@ -709,7 +709,7 @@ function CODTab() {
                   <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
                   <td className="px-5 py-3">{d.customerPhone}</td>
                   <td className="px-5 py-3">
-                    {d.codAmount ? `﷼${d.codAmount.toFixed(2)}` : "—"}
+                    {d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "—"}
                   </td>
                   <td className="px-5 py-3">
                     {d.assignedDriverId?.firstName || "—"}{" "}
@@ -821,7 +821,7 @@ function CODTab() {
                 <div className="text-[12px] text-slate-500">Delivery Fee</div>
                 <div className="font-medium">
                   {viewDelivery?.deliveryFee
-                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.deliveryFee).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -829,7 +829,7 @@ function CODTab() {
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
-                    ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.codAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -837,7 +837,7 @@ function CODTab() {
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.rtoAmount
-                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -1507,7 +1507,7 @@ function InternalTab() {
                 <div className="text-[12px] text-slate-500">Delivery Fee</div>
                 <div className="font-medium">
                   {viewDelivery?.deliveryFee
-                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.deliveryFee).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -1515,7 +1515,7 @@ function InternalTab() {
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
-                    ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.codAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -1523,7 +1523,7 @@ function InternalTab() {
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.rtoAmount
-                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -2193,7 +2193,7 @@ function CourierTab() {
                 <div className="text-[12px] text-slate-500">Delivery Fee</div>
                 <div className="font-medium">
                   {viewDelivery?.deliveryFee
-                    ? `﷼${Number(viewDelivery.deliveryFee).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.deliveryFee).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -2201,7 +2201,7 @@ function CourierTab() {
                 <div className="text-[12px] text-slate-500">COD Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.codAmount
-                    ? `﷼${Number(viewDelivery.codAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.codAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -2209,7 +2209,7 @@ function CourierTab() {
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
                   {viewDelivery?.rtoAmount
-                    ? `﷼${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
                     : "—"}
                 </div>
               </div>

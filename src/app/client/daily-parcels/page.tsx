@@ -300,9 +300,9 @@ export default function DailyParcelsPage() {
             onChange={(e) => setAmountBand(e.currentTarget.value)}
           >
             <option value="">All Amounts</option>
-            <option value="lt50">Below ﷼50</option>
-            <option value="50to100">﷼50 - ﷼100</option>
-            <option value="gt100">Above ﷼100</option>
+            <option value="lt50">Below SAR 50</option>
+            <option value="50to100">SAR 50 - SAR 100</option>
+            <option value="gt100">Above SAR 100</option>
           </Select>
           <div className="flex flex-wrap items-center justify-end gap-4">
             <button
@@ -407,9 +407,9 @@ export default function DailyParcelsPage() {
                 className="w-32 text-sm"
               >
                 <option value="">All Amounts</option>
-                <option value="lt50">Under ﷼50</option>
-                <option value="50to100">﷼50 - ﷼100</option>
-                <option value="gt100">Over ﷼100</option>
+                <option value="lt50">Under SAR 50</option>
+                <option value="50to100">SAR 50 - SAR 100</option>
+                <option value="gt100">Over SAR 100</option>
               </Select>
             </div>
             <Button
@@ -478,7 +478,7 @@ export default function DailyParcelsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 align-top font-semibold text-slate-800 hidden sm:table-cell">
-                    ﷼{r.amount.toFixed(2)}
+                    SAR {r.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 align-top capitalize">
                     <StatusBadge
@@ -605,13 +605,13 @@ export default function DailyParcelsPage() {
             <div>
               <span className="text-slate-500">COD Amount:</span>{" "}
               <span className="font-medium">
-                ﷼{Number(viewData.codAmount || 0).toFixed(2)}
+                SAR {Number(viewData.codAmount || 0).toFixed(2)}
               </span>
             </div>
             {/* <div>
               <span className="text-slate-500">Delivery Fee:</span>{" "}
               <span className="font-medium">
-                ﷼{Number(viewData.deliveryFee || 0).toFixed(2)}
+                SAR {Number(viewData.deliveryFee || 0).toFixed(2)}
               </span>
             </div> */}
             <div>

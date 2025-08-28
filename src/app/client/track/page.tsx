@@ -741,7 +741,7 @@ export default function TrackDeliveriesPage() {
                     {r.destination}
                   </td>
                   <td className="px-6 py-3 align-middle text-slate-700">
-                    {r.codAmount ? `﷼${r.codAmount.toLocaleString()}` : "—"}
+                    {r.codAmount ? `SAR ${r.codAmount.toLocaleString()}` : "—"}
                   </td>
                   <td className="px-6 py-3 align-middle text-slate-700">
                     {new Date(r.date).toLocaleString(undefined, {
@@ -844,7 +844,7 @@ export default function TrackDeliveriesPage() {
                   <span className="font-medium text-slate-600">
                     COD Amount:
                   </span>{" "}
-                  {r.codAmount ? `﷼${r.codAmount.toLocaleString()}` : "—"}
+                  {r.codAmount ? `SAR ${r.codAmount.toLocaleString()}` : "—"}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
                   {new Date(r.date).toLocaleString(undefined, {
@@ -1008,7 +1008,7 @@ export default function TrackDeliveriesPage() {
             <div>
               <span className="text-slate-500">COD Amount:</span>{" "}
               <span className="font-medium">
-                ﷼{Number(viewData.codAmount || 0).toFixed(2)}
+                SAR {Number(viewData.codAmount || 0).toFixed(2)}
               </span>
             </div>
             <div>

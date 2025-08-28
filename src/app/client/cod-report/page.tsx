@@ -221,7 +221,7 @@ export default function CodReportPage() {
         {[
           {
             label: "Total COD Amount",
-            value: `﷼${summary.totalAmount.toLocaleString()}`,
+            value: `SAR ${summary.totalAmount.toLocaleString()}`,
             Icon: PackageIcon,
             color: "bg-blue-100 text-blue-600",
           },
@@ -233,13 +233,13 @@ export default function CodReportPage() {
           },
           {
             label: "Pending COD",
-            value: `﷼${summary.pendingAmount.toLocaleString()}`,
+            value: `SAR ${summary.pendingAmount.toLocaleString()}`,
             Icon: RefreshIcon,
             color: "bg-amber-100 text-amber-600",
           },
           {
             label: "Collected COD",
-            value: `﷼${summary.collectedAmount.toLocaleString()}`,
+            value: `SAR ${summary.collectedAmount.toLocaleString()}`,
             Icon: CheckIcon,
             color: "bg-emerald-100 text-emerald-600",
           },
@@ -559,7 +559,7 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-emerald-600">
-                ﷼
+                SAR 
                 {previewData
                   .reduce((sum, d) => sum + (d.codAmount || 0), 0)
                   .toLocaleString()}
@@ -614,7 +614,7 @@ export default function CodReportPage() {
                       {delivery.deliveryAddress}
                     </td>
                     <td className="px-3 py-2 font-medium">
-                      ﷼{delivery.codAmount?.toLocaleString() || "0"}
+                      SAR {delivery.codAmount?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2">
                       <Badge

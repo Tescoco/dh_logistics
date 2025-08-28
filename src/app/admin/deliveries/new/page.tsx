@@ -4,7 +4,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SAUDI_CITIES } from "@/lib/cities";
-import { getDistrictsForCity } from "@/lib/districts";
+
 import { useEffect, useMemo, useState } from "react";
 import { RGS_CITIES } from "@/lib/rgs_cities";
 import { JNT_CITIES } from "@/lib/jnt_cities";
@@ -215,7 +215,7 @@ export default function AdminNewDeliveryPage() {
     if (form.deliveryCity && !serviceCities.includes(form.deliveryCity)) {
       setForm((f) => ({ ...f, deliveryCity: "", deliveryDistrict: "" }));
     }
-  }, [serviceCities]);
+  }, [serviceCities, form.deliveryCity, form.senderCity]);
 
   function update<K extends keyof typeof form>(
     key: K,

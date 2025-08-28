@@ -246,8 +246,8 @@ export default function ReportsPage() {
       group.clientName,
       group.storeName || "",
       group.totalOrders.toString(),
-      `﷼${group.totalAmount.toFixed(2)}`,
-      `﷼${group.totalFees.toFixed(2)}`,
+      `SAR ${group.totalAmount.toFixed(2)}`,
+      `SAR ${group.totalFees.toFixed(2)}`,
       (group.statusBreakdown["pending"] || 0).toString(),
       (group.statusBreakdown["in_transit"] || 0).toString(),
       (group.statusBreakdown["delivered"] || 0).toString(),
@@ -423,13 +423,13 @@ export default function ReportsPage() {
         <Card>
           <div className="text-[13px] text-slate-500">Total COD Amount</div>
           <div className="mt-2 text-2xl font-semibold">
-            ﷼{summary.totalAmount.toFixed(2)}
+            SAR {summary.totalAmount.toFixed(2)}
           </div>
         </Card>
         <Card>
           <div className="text-[13px] text-slate-500">Total Delivery Fees</div>
           <div className="mt-2 text-2xl font-semibold">
-            ﷼{summary.totalFees.toFixed(2)}
+            SAR {summary.totalFees.toFixed(2)}
           </div>
         </Card>
         <Card>
@@ -504,9 +504,9 @@ export default function ReportsPage() {
                     )}
                     <td className="px-5 py-3">{group.totalOrders}</td>
                     <td className="px-5 py-3">
-                      ﷼{group.totalAmount.toFixed(2)}
+                      SAR {group.totalAmount.toFixed(2)}
                     </td>
-                    <td className="px-5 py-3">﷼{group.totalFees.toFixed(2)}</td>
+                    <td className="px-5 py-3">SAR {group.totalFees.toFixed(2)}</td>
                     <td className="px-5 py-3">
                       {group.statusBreakdown["pending"] || 0}
                     </td>
