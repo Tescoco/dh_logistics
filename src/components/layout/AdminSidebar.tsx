@@ -107,9 +107,9 @@ function AdminSidebarInner({
           <img
             src="/favicon.png"
             alt="Shipz Logo"
-            className="h-10 w-10 object-contain"
-            width={40}
-            height={40}
+            className="h-20 w-20 object-contain"
+            width={60}
+            height={60}
           />
           <div className="flex items-baseline gap-0 whitespace-nowrap flex-col ml-2">
             <span className="font-semibold text-lg text-slate-900 whitespace-nowrap">

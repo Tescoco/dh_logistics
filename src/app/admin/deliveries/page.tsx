@@ -248,7 +248,7 @@ function CODTab() {
     router.push(`/admin/deliveries/${id}`);
   }
 
-  function downloadInternalDeliveries(format: "csv" | "xlsx") {
+  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
     if (filtered.length === 0) {
       showError("Download Error", "No data to download");
       return;
@@ -322,7 +322,7 @@ function CODTab() {
     }
   }
 
-  function downloadDeliveries(format: "csv" | "xlsx") {
+  async function downloadDeliveries(format: "csv" | "xlsx") {
     if (filtered.length === 0) {
       showError("Download Error", "No data to download");
       return;
@@ -377,26 +377,72 @@ function CODTab() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } else if (format === "xlsx") {
-      // For XLSX, we'll use a simple approach with CSV-like data
-      // In a production environment, you might want to use a library like exceljs
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
+      try {
+        // Use proper Excel export with exceljs
+        const ExcelModule = await import("exceljs");
+        const workbook = new ExcelModule.Workbook();
+        const worksheet = workbook.addWorksheet("COD Deliveries");
 
-      // Download as XLSX (using CSV content for now)
-      const blob = new Blob([csvContent], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `cod_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        worksheet.columns = [
+          { header: "Reference ID", key: "reference", width: 18 },
+          { header: "Customer Name", key: "customerName", width: 24 },
+          { header: "Store Name", key: "customerStoreName", width: 24 },
+          { header: "Phone", key: "customerPhone", width: 16 },
+          { header: "COD Amount", key: "codAmount", width: 14 },
+          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+          { header: "Status", key: "status", width: 14 },
+          {
+            header: "Assigned Driver/Courier",
+            key: "assignedDriver",
+            width: 20,
+          },
+          { header: "Created Date", key: "createdAt", width: 16 },
+        ];
+
+        filtered.forEach((d) => {
+          worksheet.addRow({
+            reference: d.reference,
+            customerName: d.customerName,
+            customerStoreName: d.customerStoreName || "",
+            customerPhone: d.customerPhone,
+            codAmount: d.codAmount || 0,
+            deliveryAddress: d.deliveryAddress,
+            status: d.status.replace("_", " "),
+            assignedDriver: d.assignedDriverId
+              ? `${d.assignedDriverId.firstName || ""} ${
+                  d.assignedDriverId.lastName || ""
+                }`.trim()
+              : "",
+            createdAt: new Date(d.createdAt).toLocaleDateString(),
+          });
+        });
+
+        // Style header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.alignment = { vertical: "middle", horizontal: "center" };
+
+        const arrayBuffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+        const body = new Uint8Array(arrayBuffer);
+
+        // Download Excel file
+        const blob = new Blob([body], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `cod_deliveries_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        showError("Export Error", "Failed to generate Excel file");
+        console.error("Excel export error:", error);
+      }
     }
   }
 
@@ -1024,7 +1070,7 @@ function InternalTab() {
     router.push(`/admin/deliveries/${id}`);
   }
 
-  function downloadInternalDeliveries(format: "csv" | "xlsx") {
+  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
     if (filtered.length === 0) {
       showError("Download Error", "No data to download");
       return;
@@ -1075,26 +1121,68 @@ function InternalTab() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } else if (format === "xlsx") {
-      // For XLSX, we'll use a simple approach with CSV-like data
-      // In a production environment, you might want to use a library like exceljs
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
+      try {
+        // Use proper Excel export with exceljs
+        const ExcelModule = await import("exceljs");
+        const workbook = new ExcelModule.Workbook();
+        const worksheet = workbook.addWorksheet("Internal Deliveries");
 
-      // Download as XLSX (using CSV content for now)
-      const blob = new Blob([csvContent], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `internal_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        worksheet.columns = [
+          { header: "Reference ID", key: "reference", width: 18 },
+          { header: "Customer Name", key: "customerName", width: 24 },
+          { header: "Store Name", key: "customerStoreName", width: 24 },
+          {
+            header: "Assigned Driver/Courier",
+            key: "assignedDriver",
+            width: 20,
+          },
+          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+          { header: "Status", key: "status", width: 14 },
+          { header: "Created Date", key: "createdAt", width: 16 },
+        ];
+
+        filtered.forEach((d) => {
+          worksheet.addRow({
+            reference: d.reference,
+            customerName: d.customerName,
+            customerStoreName: d.customerStoreName || "",
+            assignedDriver: d.assignedDriverId
+              ? `${d.assignedDriverId.firstName || ""} ${
+                  d.assignedDriverId.lastName || ""
+                }`.trim()
+              : "",
+            deliveryAddress: d.deliveryAddress,
+            status: d.status.replace("_", " "),
+            createdAt: new Date(d.createdAt).toLocaleDateString(),
+          });
+        });
+
+        // Style header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.alignment = { vertical: "middle", horizontal: "center" };
+
+        const arrayBuffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+        const body = new Uint8Array(arrayBuffer);
+
+        // Download Excel file
+        const blob = new Blob([body], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `internal_deliveries_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        showError("Export Error", "Failed to generate Excel file");
+        console.error("Excel export error:", error);
+      }
     }
   }
 
@@ -1711,7 +1799,7 @@ function CourierTab() {
     router.push(`/admin/deliveries/${id}`);
   }
 
-  function downloadInternalDeliveries(format: "csv" | "xlsx") {
+  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
     if (filtered.length === 0) {
       showError("Download Error", "No data to download");
       return;
@@ -1762,26 +1850,68 @@ function CourierTab() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } else if (format === "xlsx") {
-      // For XLSX, we'll use a simple approach with CSV-like data
-      // In a production environment, you might want to use a library like exceljs
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
+      try {
+        // Use proper Excel export with exceljs
+        const ExcelModule = await import("exceljs");
+        const workbook = new ExcelModule.Workbook();
+        const worksheet = workbook.addWorksheet("Courier Deliveries");
 
-      // Download as XLSX (using CSV content for now)
-      const blob = new Blob([csvContent], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `courier_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        worksheet.columns = [
+          { header: "Reference ID", key: "reference", width: 18 },
+          { header: "Customer Name", key: "customerName", width: 24 },
+          { header: "Store Name", key: "customerStoreName", width: 24 },
+          {
+            header: "Assigned Driver/Courier",
+            key: "assignedDriver",
+            width: 20,
+          },
+          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+          { header: "Status", key: "status", width: 14 },
+          { header: "Created Date", key: "createdAt", width: 16 },
+        ];
+
+        filtered.forEach((d) => {
+          worksheet.addRow({
+            reference: d.reference,
+            customerName: d.customerName,
+            customerStoreName: d.customerStoreName || "",
+            assignedDriver: d.assignedDriverId
+              ? `${d.assignedDriverId.firstName || ""} ${
+                  d.assignedDriverId.lastName || ""
+                }`.trim()
+              : "",
+            deliveryAddress: d.deliveryAddress,
+            status: d.status.replace("_", " "),
+            createdAt: new Date(d.createdAt).toLocaleDateString(),
+          });
+        });
+
+        // Style header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.alignment = { vertical: "middle", horizontal: "center" };
+
+        const arrayBuffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+        const body = new Uint8Array(arrayBuffer);
+
+        // Download Excel file
+        const blob = new Blob([body], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `courier_deliveries_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        showError("Export Error", "Failed to generate Excel file");
+        console.error("Excel export error:", error);
+      }
     }
   }
 

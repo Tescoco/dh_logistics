@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen grid place-items-center bg-slate-50 px-4">
       <div className="w-full max-w-[420px]">
         <div className="mb-5 flex items-center gap-2">
-          <div className="h-10 w-10 flex items-center justify-center">
+          <div className="h-20 w-20 flex items-center justify-center">
             {/* <span className="text-white font-bold text-lg">S</span> */}
             <Image
               src="/favicon.png"
