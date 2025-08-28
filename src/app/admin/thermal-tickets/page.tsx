@@ -13,6 +13,7 @@ type DeliveryTicket = {
   reference: string;
   customerName: string;
   customerPhone: string;
+  customerWhatsApp: string;
   deliveryAddress: string;
   deliveryCity: string;
   codAmount?: number;
@@ -230,6 +231,7 @@ export default function ThermalTicketsPage() {
                 ticket.reference
               }</span></div>
               <div><strong>Contact #:</strong> ${ticket.customerPhone}</div>
+              <div><strong>Whatsapp #:</strong> ${ticket.customerWhatsApp}</div>
               <div><strong>Address:</strong> ${ticket.deliveryAddress}</div>
             </div>
 
@@ -375,6 +377,7 @@ export default function ThermalTicketsPage() {
             }</span>
           </div>
           <div><strong>Contact #:</strong> ${ticket.customerPhone}</div>
+          <div><strong>Whatsapp #:</strong> ${ticket.customerWhatsApp}</div>
           <div><strong>Address:</strong> ${ticket.deliveryAddress}</div>
         </div>
         
@@ -549,6 +552,9 @@ export default function ThermalTicketsPage() {
                   </div>
                   <div>
                     <strong>Contact #:</strong> {ticket.customerPhone}
+                  </div>
+                  <div>
+                    <strong>Whatsapp #:</strong> {ticket.customerWhatsApp}
                   </div>
                   <div>
                     <strong>Address:</strong> {ticket.deliveryAddress}
