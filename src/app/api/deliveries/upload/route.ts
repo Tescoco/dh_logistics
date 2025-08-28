@@ -129,6 +129,15 @@ export async function POST(req: NextRequest) {
       status: string;
       createdById: string | ObjectId;
       createdAt: Date;
+      assignedDriverId?: string | ObjectId;
+      activityLog?: Array<{
+        action: string;
+        performedBy: string | ObjectId;
+        performedAt: Date;
+        details?: string;
+        oldValue?: string;
+        newValue?: string;
+      }>;
     };
 
     const deliveries: NewDelivery[] = [];
@@ -154,10 +163,10 @@ export async function POST(req: NextRequest) {
         deliveryCity: data.deliveryCity || undefined,
         deliveryPostalCode: data.deliveryPostalCode || undefined,
         serviceType: data.serviceType || "1",
-        packageType: data.packageType,
+        packageType: data.packageType?.toLowerCase() || "parcel",
         description: data.description,
-        priority: data.priority || "standard",
-        paymentMethod: data.paymentMethod || "cod",
+        priority: data.priority?.toLowerCase() || "standard",
+        paymentMethod: data.paymentMethod?.toLowerCase() || "cod",
         deliveryFee: data.deliveryFee || defaultDeliveryFee,
         codAmount: data.codAmount,
         notes: data.notes,
@@ -170,6 +179,19 @@ export async function POST(req: NextRequest) {
         senderAddress: data.senderAddress || undefined,
         senderCity: data.senderCity || undefined,
         senderPostalCode: data.senderPostalCode || undefined,
+        assignedDriverId:
+          auth.role === "customer" ? "68992b3ad5eb3b93c40396dc" : undefined,
+        activityLog: [
+          {
+            action: "delivery_created",
+            performedBy: auth.userId,
+            performedAt: new Date(),
+            details: `Delivery created via ${
+              isCSV ? "CSV" : "XLSX"
+            } upload by ${auth.role}`,
+            newValue: "pending",
+          },
+        ],
       });
     }
 

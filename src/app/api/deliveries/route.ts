@@ -90,7 +90,10 @@ export async function GET(req: NextRequest) {
 
   if (client) query.createdById = client;
   if (from && to) {
-    query.createdAt = { $gte: new Date(from), $lte: new Date(to) };
+    query.createdAt = {
+      $gte: new Date(from + "T00:00:00.000Z"),
+      $lte: new Date(to + "T23:59:59.999Z"),
+    };
   }
   // Scope to the requesting user unless admin
   if (auth.role !== "admin") query.createdById = auth.userId;

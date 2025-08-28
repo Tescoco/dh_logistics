@@ -59,18 +59,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ updated: 0 });
     }
 
-    const result = await Delivery.updateMany(
-      { $or: orClauses },
-      { $set: { status: input.status } }
-    );
-    // Safely read modifiedCount if present
-    const updatedCount: number | undefined =
-      typeof (result as unknown as { modifiedCount?: unknown }).modifiedCount ===
-      "number"
-        ? ((result as unknown as { modifiedCount: number }).modifiedCount)
-        : undefined;
+    // First, get the deliveries that will be updated to track old status for activity logging
+    const deliveriesToUpdate = await Delivery.find({ $or: orClauses })
+      .select("_id status reference")
+      .lean();
+
+    // Prepare activity log entries for all deliveries being updated
+    const bulkWriteOps = [];
+    for (const delivery of deliveriesToUpdate) {
+      if (delivery.status !== input.status) {
+        bulkWriteOps.push({
+          updateOne: {
+            filter: { _id: delivery._id },
+            update: {
+              $set: { status: input.status },
+              $push: {
+                activityLog: {
+                  action: "bulk_status_update",
+                  performedBy: auth.userId,
+                  performedAt: new Date(),
+                  details: `Status bulk updated from ${delivery.status} to ${input.status}`,
+                  oldValue: delivery.status,
+                  newValue: input.status,
+                },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    let updatedCount = 0;
+    if (bulkWriteOps.length > 0) {
+      const result = await Delivery.bulkWrite(bulkWriteOps);
+      updatedCount = result.modifiedCount;
+    }
+
     return NextResponse.json({ ok: true, updated: updatedCount });
-    return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.flatten() }, { status: 400 });

@@ -19,6 +19,9 @@ import {
   validateDeliveryRow,
   type ParsedRow,
 } from "@/lib/fileParser";
+import { RGS_CITIES } from "@/lib/rgs_cities";
+import { JNT_CITIES } from "@/lib/jnt_cities";
+import { IMILE_CITIES } from "@/lib/imile_cities";
 
 export default function DeliveryStatusPage() {
   const { showError, showSuccess } = useToast();
@@ -417,7 +420,7 @@ export default function DeliveryStatusPage() {
 
   function downloadTemplate() {
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,senderDistrict,senderPostalCode,deliveryAddress,deliveryCity,deliveryPostalCode,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -1077,71 +1080,235 @@ export default function DeliveryStatusPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     {header}
                   </label>
-                  <Input
-                    type={
-                      header === "customerPhone" || header === "senderPhone"
-                        ? "number"
-                        : "text"
-                    }
-                    value={editValues[index] || ""}
-                    onChange={(e) => {
-                      const newValues = [...editValues];
-                      newValues[index] = e.target.value;
-                      setEditValues(newValues);
+                  {header.toLowerCase().includes("servicetype") ||
+                  header.toLowerCase().includes("service type") ? (
+                    <select
+                      value={editValues[index] || ""}
+                      onChange={(e) => {
+                        const newValues = [...editValues];
+                        newValues[index] = e.target.value;
+                        setEditValues(newValues);
 
-                      // Build full row data from all edited values
-                      const newRowData: ParsedRow = {};
-                      columns.forEach((col, idx) => {
-                        newRowData[col] = newValues[idx] || "";
-                      });
-
-                      // Validate full row on each change
-                      const validation = validateDeliveryRow(
-                        newRowData,
-                        columns
-                      );
-
-                      // Reflect current validation state live in the modal
-                      setEditingRow((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              row: newRowData,
-                              values: newValues,
-                              valid: validation.isValid,
-                              reason: validation.reason || undefined,
-                            }
-                          : prev
-                      );
-
-                      // If the row becomes valid, save immediately without waiting for submit
-                      if (validation.isValid && editingRow) {
-                        const updatedRows = previewRows.map((r) => {
-                          if (r.index === editingRow.index) {
-                            return {
-                              ...r,
-                              row: newRowData,
-                              valid: true,
-                              reason: undefined,
-                              values: newValues,
-                            };
-                          }
-                          return r;
+                        // Build full row data from all edited values
+                        const newRowData: ParsedRow = {};
+                        columns.forEach((col, idx) => {
+                          newRowData[col] = newValues[idx] || "";
                         });
 
-                        setPreviewRows(updatedRows);
-                        setShowEditModal(false);
-                        setEditingRow(null);
-                        setEditValues([]);
-                        showSuccess(
-                          "Row Updated",
-                          "Row has been successfully updated and is now valid."
+                        // Validate full row on each change
+                        const validation = validateDeliveryRow(
+                          newRowData,
+                          columns
                         );
+
+                        // Reflect current validation state live in the modal
+                        setEditingRow((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                row: newRowData,
+                                values: newValues,
+                                valid: validation.isValid,
+                                reason: validation.reason || undefined,
+                              }
+                            : prev
+                        );
+
+                        // If the row becomes valid, save immediately without waiting for submit
+                        if (validation.isValid && editingRow) {
+                          const updatedRows = previewRows.map((r) => {
+                            if (r.index === editingRow.index) {
+                              return {
+                                ...r,
+                                row: newRowData,
+                                valid: true,
+                                reason: undefined,
+                                values: newValues,
+                              };
+                            }
+                            return r;
+                          });
+
+                          setPreviewRows(updatedRows);
+                          setShowEditModal(false);
+                          setEditingRow(null);
+                          setEditValues([]);
+                          showSuccess(
+                            "Row Updated",
+                            "Row has been successfully updated and is now valid."
+                          );
+                        }
+                      }}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select Service Type</option>
+                      <option value="1">1 - Shipz Solutions</option>
+                      <option value="5">5 - JNT</option>
+                      <option value="9">9 - IMILE</option>
+                    </select>
+                  ) : header.toLowerCase().includes("deliverycity") ||
+                    header.toLowerCase().includes("delivery city") ? (
+                    <select
+                      value={editValues[index] || ""}
+                      onChange={(e) => {
+                        const newValues = [...editValues];
+                        newValues[index] = e.target.value;
+                        setEditValues(newValues);
+
+                        // Build full row data from all edited values
+                        const newRowData: ParsedRow = {};
+                        columns.forEach((col, idx) => {
+                          newRowData[col] = newValues[idx] || "";
+                        });
+
+                        // Validate full row on each change
+                        const validation = validateDeliveryRow(
+                          newRowData,
+                          columns
+                        );
+
+                        // Reflect current validation state live in the modal
+                        setEditingRow((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                row: newRowData,
+                                values: newValues,
+                                valid: validation.isValid,
+                                reason: validation.reason || undefined,
+                              }
+                            : prev
+                        );
+
+                        // If the row becomes valid, save immediately without waiting for submit
+                        if (validation.isValid && editingRow) {
+                          const updatedRows = previewRows.map((r) => {
+                            if (r.index === editingRow.index) {
+                              return {
+                                ...r,
+                                row: newRowData,
+                                valid: true,
+                                reason: undefined,
+                                values: newValues,
+                              };
+                            }
+                            return r;
+                          });
+
+                          setPreviewRows(updatedRows);
+                          setShowEditModal(false);
+                          setEditingRow(null);
+                          setEditValues([]);
+                          showSuccess(
+                            "Row Updated",
+                            "Row has been successfully updated and is now valid."
+                          );
+                        }
+                      }}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select City</option>
+                      {(() => {
+                        // Get the current service type from the row
+                        const serviceTypeIndex = columns.findIndex(
+                          (col) =>
+                            col.toLowerCase().includes("servicetype") ||
+                            col.toLowerCase().includes("service type")
+                        );
+                        const currentServiceType =
+                          serviceTypeIndex >= 0
+                            ? editValues[serviceTypeIndex]
+                            : "";
+
+                        let cities: string[] = [];
+                        switch (currentServiceType) {
+                          case "1":
+                            cities = RGS_CITIES;
+                            break;
+                          case "5":
+                            cities = JNT_CITIES;
+                            break;
+                          case "9":
+                            cities = IMILE_CITIES;
+                            break;
+                          default:
+                            cities = [];
+                        }
+
+                        return cities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ));
+                      })()}
+                    </select>
+                  ) : (
+                    <Input
+                      type={
+                        header === "customerPhone" || header === "senderPhone"
+                          ? "number"
+                          : "text"
                       }
-                    }}
-                    placeholder={`Enter ${header}`}
-                    className="w-full"
-                  />
+                      value={editValues[index] || ""}
+                      onChange={(e) => {
+                        const newValues = [...editValues];
+                        newValues[index] = e.target.value;
+                        setEditValues(newValues);
+
+                        // Build full row data from all edited values
+                        const newRowData: ParsedRow = {};
+                        columns.forEach((col, idx) => {
+                          newRowData[col] = newValues[idx] || "";
+                        });
+
+                        // Validate full row on each change
+                        const validation = validateDeliveryRow(
+                          newRowData,
+                          columns
+                        );
+
+                        // Reflect current validation state live in the modal
+                        setEditingRow((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                row: newRowData,
+                                values: newValues,
+                                valid: validation.isValid,
+                                reason: validation.reason || undefined,
+                              }
+                            : prev
+                        );
+
+                        // If the row becomes valid, save immediately without waiting for submit
+                        if (validation.isValid && editingRow) {
+                          const updatedRows = previewRows.map((r) => {
+                            if (r.index === editingRow.index) {
+                              return {
+                                ...r,
+                                row: newRowData,
+                                valid: true,
+                                reason: undefined,
+                                values: newValues,
+                              };
+                            }
+                            return r;
+                          });
+
+                          setPreviewRows(updatedRows);
+                          setShowEditModal(false);
+                          setEditingRow(null);
+                          setEditValues([]);
+                          showSuccess(
+                            "Row Updated",
+                            "Row has been successfully updated and is now valid."
+                          );
+                        }
+                      }}
+                      placeholder={`Enter ${header}`}
+                      className="w-full"
+                    />
+                  )}
                 </div>
               ))}
             </div>

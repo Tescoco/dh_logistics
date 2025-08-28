@@ -1,4 +1,7 @@
 import ExcelJS from "exceljs";
+import { RGS_CITIES } from "./rgs_cities";
+import { JNT_CITIES } from "./jnt_cities";
+import { IMILE_CITIES } from "./imile_cities";
 
 export interface ParsedRow {
   [key: string]: string | number;
@@ -417,6 +420,71 @@ export function validateDeliveryRow(
       isValid: false,
       reason: "Sender phone must be exactly 9 digits (without country code)",
     };
+  }
+
+  // Service Type validation
+  const validServiceTypes = ["1", "5", "9"];
+  if (!validServiceTypes.includes(serviceType)) {
+    return {
+      isValid: false,
+      reason: "Service Type must be 1 (Shipz Solutions), 5 (JNT), or 9 (IMILE)",
+    };
+  }
+
+  // City validation based on service type
+  if (deliveryCity) {
+    let validCities: string[] = [];
+    let serviceName = "";
+
+    switch (serviceType) {
+      case "1":
+        validCities = RGS_CITIES;
+        serviceName = "Shipz Solutions";
+        break;
+      case "5":
+        validCities = JNT_CITIES;
+        serviceName = "JNT";
+        break;
+      case "9":
+        validCities = IMILE_CITIES;
+        serviceName = "IMILE";
+        break;
+    }
+
+    if (!validCities.includes(deliveryCity)) {
+      return {
+        isValid: false,
+        reason: `Delivery city "${deliveryCity}" is not available for ${serviceName} service. Please check the city name or select a different service type.`,
+      };
+    }
+  }
+
+  // Sender city validation (if provided)
+  if (senderCity && serviceType) {
+    let validCities: string[] = [];
+    let serviceName = "";
+
+    switch (serviceType) {
+      case "1":
+        validCities = RGS_CITIES;
+        serviceName = "Shipz Solutions";
+        break;
+      case "5":
+        validCities = JNT_CITIES;
+        serviceName = "JNT";
+        break;
+      case "9":
+        validCities = IMILE_CITIES;
+        serviceName = "IMILE";
+        break;
+    }
+
+    if (!validCities.includes(senderCity)) {
+      return {
+        isValid: false,
+        reason: `Sender city "${senderCity}" is not available for ${serviceName} service. Please check the city name or select a different service type.`,
+      };
+    }
   }
 
   return {

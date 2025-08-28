@@ -115,7 +115,6 @@ export async function GET(req: NextRequest) {
     codPaidAmount: d.codPaidAmount,
     codPaidDate: d.codPaidDate,
     codNotes: d.codNotes,
-    deliveryFee: d.deliveryFee,
     rtoAmount: d.rtoAmount,
     status: d.status,
     assignedDriver: "",
@@ -149,7 +148,6 @@ export async function GET(req: NextRequest) {
         "Payment Status",
         "Paid Amount",
         "Paid Date",
-        "Delivery Fee",
         "Status",
         auth.role === "admin" ? "Assigned Driver" : "",
         "Created Date",
@@ -165,7 +163,6 @@ export async function GET(req: NextRequest) {
         d.codPaymentStatus || "pending",
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
-        d.deliveryFee || 0,
         d.status,
         auth.role === "admin" ? d.assignedDriver : "",
         new Date(d.createdAt).toLocaleDateString(),
@@ -202,7 +199,6 @@ export async function GET(req: NextRequest) {
         { header: "Payment Status", key: "codPaymentStatus", width: 16 },
         { header: "Paid Amount", key: "codPaidAmount", width: 14 },
         { header: "Paid Date", key: "codPaidDate", width: 16 },
-        { header: "Delivery Fee", key: "deliveryFee", width: 14 },
         { header: "Status", key: "status", width: 14 },
         auth.role === "admin"
           ? { header: "Assigned Driver", key: "assignedDriver", width: 20 }
@@ -223,7 +219,6 @@ export async function GET(req: NextRequest) {
           codPaidDate: d.codPaidDate
             ? new Date(d.codPaidDate).toLocaleDateString()
             : "",
-          deliveryFee: d.deliveryFee || 0,
           status: d.status,
           assignedDriver: auth.role === "admin" ? d.assignedDriver : "",
           createdAt: new Date(d.createdAt).toLocaleDateString(),
@@ -395,7 +390,6 @@ export async function GET(req: NextRequest) {
         drawCell(String(d.customerName ?? ""), 1, y);
         drawCell(String(d.customerPhone ?? ""), 2, y);
         drawCell(String((d.codAmount || 0).toLocaleString()), 3, y, "right");
-        drawCell(String((d.deliveryFee || 0).toLocaleString()), 4, y, "right");
         drawCell(String(d.status ?? "").toUpperCase(), 5, y);
         drawCell(
           auth.role === "admin" ? String(d.assignedDriver ?? "") : "",
@@ -411,10 +405,6 @@ export async function GET(req: NextRequest) {
         (sum, d) => sum + (Number(d.codAmount) || 0),
         0
       );
-      const totalFee = processedDeliveries.reduce(
-        (sum, d) => sum + (Number(d.deliveryFee) || 0),
-        0
-      );
 
       ensureSpace(lineHeight * 2);
       // Place totals at left margin
@@ -427,14 +417,6 @@ export async function GET(req: NextRequest) {
         }
       );
       cursorY -= lineHeight;
-      drawText(
-        `Total Delivery Fees: SAR ${totalFee.toLocaleString()}`,
-        startX,
-        cursorY - textFontSize,
-        {
-          font: helveticaBold,
-        }
-      );
 
       const bytes = await pdfDoc.save();
       const arrayBuffer = new ArrayBuffer(bytes.length);

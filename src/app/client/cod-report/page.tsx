@@ -13,6 +13,7 @@ import {
   DownloadIcon,
   LinkIcon,
   TrashIcon,
+  EyeIcon,
 } from "@/components/icons";
 import { useToast } from "@/contexts/ToastContext";
 
@@ -399,7 +400,7 @@ export default function CodReportPage() {
                           }
                         }}
                       >
-                        <LinkIcon size={16} />
+                        <EyeIcon size={16} />
                       </IconButton>
                       <IconButton
                         label="Delete"
@@ -567,12 +568,16 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                ﷼
                 {previewData
-                  .reduce((sum, d) => sum + (d.deliveryFee || 0), 0)
+                  .reduce(
+                    (sum, d) => sum + (d.status === "delivered" ? 1 : 0),
+                    0
+                  )
                   .toLocaleString()}
               </div>
-              <div className="text-sm text-slate-500">Total Delivery Fees</div>
+              <div className="text-sm text-slate-500">
+                Total Completed Deliveries
+              </div>
             </div>
           </div>
 
@@ -611,9 +616,6 @@ export default function CodReportPage() {
                     <td className="px-3 py-2 font-medium">
                       ﷼{delivery.codAmount?.toLocaleString() || "0"}
                     </td>
-                    {/* <td className="px-3 py-2">
-                      ﷼{delivery.deliveryFee?.toLocaleString() || "0"}
-                    </td> */}
                     <td className="px-3 py-2">
                       <Badge
                         variant={
