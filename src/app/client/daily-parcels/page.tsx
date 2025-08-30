@@ -339,8 +339,10 @@ export default function DailyParcelsPage() {
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-600">Show:</span>
             <Select
-              className="w-20"
               value={pageSize}
+              style={{
+                width: "60px",
+              }}
               onChange={(e) => setPageSize(e.currentTarget.value)}
             >
               {(["10", "20", "50"] as const).map((n) => (
@@ -366,7 +368,7 @@ export default function DailyParcelsPage() {
             <Select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-32 text-sm bg-white/10 border-white/20 text-white focus:bg-white/20 focus:border-white/40"
+              className="w-32 text-sm  border-white/20  focus:border-white/40"
             >
               <option value="">All Status</option>
               <option value="pending">Pending</option>
