@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [timeZone, setTimeZone] = useState("UTC");
   const [defaultLanguage, setDefaultLanguage] = useState("English");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [codPassword, setCodPassword] = useState("");
 
   const [defaultUserRole, setDefaultUserRole] = useState<
     "customer" | "driver" | "manager" | "admin"
@@ -39,6 +40,7 @@ export default function SettingsPage() {
         setTimeZone(s.timeZone ?? "UTC");
         setDefaultLanguage(s.defaultLanguage ?? "English");
         setMaintenanceMode(Boolean(s.maintenanceMode));
+        setCodPassword(s.codPassword ?? "");
 
         setDefaultUserRole(s.defaultUserRole ?? "customer");
         setAutoApproveUsers(Boolean(s.autoApproveUsers ?? true));
@@ -68,6 +70,7 @@ export default function SettingsPage() {
           timeZone,
           defaultLanguage,
           maintenanceMode,
+          codPassword,
           defaultUserRole,
           autoApproveUsers,
           allowRegistration,
@@ -119,6 +122,18 @@ export default function SettingsPage() {
                 placeholder="Enter system name"
                 value={systemName}
                 onChange={(e) => setSystemName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                COD Password
+              </label>
+              <input
+                className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Enter COD password"
+                type="password"
+                value={codPassword}
+                onChange={(e) => setCodPassword(e.target.value)}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

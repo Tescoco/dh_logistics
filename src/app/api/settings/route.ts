@@ -22,6 +22,7 @@ const SettingsSchema = z.object({
   autoAssignDrivers: z.boolean(),
   thirdPartyBearerToken: z.string().optional(),
   thirdPartyTokenUpdatedAt: z.string().datetime().optional(),
+  codPassword: z.string().optional(),
 });
 
 async function getSingletonSettingsDoc() {

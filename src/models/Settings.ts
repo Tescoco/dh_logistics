@@ -18,6 +18,7 @@ export interface SettingsDocument extends Document {
 
   thirdPartyBearerToken?: string;
   thirdPartyTokenUpdatedAt?: Date;
+  codPassword?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +47,7 @@ const settingsSchema = new Schema<SettingsDocument>(
 
     thirdPartyBearerToken: { type: String },
     thirdPartyTokenUpdatedAt: { type: Date },
+    codPassword: { type: String },
   },
   { timestamps: true }
 );

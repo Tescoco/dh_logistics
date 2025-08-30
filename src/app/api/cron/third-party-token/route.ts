@@ -9,7 +9,10 @@ export async function POST() {
   try {
     const url = "https://codsolution.co/ship/Api/loginApi";
     const email = "zaidansari864@gmail.com";
-    const password = "ZXCasd123@";
+
+    // Get settings to retrieve COD password
+    const settings = (await Settings.findOne()) || (await Settings.create({}));
+    const password = settings.codPassword || "Zee786@"; // Fallback to hardcoded password if not set
 
     async function requestToken(): Promise<{
       token?: string;
