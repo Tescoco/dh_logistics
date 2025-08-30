@@ -24,6 +24,7 @@ type DeliveryRow = {
   trackingId: string;
   customerName: string;
   customerPhone: string;
+  reference: string;
   status:
     | "Delivered"
     | "In Transit"
@@ -144,6 +145,7 @@ export default function TrackDeliveriesPage() {
             trackingId: it.reference || `SH-${String(i).padStart(3, "0")}`,
             customerName: it.customerName || "—",
             customerPhone: it.customerPhone || "—",
+            reference: it.reference || "—",
             status:
               it.status === "delivered"
                 ? "Delivered"
@@ -198,6 +200,7 @@ export default function TrackDeliveriesPage() {
         ? [
             r.trackingId,
             r.customerName,
+            r.reference,
             r.customerPhone,
             r.origin,
             r.destination,

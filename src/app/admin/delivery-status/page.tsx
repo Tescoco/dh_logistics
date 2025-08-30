@@ -256,7 +256,13 @@ export default function DeliveryStatusPage() {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((r) =>
-      [r._id.slice(-8), r.customerName, r.deliveryAddress, r.status]
+      [
+        r._id.slice(-8),
+        r.customerName,
+        r.deliveryAddress,
+        r.status,
+        r.reference,
+      ]
         .filter(Boolean)
         .some((v) => (v || "").toLowerCase().includes(q))
     );

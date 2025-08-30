@@ -120,6 +120,7 @@ export async function GET(req: NextRequest) {
     assignedDriver: "",
     assignedDriverId: d.assignedDriverId,
     createdAt: d.createdAt,
+    deliveryFee: d.deliveryFee,
   }));
 
   // if the role is admin add assigned driver name to the processed deliveries
