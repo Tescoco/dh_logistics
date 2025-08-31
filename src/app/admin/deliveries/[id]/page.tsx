@@ -14,8 +14,6 @@ import { IMILE_CITIES } from "@/lib/imile_cities";
 import { JNT_CITIES } from "@/lib/jnt_cities";
 import { RGS_CITIES } from "@/lib/rgs_cities";
 
-
-
 type DeliveryResponse = {
   delivery: {
     _id: string;
@@ -47,18 +45,6 @@ type DeliveryResponse = {
   };
 };
 
-type ClientUser = {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  deliveryFee: number;
-  address?: string;
-  city?: string;
-  district?: string;
-  postalCode?: string;
-};
-
 export default function AdminEditDeliveryPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -66,7 +52,6 @@ export default function AdminEditDeliveryPage() {
   const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [clients, setClients] = useState<ClientUser[]>([]);
 
   const [form, setForm] = useState<{
     reference: string;
@@ -137,28 +122,6 @@ export default function AdminEditDeliveryPage() {
     if (form.serviceType === "9") return IMILE_CITIES;
     return SAUDI_CITIES;
   }, [form.serviceType]);
-
-  // Fetch clients on component mount
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const res = await fetch("/api/users/clients");
-        if (res.ok) {
-          const data = await res.json();
-          setClients(data.users || []);
-        } else {
-          showError("Failed to load clients", "Could not fetch client list");
-        }
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-        showError("Failed to load clients", "Could not fetch client list");
-      } finally {
-        // Loading complete
-      }
-    };
-
-    fetchClients();
-  }, [showError]);
 
   useEffect(() => {
     let mounted = true;

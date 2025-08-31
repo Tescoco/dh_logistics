@@ -11,7 +11,7 @@ import {
   CheckIcon,
   RefreshIcon,
   ClockIcon,
-
+  DownloadIcon,
   ArrowUpIcon,
 } from "@/components/icons";
 import DeliveryChart from "@/components/ui/DeliveryChart";
@@ -72,6 +72,29 @@ export default function AdminDashboardPage() {
   // Bulk update state
   const [bulkStatusFilter, setBulkStatusFilter] = useState<string>("pending");
   const [bulkIds, setBulkIds] = useState<string>("");
+
+  // Bulk search state
+  const [bulkSearchIds, setBulkSearchIds] = useState<string>("");
+  const [bulkSearchResults, setBulkSearchResults] = useState<
+    Array<{
+      id: string;
+      reference: string;
+      customerName: string;
+      customerPhone: string;
+      deliveryAddress: string;
+      paymentMethod: string;
+      codAmount: number;
+      priority: string;
+      status: string;
+      assignedDriver: string;
+      assignedCourier: string;
+      createdBy: string;
+      notes: string;
+      createdAt: string;
+      updatedAt: string;
+    }>
+  >([]);
+  const [bulkSearchLoading, setBulkSearchLoading] = useState(false);
 
   // Selection and assignment state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -202,6 +225,7 @@ export default function AdminDashboardPage() {
     if (query) {
       rows = rows.filter(
         (r) =>
+          r.reference?.toLowerCase().includes(query) ||
           r.customerName.toLowerCase().includes(query) ||
           String(r._id).toLowerCase().includes(query)
       );
@@ -277,6 +301,96 @@ export default function AdminDashboardPage() {
       setRefreshKey((k) => k + 1);
     } catch {
       showError("Assignment Failed", "Failed to assign parcels to courier");
+    }
+  }
+
+  async function handleBulkSearch() {
+    if (!bulkSearchIds.trim()) {
+      showError("Search Failed", "Please enter at least one reference ID");
+      return;
+    }
+
+    setBulkSearchLoading(true);
+    try {
+      const ids = bulkSearchIds
+        .split(/[\n,\s]+/)
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (ids.length === 0) {
+        showError("Search Failed", "No valid reference IDs provided");
+        return;
+      }
+
+      const res = await fetch("/api/deliveries/bulk-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, format: "json" }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showError("Search Failed", data?.error ?? "Failed to search parcels");
+        return;
+      }
+
+      setBulkSearchResults(data.deliveries || []);
+      showSuccess(
+        "Search Successful",
+        `Found ${data.count} parcel${data.count > 1 ? "s" : ""}`
+      );
+    } catch {
+      showError("Search Failed", "Failed to search parcels");
+    } finally {
+      setBulkSearchLoading(false);
+    }
+  }
+
+  async function handleDownload(format: "csv" | "xls") {
+    if (!bulkSearchIds.trim()) {
+      showError("Download Failed", "Please enter at least one reference ID");
+      return;
+    }
+
+    try {
+      const ids = bulkSearchIds
+        .split(/[\n,\s]+/)
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (ids.length === 0) {
+        showError("Download Failed", "No valid reference IDs provided");
+        return;
+      }
+
+      const res = await fetch("/api/deliveries/bulk-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, format }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showError("Download Failed", data?.error ?? "Failed to download file");
+        return;
+      }
+
+      // Create blob and download
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bulk-search-${
+        new Date().toISOString().split("T")[0]
+      }.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      showSuccess("Download Successful", `File downloaded successfully`);
+    } catch {
+      showError("Download Failed", "Failed to download file");
     }
   }
 
@@ -436,6 +550,127 @@ export default function AdminDashboardPage() {
           >
             Update Selected
           </Button>
+        </div>
+      </Card>
+
+      <Card
+        header={<div className="font-semibold">Bulk Search & Download</div>}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_auto_auto]">
+            <Input
+              placeholder="Reference ID1, Reference ID2, Reference ID3... (separate with commas, spaces, or new lines)"
+              value={bulkSearchIds}
+              onChange={(e) =>
+                setBulkSearchIds((e.target as HTMLInputElement).value)
+              }
+            />
+            <Button
+              onClick={handleBulkSearch}
+              loading={bulkSearchLoading}
+              variant="secondary"
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => handleDownload("csv")}
+              variant="secondary"
+              disabled={!bulkSearchIds.trim()}
+              leftIcon={<DownloadIcon size={16} />}
+            >
+              Download CSV
+            </Button>
+            <Button
+              onClick={() => handleDownload("xls")}
+              variant="secondary"
+              disabled={!bulkSearchIds.trim()}
+              leftIcon={<DownloadIcon size={16} />}
+            >
+              Download XLS
+            </Button>
+          </div>
+
+          {/* Search Results */}
+          {bulkSearchResults.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-slate-900">
+                  Search Results ({bulkSearchResults.length} parcels found)
+                </h4>
+                <button
+                  onClick={() => setBulkSearchResults([])}
+                  className="text-sm text-slate-500 hover:text-slate-700"
+                >
+                  Clear Results
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-slate-200 rounded-lg">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Reference
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Customer
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Status
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Payment
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        COD Amount
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Assigned To
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {bulkSearchResults.map((delivery, index) => (
+                      <tr key={index} className="hover:bg-slate-50">
+                        <td className="px-4 py-2 text-sm font-medium text-slate-900">
+                          {delivery.reference ||
+                            delivery.id.slice(-8).toUpperCase()}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-slate-700">
+                          {delivery.customerName}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold capitalize ${
+                              delivery.status === "delivered"
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                                : delivery.status === "in_transit"
+                                ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200"
+                                : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                            }`}
+                          >
+                            {delivery.status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-slate-700">
+                          {delivery.paymentMethod}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-slate-700">
+                          {delivery.codAmount
+                            ? `SAR ${Number(delivery.codAmount).toFixed(2)}`
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-slate-700">
+                          {delivery.assignedDriver ||
+                            delivery.assignedCourier ||
+                            "Not assigned"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 

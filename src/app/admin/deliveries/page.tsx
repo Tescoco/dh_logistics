@@ -79,15 +79,7 @@ function CODTab() {
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  type DeliveryStatus =
-    | "pending"
-    | "assigned"
-    | "in_transit"
-    | "delivered"
-    | "returned"
-    | "future_delivery"
-    | "rto"
-    | "lost_damaged";
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   type CourierLite = {
     _id: string;
