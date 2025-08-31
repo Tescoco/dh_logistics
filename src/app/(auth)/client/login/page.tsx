@@ -51,38 +51,38 @@ export default function ClientLoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/imagee.jpg"
+          alt="Logistics Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         {/* Logo and Header */}
         <div className="flex justify-center gap-0 mb-0">
-          <div className="h-20 w-20 flex items-center justify-center">
-            {/* <span className="text-white font-bold text-lg">S</span> */}
+          <div className=" flex items-center justify-center">
             <Image
               src="/favicon.png"
               alt="Shipz Logo"
-              width={80}
-              height={80}
+              width={160}
+              height={50}
               className="text-white font-bold text-lg"
             />
           </div>
-          <div className="text-center ml-2 mb-2">
-            <h1 className="text-2xl font-bold text-slate-900">
+          <div className="flex flex-col items-center justify-center">
+            <h1 className="text-[18px] font-semibold text-black">
               Shipz Customer Portal
             </h1>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-center text-black">
               Sign in to your Shipz account
             </p>
           </div>
         </div>
 
-        <Card className="py-8 px-4 sm:px-10">
-          <div className="text-center mb-6">
-            <div className="mx-auto h-16 w-16 rounded-full bg-[#0EA5E9] flex items-center justify-center mb-4">
-              <UserIcon size={32} className="text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
-            <p className="text-slate-600 mt-1">Sign in to your Shipz account</p>
-          </div>
-
+        <Card className="bg-white/35 backdrop-blur-sm shadow-2xl border-0 py-3 px-4 sm:px-10">
           {error && (
             <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
               <p className="text-sm text-red-600">{error}</p>
@@ -172,32 +172,6 @@ export default function ClientLoginPage() {
               Sign In
             </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-slate-500">
-                  By signing in, you agree to our{" "}
-                  <Link
-                    href="/terms"
-                    className="text-[#0EA5E9] hover:text-[#0C94CF]"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-[#0EA5E9] hover:text-[#0C94CF]"
-                  >
-                    Privacy Policy
-                  </Link>
-                </span>
-              </div>
-            </div>
-          </div>
         </Card>
 
         <div className="mt-8 text-center">
@@ -211,6 +185,9 @@ export default function ClientLoginPage() {
             </Link>
           </p>
         </div>
+      </div>
+      <div className="mt-4 text-left w-full z-10 mt-20">
+        © Shipz Solutions {new Date().getFullYear()}. All Right Reserved.
       </div>
     </div>
   );

@@ -17,25 +17,44 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   return (
-    <div className="min-h-screen grid place-items-center bg-slate-50 px-4">
-      <div className="w-full max-w-[420px]">
-        <div className="mb-5 flex items-center gap-2">
-          <div className="h-20 w-20 flex items-center justify-center">
-            {/* <span className="text-white font-bold text-lg">S</span> */}
+    <div className="min-h-screen relative grid place-items-center px-4  ">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/imagee.jpg"
+          alt="Logistics Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-[420px] mb-30">
+        <div className=" flex items-center  gap-2">
+          <div className=" flex items-center justify-center">
             <Image
               src="/favicon.png"
               alt="Shipz Logo"
-              width={80}
-              height={80}
+              width={160}
+              height={50}
               className="text-white font-bold text-lg"
             />
           </div>
-          <div>
-            <div className="text-[18px] font-semibold">Shipz Solutions</div>
-            <div className="text-[12px] text-slate-500">Admin Portal</div>
+          <div className="text-center">
+            <div className="text-[18px] font-semibold text-black">
+              Shipz Solutions
+            </div>
+            <div className="text-[12px] text-center text-black">
+              Admin Portal
+            </div>
           </div>
         </div>
-        <Card>
+        <Card
+          // transparent
+          style={{}}
+          className="bg-white/35 backdrop-blur-sm shadow-2xl border-0"
+        >
           <div className="mb-2 text-xl font-semibold">Admin Login</div>
           <p className="mb-6 text-sm text-slate-500">
             Sign in to access the Shipz admin dashboard
@@ -111,13 +130,10 @@ export default function AdminLoginPage() {
               {loading ? "Signing in..." : "Sign in to Shipz"}
             </Button>
           </form>
-
-          <div className="mt-6 rounded-md bg-slate-50 p-3 text-[13px] text-slate-600">
-            <div className="font-medium">Security Notice</div>
-            This is a secure admin area for Shipz. All login attempts are
-            monitored and logged for security purposes.
-          </div>
         </Card>
+      </div>
+      <div className="mt-4 text-left w-full z-10">
+        © Shipz Solutions {new Date().getFullYear()}. All Right Reserved.
       </div>
     </div>
   );
