@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
       reference: string;
       customerName: string;
       customerPhone: string;
+      customerWhatsApp?: string;
       customerStoreName?: string; // Store name from customer account
       senderName: string;
       senderPhone: string;
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
         reference: data.reference,
         customerName: data.customerName,
         customerPhone: data.customerPhone,
+        customerWhatsApp: data.customerWhatsApp,
         deliveryAddress: data.deliveryAddress,
         deliveryCity: data.deliveryCity || undefined,
         deliveryPostalCode: data.deliveryPostalCode || undefined,

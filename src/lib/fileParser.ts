@@ -260,6 +260,7 @@ export function validateDeliveryRow(
     reference: string;
     customerName: string;
     customerPhone: string;
+    customerWhatsApp: string;
     deliveryAddress: string;
     deliveryCity: string;
     deliveryPostalCode: string;
@@ -307,6 +308,13 @@ export function validateDeliveryRow(
     "phone",
     "Phone",
     "Customer Phone",
+  ]);
+  const customerWhatsApp = getFieldValue([
+    "customerWhatsApp",
+    "customer_whatsapp",
+    "whatsapp",
+    "WhatsApp",
+    "Customer WhatsApp",
   ]);
   const senderName = getFieldValue([
     "senderName",
@@ -497,6 +505,7 @@ export function validateDeliveryRow(
       reference,
       customerName,
       customerPhone,
+      customerWhatsApp,
       customerStoreName: "", // Will be populated from user account
       senderName,
       senderPhone,
