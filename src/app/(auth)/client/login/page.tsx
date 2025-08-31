@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { UserIcon, EyeIcon } from "@/components/icons";
+import { EyeIcon } from "@/components/icons";
 import Image from "next/image";
 
 export default function ClientLoginPage() {
