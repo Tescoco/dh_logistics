@@ -26,9 +26,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ deliveries: [] });
     }
   }
-  // if tab is cod get all deliveries with assignedDriverId that is equal to 68992b3ad5eb3b93c40396dc
+  // if tab is cod get all deliveries with assignedDriverId that is equal to 68b4e8320937d8c4337027a6
   if (tab === "cod") {
-    query.assignedDriverId = "68992b3ad5eb3b93c40396dc";
+    query.assignedDriverId = "68b4e8320937d8c4337027a6";
   }
 
   if (tab === "courier") {

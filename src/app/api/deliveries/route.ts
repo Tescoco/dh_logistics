@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
   const query: Record<string, unknown> = {};
   if (status) query.status = status;
   if (payment) query.paymentMethod = payment;
-  // if tab is internal get all deliveries with assignedDriverId that is not equal to 68992b3ad5eb3b93c40396dc
+  // if tab is internal get all deliveries with assignedDriverId that is not equal to 68b4e8320937d8c4337027a6
   if (tab === "internal") {
     const driverUsers = await User.find({ role: "driver" })
       .select("_id")
@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
     const driverUserIds = driverUsers.map((u: { _id: unknown }) => u._id);
     query.assignedDriverId = { $in: driverUserIds };
   }
-  // if tab is cod get all deliveries with assignedDriverId that is equal to 68992b3ad5eb3b93c40396dc
+  // if tab is cod get all deliveries with assignedDriverId that is equal to 68b4e8320937d8c4337027a6
   if (tab === "cod") {
-    query.assignedDriverId = "68992b3ad5eb3b93c40396dc";
+    query.assignedDriverId = "68b4e8320937d8c4337027a6";
   }
 
   if (tab === "courier") {
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
       if (
         !input.assignedCourierId && // Not assigned to courier
         (!input.assignedDriverId ||
-          input.assignedDriverId === "68992b3ad5eb3b93c40396dc") &&
+          input.assignedDriverId === "68b4e8320937d8c4337027a6") &&
         auth.role === "admin"
       ) {
         const settingsDoc = await (

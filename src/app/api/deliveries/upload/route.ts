@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
         senderPostalCode: data.senderPostalCode || undefined,
         assignedDriverId:
           auth.role === "customer" || isClientUpload
-            ? "68992b3ad5eb3b93c40396dc"
+            ? "68b4e8320937d8c4337027a6"
             : undefined,
         returnOrderRate: isClientUpload ? clientData?.returnOrderRate || 0 : 0,
         activityLog: [

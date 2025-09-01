@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (
-        courierId === "68992b3ad5eb3b93c40396dc" &&
+        courierId === "68b4e8320937d8c4337027a6" &&
         (delivery.assignedDriverId?.toString() !== courierId ||
           delivery.status === "pending") &&
         authUser.role === "admin"
