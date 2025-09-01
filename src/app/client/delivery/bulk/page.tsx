@@ -175,7 +175,7 @@ export default function BulkDeliveriesUploadPage() {
 
     // Download empty template
     const headers = [
-      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType",
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType,customerWhatsApp",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -192,10 +192,10 @@ export default function BulkDeliveriesUploadPage() {
 
     // Also download example template with sample data
     const exampleData = [
-      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType",
-      "SS10001,Ahmed Al-Rashid,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery,1",
-      "SS10002,Sarah Johnson,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care,5",
-      "SS10003,Mohammed Ali,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required,9",
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType,customerWhatsApp",
+      "SS10001,Ahmed Al-Rashid,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery,1,0599999999",
+      "SS10002,Sarah Johnson,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care,5,0599999999",
+      "SS10003,Mohammed Ali,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required,9,0599999999",
     ].join("\n");
 
     const exampleBlob = new Blob([exampleData], {
