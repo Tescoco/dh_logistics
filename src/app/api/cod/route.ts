@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
     codPaidAmount: d.codPaidAmount,
     codPaidDate: d.codPaidDate,
     codNotes: d.codNotes,
-    rtoAmount: d.rtoAmount,
+    returnOrderRate: d.returnOrderRate,
     status: d.status,
     assignedDriver: "",
     assignedDriverId: d.assignedDriverId,

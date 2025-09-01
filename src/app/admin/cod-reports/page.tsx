@@ -27,7 +27,7 @@ type CODDelivery = {
   codPaidDate?: string;
   codNotes?: string;
   deliveryFee: number;
-  rtoAmount?: number;
+  returnOrderRate?: number;
   status: string;
   createdAt: string;
   assignedDriver?: string;
@@ -173,7 +173,7 @@ export default function AdminCODReportsPage() {
     setEditPaymentStatus(delivery.codPaymentStatus);
     setEditPaidAmount(String(delivery.codAmount || 0));
     setEditPaidDate(new Date().toISOString().split("T")[0]);
-    setEditRtoFee(String(delivery.rtoAmount || 0));
+    setEditRtoFee(String(delivery.returnOrderRate || 0));
     setEditNotes(delivery.codNotes || "");
     setEditModalOpen(true);
   }
@@ -192,7 +192,7 @@ export default function AdminCODReportsPage() {
           codPaidDate: editPaidDate
             ? new Date(editPaidDate).toISOString()
             : undefined,
-          rtoAmount: editRtoFee ? Number(editRtoFee) : undefined,
+          returnOrderRate: editRtoFee ? Number(editRtoFee) : undefined,
           codNotes: editNotes || undefined,
         }),
       });
@@ -217,7 +217,7 @@ export default function AdminCODReportsPage() {
                   ? Number(editPaidAmount)
                   : undefined,
                 codPaidDate: editPaidDate,
-                rtoAmount: editRtoFee ? Number(editRtoFee) : undefined,
+                returnOrderRate: editRtoFee ? Number(editRtoFee) : undefined,
                 codNotes: editNotes,
               }
             : d

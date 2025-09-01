@@ -23,6 +23,20 @@ export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get("content-type");
     let rows, headers, fileName, isCSV, isXLSX;
+    let isClientUpload = false;
+    let clientId: string | undefined;
+    let clientData: {
+      _id: string;
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      deliveryFee?: number;
+      address?: string;
+      city?: string;
+      senderAddress?: string;
+      senderCity?: string;
+      returnOrderRate?: number;
+    } | null = null;
 
     // Check if this is JSON data (edited data) or FormData (original file upload)
     if (contentType?.includes("application/json")) {
@@ -40,6 +54,10 @@ export async function POST(req: NextRequest) {
       fileName = jsonData.fileName.toLowerCase();
       isCSV = jsonData.fileType === "csv" || fileName.endsWith(".csv");
       isXLSX = jsonData.fileType === "xlsx" || fileName.endsWith(".xlsx");
+
+      // Check if this is a client upload
+      isClientUpload = jsonData.isClientUpload || false;
+      clientId = jsonData.clientId;
     } else {
       // Handle FormData (original file upload - for backward compatibility)
       const form = await req.formData();
@@ -94,6 +112,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Load client data if this is a client upload
+    if (isClientUpload && clientId) {
+      try {
+        clientData = await User.findById(clientId);
+        if (!clientData) {
+          return NextResponse.json(
+            { error: "Selected client not found" },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { error: "Failed to load client data" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Get sender information
     const sender = await User.findById(auth.userId);
     if (!sender) {
@@ -106,6 +142,7 @@ export async function POST(req: NextRequest) {
     const defaultDeliveryFee = sender.deliveryFee || 0;
 
     type NewDelivery = {
+      returnOrderRate?: number;
       reference: string;
       customerName: string;
       customerPhone: string;
@@ -156,6 +193,16 @@ export async function POST(req: NextRequest) {
 
       const data = validation.data!;
 
+      // Use client data if this is a client upload
+      const clientSenderName = clientData
+        ? `${clientData.firstName || ""} ${clientData.lastName || ""}`.trim()
+        : senderName;
+      const clientSenderPhone = clientData?.phone || senderPhone;
+      const clientDeliveryFee = clientData?.deliveryFee || defaultDeliveryFee;
+      const clientSenderAddress =
+        clientData?.senderAddress || clientData?.address;
+      const clientSenderCity = clientData?.senderCity || clientData?.city;
+
       deliveries.push({
         reference: data.reference,
         customerName: data.customerName,
@@ -167,26 +214,43 @@ export async function POST(req: NextRequest) {
         serviceType: data.serviceType || "1",
         packageType: data.packageType?.toLowerCase() || "parcel",
         description: data.description,
-        priority: data.priority?.toLowerCase() || "standard",
-        // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
-        // and does NOT accept "COD" (uppercase) for the paymentMethod field.
-        // This was discovered during testing where bulk uploads failed with uppercase COD values.
-        // The toLowerCase() conversion ensures compatibility with both formats.
-        paymentMethod: data.paymentMethod?.toLowerCase() || "cod",
-        deliveryFee: data.deliveryFee || defaultDeliveryFee,
+        // For client uploads, always use standard priority and cod payment method
+        priority: isClientUpload
+          ? "standard"
+          : data.priority?.toLowerCase() || "standard",
+        paymentMethod: isClientUpload
+          ? "cod"
+          : data.paymentMethod?.toLowerCase() || "cod",
+        // Use client delivery fee if client upload, otherwise use provided or default
+        deliveryFee: isClientUpload
+          ? clientDeliveryFee
+          : data.deliveryFee || defaultDeliveryFee,
         codAmount: data.codAmount,
         notes: data.notes,
         status: "pending",
-        createdById: auth.userId,
+        createdById:
+          isClientUpload && clientData ? clientData._id : auth.userId,
         createdAt: new Date(),
-        customerStoreName: data.customerStoreName || sender.customerStoreName, // Use sender's store name
-        senderName: data.senderName || senderName,
-        senderPhone: data.senderPhone || senderPhone,
-        senderAddress: data.senderAddress || undefined,
-        senderCity: data.senderCity || undefined,
+        customerStoreName: data.customerStoreName || sender.customerStoreName,
+        // Use client sender information if client upload
+        senderName: isClientUpload
+          ? clientSenderName
+          : data.senderName || senderName,
+        senderPhone: isClientUpload
+          ? clientSenderPhone
+          : data.senderPhone || senderPhone,
+        senderAddress: isClientUpload
+          ? clientSenderAddress
+          : data.senderAddress || undefined,
+        senderCity: isClientUpload
+          ? clientSenderCity
+          : data.senderCity || undefined,
         senderPostalCode: data.senderPostalCode || undefined,
         assignedDriverId:
-          auth.role === "customer" ? "68992b3ad5eb3b93c40396dc" : undefined,
+          auth.role === "customer" || isClientUpload
+            ? "68992b3ad5eb3b93c40396dc"
+            : undefined,
+        returnOrderRate: isClientUpload ? clientData?.returnOrderRate || 0 : 0,
         activityLog: [
           {
             action: "delivery_created",
@@ -194,7 +258,9 @@ export async function POST(req: NextRequest) {
             performedAt: new Date(),
             details: `Delivery created via ${
               isCSV ? "CSV" : "XLSX"
-            } upload by ${auth.role}`,
+            } upload by ${auth.role}${
+              isClientUpload ? ` for client ${clientSenderName}` : ""
+            }`,
             newValue: "pending",
           },
         ],
@@ -238,7 +304,11 @@ export async function POST(req: NextRequest) {
 
       let message = `Successfully processed ${deliveries.length} rows from ${
         isCSV ? "CSV" : "XLSX"
-      } file. `;
+      } file${
+        isClientUpload
+          ? ` for client ${clientData?.firstName} ${clientData?.lastName}`.trim()
+          : ""
+      }. `;
       message += `Created ${result.length} new deliveries.`;
       if (skippedCount > 0) {
         message += ` Skipped ${skippedCount} duplicate references.`;

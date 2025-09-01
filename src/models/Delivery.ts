@@ -31,7 +31,7 @@ export interface DeliveryDocument {
   paymentMethod?: "cod" | "prepaid";
   deliveryFee?: number;
   codAmount?: number;
-  rtoAmount?: number;
+  returnOrderRate?: number;
   codPaymentStatus?: CODPaymentStatus; // COD payment status
   codPaidAmount?: number; // Amount actually paid for COD
   codPaidDate?: Date; // Date when COD was paid
@@ -89,7 +89,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     },
     deliveryFee: { type: Number, default: 0 },
     codAmount: { type: Number, default: 0 },
-    rtoAmount: { type: Number, default: 0 },
+    returnOrderRate: { type: Number, default: 0 },
     codPaymentStatus: {
       type: String,
       enum: ["pending", "paid", "partial"],

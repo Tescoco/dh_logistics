@@ -27,7 +27,7 @@ const UpdateDeliverySchema = z.object({
   paymentMethod: z.enum(["prepaid", "cod"]).optional(),
   deliveryFee: z.number().optional(),
   codAmount: z.number().optional(),
-  rtoAmount: z.number().optional(),
+  returnOrderRate: z.number().optional(),
   codPaymentStatus: z.enum(["pending", "paid", "partial"]).optional(),
   codPaidAmount: z.number().optional(),
   codPaidDate: z.string().optional(), // ISO date string

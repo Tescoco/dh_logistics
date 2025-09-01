@@ -111,7 +111,7 @@ function CODTab() {
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
-    rtoAmount?: number;
+    returnOrderRate?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -815,8 +815,8 @@ function CODTab() {
               <div>
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
-                  {viewDelivery?.rtoAmount
-                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                  {viewDelivery?.returnOrderRate
+                    ? `SAR ${Number(viewDelivery.returnOrderRate).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -898,7 +898,7 @@ function InternalTab() {
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
-    rtoAmount?: number;
+    returnOrderRate?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -1001,122 +1001,6 @@ function InternalTab() {
 
   function openEditDelivery(id: string) {
     router.push(`/admin/deliveries/${id}`);
-  }
-
-  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
-    if (filtered.length === 0) {
-      showError("Download Error", "No data to download");
-      return;
-    }
-
-    // Prepare headers
-    const headers = [
-      "Reference ID",
-      "Customer Name",
-      "Store Name",
-      "Assigned Driver/Courier",
-      "Delivery Address",
-      "Status",
-      "Created Date",
-    ];
-
-    // Prepare data
-    const data = filtered.map((d) => [
-      d.reference,
-      d.customerName,
-      d.customerStoreName || "",
-      d.assignedDriverId
-        ? `${d.assignedDriverId.firstName || ""} ${
-            d.assignedDriverId.lastName || ""
-          }`.trim()
-        : "",
-      d.deliveryAddress,
-      d.status.replace("_", " "),
-      new Date(d.createdAt).toLocaleDateString(),
-    ]);
-
-    if (format === "csv") {
-      // Create CSV content
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
-
-      // Download CSV file
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `internal_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else if (format === "xlsx") {
-      try {
-        // Use proper Excel export with exceljs
-        const ExcelModule = await import("exceljs");
-        const workbook = new ExcelModule.Workbook();
-        const worksheet = workbook.addWorksheet("Internal Deliveries");
-
-        worksheet.columns = [
-          { header: "Reference ID", key: "reference", width: 18 },
-          { header: "Customer Name", key: "customerName", width: 24 },
-          { header: "Store Name", key: "customerStoreName", width: 24 },
-          {
-            header: "Assigned Driver/Courier",
-            key: "assignedDriver",
-            width: 20,
-          },
-          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
-          { header: "Status", key: "status", width: 14 },
-          { header: "Created Date", key: "createdAt", width: 16 },
-        ];
-
-        filtered.forEach((d) => {
-          worksheet.addRow({
-            reference: d.reference,
-            customerName: d.customerName,
-            customerStoreName: d.customerStoreName || "",
-            assignedDriver: d.assignedDriverId
-              ? `${d.assignedDriverId.firstName || ""} ${
-                  d.assignedDriverId.lastName || ""
-                }`.trim()
-              : "",
-            deliveryAddress: d.deliveryAddress,
-            status: d.status.replace("_", " "),
-            createdAt: new Date(d.createdAt).toLocaleDateString(),
-          });
-        });
-
-        // Style header row
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true };
-        headerRow.alignment = { vertical: "middle", horizontal: "center" };
-
-        const arrayBuffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
-        const body = new Uint8Array(arrayBuffer);
-
-        // Download Excel file
-        const blob = new Blob([body], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `internal_deliveries_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        showError("Export Error", "Failed to generate Excel file");
-        console.error("Excel export error:", error);
-      }
-    }
   }
 
   async function handleDeleteDelivery(id: string) {
@@ -1236,20 +1120,6 @@ function InternalTab() {
           leftIcon={<PlusIcon size={18} />}
         >
           Add New Delivery
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => downloadInternalDeliveries("csv")}
-          leftIcon={<DownloadIcon size={18} />}
-        >
-          Download CSV
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => downloadInternalDeliveries("xlsx")}
-          leftIcon={<DownloadIcon size={18} />}
-        >
-          Download XLSX
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -1544,8 +1414,8 @@ function InternalTab() {
               <div>
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
-                  {viewDelivery?.rtoAmount
-                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                  {viewDelivery?.returnOrderRate
+                    ? `SAR ${Number(viewDelivery.returnOrderRate).toFixed(2)}`
                     : "—"}
                 </div>
               </div>
@@ -1627,7 +1497,7 @@ function CourierTab() {
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
-    rtoAmount?: number;
+    returnOrderRate?: number;
     priority?: string;
     status: string;
     assignedDriverId?: {
@@ -1730,122 +1600,6 @@ function CourierTab() {
 
   function openEditDelivery(id: string) {
     router.push(`/admin/deliveries/${id}`);
-  }
-
-  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
-    if (filtered.length === 0) {
-      showError("Download Error", "No data to download");
-      return;
-    }
-
-    // Prepare headers
-    const headers = [
-      "Reference ID",
-      "Customer Name",
-      "Store Name",
-      "Assigned Driver/Courier",
-      "Delivery Address",
-      "Status",
-      "Created Date",
-    ];
-
-    // Prepare data
-    const data = filtered.map((d) => [
-      d.reference,
-      d.customerName,
-      d.customerStoreName || "",
-      d.assignedDriverId
-        ? `${d.assignedDriverId.firstName || ""} ${
-            d.assignedDriverId.lastName || ""
-          }`.trim()
-        : "",
-      d.deliveryAddress,
-      d.status.replace("_", " "),
-      new Date(d.createdAt).toLocaleDateString(),
-    ]);
-
-    if (format === "csv") {
-      // Create CSV content
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
-
-      // Download CSV file
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `courier_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else if (format === "xlsx") {
-      try {
-        // Use proper Excel export with exceljs
-        const ExcelModule = await import("exceljs");
-        const workbook = new ExcelModule.Workbook();
-        const worksheet = workbook.addWorksheet("Courier Deliveries");
-
-        worksheet.columns = [
-          { header: "Reference ID", key: "reference", width: 18 },
-          { header: "Customer Name", key: "customerName", width: 24 },
-          { header: "Store Name", key: "customerStoreName", width: 24 },
-          {
-            header: "Assigned Driver/Courier",
-            key: "assignedDriver",
-            width: 20,
-          },
-          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
-          { header: "Status", key: "status", width: 14 },
-          { header: "Created Date", key: "createdAt", width: 16 },
-        ];
-
-        filtered.forEach((d) => {
-          worksheet.addRow({
-            reference: d.reference,
-            customerName: d.customerName,
-            customerStoreName: d.customerStoreName || "",
-            assignedDriver: d.assignedDriverId
-              ? `${d.assignedDriverId.firstName || ""} ${
-                  d.assignedDriverId.lastName || ""
-                }`.trim()
-              : "",
-            deliveryAddress: d.deliveryAddress,
-            status: d.status.replace("_", " "),
-            createdAt: new Date(d.createdAt).toLocaleDateString(),
-          });
-        });
-
-        // Style header row
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true };
-        headerRow.alignment = { vertical: "middle", horizontal: "center" };
-
-        const arrayBuffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
-        const body = new Uint8Array(arrayBuffer);
-
-        // Download Excel file
-        const blob = new Blob([body], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `courier_deliveries_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        showError("Export Error", "Failed to generate Excel file");
-        console.error("Excel export error:", error);
-      }
-    }
   }
 
   async function handleDeleteDelivery(id: string) {
@@ -1965,20 +1719,6 @@ function CourierTab() {
           leftIcon={<PlusIcon size={18} />}
         >
           Add New Delivery
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => downloadInternalDeliveries("csv")}
-          leftIcon={<DownloadIcon size={18} />}
-        >
-          Download CSV
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => downloadInternalDeliveries("xlsx")}
-          leftIcon={<DownloadIcon size={18} />}
-        >
-          Download XLSX
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -2273,8 +2013,8 @@ function CourierTab() {
               <div>
                 <div className="text-[12px] text-slate-500">RTO Amount</div>
                 <div className="font-medium">
-                  {viewDelivery?.rtoAmount
-                    ? `SAR ${Number(viewDelivery.rtoAmount).toFixed(2)}`
+                  {viewDelivery?.returnOrderRate
+                    ? `SAR ${Number(viewDelivery.returnOrderRate).toFixed(2)}`
                     : "—"}
                 </div>
               </div>

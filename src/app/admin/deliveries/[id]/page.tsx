@@ -38,7 +38,7 @@ type DeliveryResponse = {
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
-    rtoAmount?: number;
+    returnOrderRate?: number;
     notes?: string;
     assignedDriverId?: { _id: string; firstName: string; lastName: string };
     serviceType?: string;
@@ -76,7 +76,7 @@ export default function AdminEditDeliveryPage() {
     paymentMethod: string;
     deliveryFee: string;
     codAmount: string;
-    rtoAmount: string;
+    returnOrderRate: string;
     notes: string;
     assignedDriverId: string;
     serviceType: string;
@@ -103,7 +103,7 @@ export default function AdminEditDeliveryPage() {
     paymentMethod: "prepaid",
     deliveryFee: "",
     codAmount: "",
-    rtoAmount: "",
+    returnOrderRate: "",
     notes: "",
     assignedDriverId: "",
     serviceType: "",
@@ -155,7 +155,8 @@ export default function AdminEditDeliveryPage() {
           paymentMethod: d.paymentMethod || "prepaid",
           deliveryFee: d.deliveryFee != null ? String(d.deliveryFee) : "",
           codAmount: d.codAmount != null ? String(d.codAmount) : "",
-          rtoAmount: d.rtoAmount != null ? String(d.rtoAmount) : "",
+          returnOrderRate:
+            d.returnOrderRate != null ? String(d.returnOrderRate) : "",
           notes: d.notes || "",
           assignedDriverId: d.assignedDriverId?._id || "",
           serviceType: d.serviceType || "1",
@@ -194,7 +195,9 @@ export default function AdminEditDeliveryPage() {
         paymentMethod: form.paymentMethod,
         deliveryFee: form.deliveryFee ? Number(form.deliveryFee) : undefined,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
-        rtoAmount: form.rtoAmount ? Number(form.rtoAmount) : undefined,
+        returnOrderRate: form.returnOrderRate
+          ? Number(form.returnOrderRate)
+          : undefined,
         notes: form.notes || undefined,
       };
       const res = await fetch(`/api/deliveries/${id}`, {
@@ -522,8 +525,8 @@ export default function AdminEditDeliveryPage() {
                 <Input
                   type="number"
                   placeholder="0.00"
-                  value={form.rtoAmount}
-                  onChange={(e) => update("rtoAmount", e.target.value)}
+                  value={form.returnOrderRate}
+                  onChange={(e) => update("returnOrderRate", e.target.value)}
                 />
               </div>
               <div>
@@ -535,7 +538,7 @@ export default function AdminEditDeliveryPage() {
                   value={(
                     Number(form.deliveryFee || 0) +
                     Number(form.codAmount || 0) +
-                    Number(form.rtoAmount || 0)
+                    Number(form.returnOrderRate || 0)
                   ).toFixed(2)}
                   className="bg-gray-50"
                 />

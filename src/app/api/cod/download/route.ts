@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
     const fromDate = formData.get("fromDate") as string;
     const toDate = formData.get("toDate") as string;
 
-
     // Get the filtered deliveries by IDs
     const deliveriesData = await Delivery.find({
       _id: { $in: deliveryIds },
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
       codPaidDate: d.codPaidDate,
       codNotes: d.codNotes,
       deliveryFee: d.deliveryFee,
-      rtoAmount: d.rtoAmount,
+      returnOrderRate: d.returnOrderRate,
       status: d.status,
       assignedDriver:
         auth.role === "admin"
@@ -94,7 +93,7 @@ export async function POST(req: NextRequest) {
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
         d.deliveryFee || 0,
-        d.rtoAmount || 0,
+        d.returnOrderRate || 0,
         d.status,
         auth.role === "admin" ? d.assignedDriver : "",
         new Date(d.createdAt).toLocaleDateString(),

@@ -134,6 +134,31 @@ export default function DeliveryStatusPage() {
   const [noteInput, setNoteInput] = useState("");
   const [addingNote, setAddingNote] = useState(false);
 
+  // Client upload functionality state
+  const [showUploadTypeModal, setShowUploadTypeModal] = useState(false);
+  const [showClientSelectionModal, setShowClientSelectionModal] =
+    useState(false);
+  const [uploadType, setUploadType] = useState<"general" | "client">("general");
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [clients, setClients] = useState<
+    Array<{
+      _id: string;
+      firstName: string;
+      lastName: string;
+      deliveryFee: number;
+      address?: string;
+      city?: string;
+      district?: string;
+      phone?: string;
+      senderName?: string;
+      senderPhone?: string;
+      senderAddress?: string;
+      senderCity?: string;
+    }>
+  >([]);
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [isTemplateDownload, setIsTemplateDownload] = useState(false);
+
   // Handle row editing
   const handleEditRow = (row: PreviewRow) => {
     setEditingRow(row);
@@ -491,6 +516,25 @@ export default function DeliveryStatusPage() {
     }
   }
 
+  // Load clients function
+  async function loadClients() {
+    setLoadingClients(true);
+    try {
+      const res = await fetch("/api/users/clients");
+      if (res.ok) {
+        const data = await res.json();
+        setClients(data.users || []);
+      } else {
+        showError("Failed to load clients", "Could not fetch client list");
+      }
+    } catch (error) {
+      console.error("Error loading clients:", error);
+      showError("Failed to load clients", "Could not fetch client list");
+    } finally {
+      setLoadingClients(false);
+    }
+  }
+
   async function handleDownload(format: "csv" | "xls") {
     if (!bulkSearchIds.trim()) {
       showError("Download Failed", "Please enter at least one reference ID");
@@ -599,13 +643,18 @@ export default function DeliveryStatusPage() {
   }
 
   async function downloadTemplate() {
+    setIsTemplateDownload(true);
+    setShowUploadTypeModal(true);
+  }
+
+  async function downloadGeneralTemplate() {
     // IMPORTANT: COD format issue - The system only accepts "cod" (lowercase)
     // and does NOT accept "COD" (uppercase) for the paymentMethod field.
     // This was discovered during testing where bulk uploads failed with uppercase COD values.
 
     // Download empty template
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -622,10 +671,10 @@ export default function DeliveryStatusPage() {
 
     // Also download example template with sample data
     const exampleData = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType",
-      "SS10001,Ahmed Al-Rashid,501234567,John Smith,502345678,123 Sender St,Riyadh,456 Customer Ave,Jeddah,parcel,Electronics package,standard,cod,150.00,Sample delivery,25.00,1",
-      "SS10002,Sarah Johnson,503456789,Mike Wilson,504567890,456 Sender Blvd,Dammam,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,standard,cod,75.50,Handle with care,20.00,5",
-      "SS10003,Mohammed Ali,505678901,Lisa Brown,506789012,789 Sender Ave,Jeddah,123 Customer St,Mijannah,parcel,Books and documents,standard,cod,45.00,No signature required,15.00,9",
+      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
+      "SS10001,Ahmed Al-Rashid,501234567,John Smith,502345678,123 Sender St,Riyadh,456 Customer Ave,Jeddah,parcel,Electronics package,standard,cod,150.00,Sample delivery,25.00,1,0599999999",
+      "SS10002,Sarah Johnson,503456789,Mike Wilson,504567890,456 Sender Blvd,Dammam,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,standard,cod,75.50,Handle with care,20.00,5,0599999999",
+      "SS10003,Mohammed Ali,505678901,Lisa Brown,506789012,789 Sender Ave,Jeddah,123 Customer St,Mijannah,parcel,Books and documents,standard,cod,45.00,No signature required,15.00,9,0599999999",
     ].join("\n");
 
     const exampleBlob = new Blob([exampleData], {
@@ -647,6 +696,51 @@ export default function DeliveryStatusPage() {
     );
   }
 
+  async function downloadClientTemplate() {
+    // Client template with minimal required fields
+    const headers = [
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,customerWhatsApp",
+    ].join("\n");
+    const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "client_deliveries_template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Wait a moment before downloading the example file
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Also download example template with sample data for client uploads
+    const exampleData = [
+      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType,customerWhatsApp",
+      "CL10001,Ahmed Al-Rashid,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery, 1,0599999999",
+      "CL10002,Sarah Johnson,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care, 5,0599999999",
+      "CL10003,Mohammed Ali,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required, 9,0599999999",
+    ].join("\n");
+
+    const exampleBlob = new Blob([exampleData], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const exampleUrl = URL.createObjectURL(exampleBlob);
+    const exampleLink = document.createElement("a");
+    exampleLink.href = exampleUrl;
+    exampleLink.download = "client_deliveries_example.csv";
+    document.body.appendChild(exampleLink);
+    exampleLink.click();
+    document.body.removeChild(exampleLink);
+    URL.revokeObjectURL(exampleUrl);
+
+    // Show success message
+    showSuccess(
+      "Client Templates Downloaded",
+      "Both empty client template and example client template have been downloaded successfully."
+    );
+  }
+
   async function startUpload() {
     if (!uploadFile || previewRows.length === 0) return;
     setUploading(true);
@@ -659,6 +753,9 @@ export default function DeliveryStatusPage() {
         fileType: uploadFile.name.toLowerCase().endsWith(".xlsx")
           ? "xlsx"
           : "csv",
+        // Add client upload specific data
+        isClientUpload: uploadType === "client",
+        clientId: uploadType === "client" ? selectedClientId : undefined,
       };
 
       const res = await fetch("/api/deliveries/upload", {
@@ -688,6 +785,8 @@ export default function DeliveryStatusPage() {
       setUploadFile(null);
       setPreviewRows([]);
       setParseError(null);
+      setUploadType("general");
+      setSelectedClientId("");
     } finally {
       setUploading(false);
     }
@@ -742,7 +841,10 @@ export default function DeliveryStatusPage() {
             />
             <Button
               leftIcon={<UploadIcon size={16} />}
-              onClick={() => fileRef.current?.click()}
+              onClick={() => {
+                setIsTemplateDownload(false);
+                setShowUploadTypeModal(true);
+              }}
             >
               Choose File
             </Button>
@@ -1742,6 +1844,203 @@ export default function DeliveryStatusPage() {
               disabled={!noteInput.trim() || addingNote}
             >
               {addingNote ? "Adding..." : "Add Note"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Upload Type Modal */}
+      <Modal
+        open={showUploadTypeModal}
+        onClose={() => {
+          setShowUploadTypeModal(false);
+          setUploadType("general");
+          setIsTemplateDownload(false);
+        }}
+        title={isTemplateDownload ? "Download Template" : "Upload Type"}
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-slate-600">
+            {isTemplateDownload
+              ? "Choose which type of template you want to download:"
+              : "Choose the upload type:"}
+          </div>
+
+          <div className="space-y-3">
+            <div
+              onClick={() => setUploadType("general")}
+              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                uploadType === "general"
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  checked={uploadType === "general"}
+                  onChange={() => setUploadType("general")}
+                  className="text-blue-600"
+                />
+                <div>
+                  <div className="font-medium text-slate-900">
+                    General Upload
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    Upload deliveries with all sender information, payment
+                    methods, and delivery fees
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              onClick={() => setUploadType("client")}
+              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                uploadType === "client"
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  checked={uploadType === "client"}
+                  onChange={() => setUploadType("client")}
+                  className="text-blue-600"
+                />
+                <div>
+                  <div className="font-medium text-slate-900">
+                    Client Upload
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    Upload deliveries for a specific client. Sender info and
+                    delivery fees will be populated automatically. Payment
+                    method will be set to COD and priority to standard.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowUploadTypeModal(false);
+                setUploadType("general");
+                setIsTemplateDownload(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gradient"
+              onClick={() => {
+                setShowUploadTypeModal(false);
+                if (isTemplateDownload) {
+                  // Handle template download
+                  if (uploadType === "general") {
+                    downloadGeneralTemplate();
+                  } else {
+                    downloadClientTemplate();
+                  }
+                  setIsTemplateDownload(false);
+                } else {
+                  // Handle file upload
+                  if (uploadType === "client") {
+                    loadClients();
+                    setShowClientSelectionModal(true);
+                  } else {
+                    fileRef.current?.click();
+                  }
+                }
+              }}
+            >
+              Continue
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Client Selection Modal */}
+      <Modal
+        open={showClientSelectionModal}
+        onClose={() => {
+          setShowClientSelectionModal(false);
+          setSelectedClientId("");
+          setUploadType("general");
+        }}
+        title="Select Client"
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-slate-600">
+            Select the client for whom you want to upload deliveries:
+          </div>
+
+          {loadingClients ? (
+            <div className="text-center py-8 text-slate-500">
+              Loading clients...
+            </div>
+          ) : clients.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              No clients found
+            </div>
+          ) : (
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {clients.map((client) => (
+                <div
+                  key={client._id}
+                  onClick={() => setSelectedClientId(client._id)}
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    selectedClientId === client._id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      checked={selectedClientId === client._id}
+                      onChange={() => setSelectedClientId(client._id)}
+                      className="text-blue-600"
+                    />
+                    <div>
+                      <div className="font-medium text-slate-900">
+                        {client.firstName} {client.lastName}
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        Fee: SAR {client.deliveryFee} • {client.phone}
+                        {client.city && ` • ${client.city}`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowClientSelectionModal(false);
+                setSelectedClientId("");
+                setUploadType("general");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gradient"
+              disabled={!selectedClientId}
+              onClick={() => {
+                setShowClientSelectionModal(false);
+                // Trigger file selection
+                fileRef.current?.click();
+              }}
+            >
+              Continue
             </Button>
           </div>
         </div>
