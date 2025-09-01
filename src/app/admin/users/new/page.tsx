@@ -31,7 +31,7 @@ export default function CreateUserPage() {
   const [customerStoreName, setCustomerStoreName] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("");
+  const [district, setDistrict] = useState("Downtown District");
 
   async function handleCreate() {
     if (password !== confirmPassword) {
@@ -56,7 +56,7 @@ export default function CreateUserPage() {
             role === "customer" ? customerStoreName : undefined,
           address: address || undefined,
           city: city || undefined,
-          district: district || undefined,
+          district: district || "Downtown District",
         }),
       });
       if (!res.ok) {
@@ -316,7 +316,7 @@ export default function CreateUserPage() {
                     <option value="admin">Admin</option>
                   </Select>
                 </div>
-                <div>
+                {/* <div>
                   <label className="text-[13px] text-slate-600">District</label>
                   <Select
                     value={district}
@@ -327,9 +327,9 @@ export default function CreateUserPage() {
                     <option value="">Select District</option>
                     <option value="Downtown District">Downtown District</option>
                     <option value="Uptown">Uptown</option>
-                    <option value="Westside">Westside</option>
+                    <option value="Westside">Westside</opwtion>
                   </Select>
-                </div>
+                </div> */}
               </div>
             </div>
           </section>
