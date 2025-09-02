@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
+import { ObjectId } from "mongodb";
 
 const CreateDeliverySchema = z.object({
   reference: z.string().min(3),
@@ -68,7 +69,14 @@ export async function GET(req: NextRequest) {
     const driverUsers = await User.find({ role: "driver" })
       .select("_id")
       .lean();
-    const driverUserIds = driverUsers.map((u: { _id: unknown }) => u._id);
+    const driverUserIds = driverUsers
+      .map((u: { _id: unknown }) => u._id)
+      .filter(
+        (id) =>
+          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+      );
+
+    console.log("driverUserIds ===>", driverUserIds);
     query.assignedDriverId = { $in: driverUserIds };
   }
   // if tab is cod get all deliveries with assignedDriverId that is equal to 68b4e8320937d8c4337027a6
@@ -80,7 +88,12 @@ export async function GET(req: NextRequest) {
     const courierUsers = await User.find({ role: "courier" })
       .select("_id")
       .lean();
-    const courierUserIds = courierUsers.map((u: { _id: unknown }) => u._id);
+    const courierUserIds = courierUsers
+      .map((u: { _id: unknown }) => u._id)
+      .filter(
+        (id) =>
+          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+      );
     if (courierUserIds.length > 0) {
       query.assignedDriverId = { $in: courierUserIds };
     } else {
