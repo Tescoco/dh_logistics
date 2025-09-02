@@ -16,6 +16,7 @@ type ReportData = {
   deliveryAddress: string;
   codAmount?: number;
   deliveryFee?: number;
+  returnOrderRate?: number;
   status: string;
   createdAt: string;
   assignedDriverId?: {
@@ -44,6 +45,7 @@ type GroupedReport = {
   totalOrders: number;
   totalAmount: number;
   totalFees: number;
+  totalRtoFees: number;
   statusBreakdown: Record<string, number>;
   orders: ReportData[];
 };
@@ -84,6 +86,7 @@ export default function ReportsPage() {
     totalOrders: 0,
     totalAmount: 0,
     totalFees: 0,
+    totalRtoFees: 0,
     uniqueClients: 0,
   });
 
@@ -136,11 +139,21 @@ export default function ReportsPage() {
           (sum: number, d: ReportData) => sum + (d.deliveryFee || 0),
           0
         );
+        const totalRtoFees = deliveries.reduce(
+          (sum: number, d: ReportData) => sum + (d.returnOrderRate || 0),
+          0
+        );
         const uniqueClients = new Set(
           deliveries.map((d: ReportData) => d.customerName)
         ).size;
 
-        setSummary({ totalOrders, totalAmount, totalFees, uniqueClients });
+        setSummary({
+          totalOrders,
+          totalAmount,
+          totalFees,
+          totalRtoFees,
+          uniqueClients,
+        });
       } else {
         showError("Error", "Failed to load reports");
       }
@@ -195,6 +208,7 @@ export default function ReportsPage() {
           totalOrders: 0,
           totalAmount: 0,
           totalFees: 0,
+          totalRtoFees: 0,
           statusBreakdown: {},
           orders: [],
         };
@@ -203,6 +217,7 @@ export default function ReportsPage() {
       grouped[key].totalOrders++;
       grouped[key].totalAmount += report.codAmount || 0;
       grouped[key].totalFees += report.deliveryFee || 0;
+      grouped[key].totalRtoFees += report.returnOrderRate || 0;
       grouped[key].statusBreakdown[report.status] =
         (grouped[key].statusBreakdown[report.status] || 0) + 1;
       grouped[key].orders.push(report);
@@ -235,10 +250,10 @@ export default function ReportsPage() {
       "Total Orders",
       "Total COD Amount",
       "Total Delivery Fees",
+      "Total RTO Amount",
       "Pending Orders",
       "In Transit Orders",
       "Delivered Orders",
-      "Returned Orders",
     ];
 
     // Prepare data
@@ -248,14 +263,10 @@ export default function ReportsPage() {
       group.totalOrders.toString(),
       `SAR ${group.totalAmount.toFixed(2)}`,
       `SAR ${group.totalFees.toFixed(2)}`,
+      `SAR ${group.totalRtoFees.toFixed(2)}`,
       (group.statusBreakdown["pending"] || 0).toString(),
       (group.statusBreakdown["in_transit"] || 0).toString(),
       (group.statusBreakdown["delivered"] || 0).toString(),
-      (
-        group.statusBreakdown["returned"] ||
-        group.statusBreakdown["rto"] ||
-        0
-      ).toString(),
     ]);
 
     const csvContent = [headers, ...data]
@@ -413,7 +424,7 @@ export default function ReportsPage() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <div className="text-[13px] text-slate-500">Total Orders</div>
           <div className="mt-2 text-2xl font-semibold">
@@ -430,6 +441,12 @@ export default function ReportsPage() {
           <div className="text-[13px] text-slate-500">Total Delivery Fees</div>
           <div className="mt-2 text-2xl font-semibold">
             SAR {summary.totalFees.toFixed(2)}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-[13px] text-slate-500">Total RTO Fees</div>
+          <div className="mt-2 text-2xl font-semibold">
+            SAR {summary.totalRtoFees.toFixed(2)}
           </div>
         </Card>
         <Card>
@@ -460,10 +477,10 @@ export default function ReportsPage() {
                   "Total Orders",
                   "COD Amount",
                   "Delivery Fees",
+                  "RTO Amount",
                   "Pending",
                   "In Transit",
                   "Delivered",
-                  "RTOs",
                 ].map((h) => (
                   <th key={h} className="px-5 py-3 font-medium">
                     {h}
@@ -506,7 +523,12 @@ export default function ReportsPage() {
                     <td className="px-5 py-3">
                       SAR {group.totalAmount.toFixed(2)}
                     </td>
-                    <td className="px-5 py-3">SAR {group.totalFees.toFixed(2)}</td>
+                    <td className="px-5 py-3">
+                      SAR {group.totalFees.toFixed(2)}
+                    </td>
+                    <td className="px-5 py-3">
+                      SAR {group.totalRtoFees.toFixed(2)}
+                    </td>
                     <td className="px-5 py-3">
                       {group.statusBreakdown["pending"] || 0}
                     </td>
@@ -515,10 +537,6 @@ export default function ReportsPage() {
                     </td>
                     <td className="px-5 py-3">
                       {group.statusBreakdown["delivered"] || 0}
-                    </td>
-                    <td className="px-5 py-3">
-                      {(group.statusBreakdown["returned"] || 0) +
-                        (group.statusBreakdown["rto"] || 0)}
                     </td>
                   </tr>
                 ))

@@ -37,6 +37,7 @@ export default function AdminDashboardPage() {
     activeDeliveries: number;
     delivered: number;
     returned: number;
+    pending: number;
   } | null>(null);
   const [recent, setRecent] = useState<
     {
@@ -199,8 +200,8 @@ export default function AdminDashboardPage() {
         color: "red",
       },
       {
-        label: "Pending Upload",
-        value: 0,
+        label: "Pending",
+        value: stats?.pending ?? 0,
         change: "",
         trending: "up",
         icon: ClockIcon,

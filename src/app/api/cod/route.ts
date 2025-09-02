@@ -146,6 +146,8 @@ export async function GET(req: NextRequest) {
         "Customer Phone",
         "Delivery Address",
         "COD Amount",
+        "Delivery Fee",
+        "RTO Amount",
         "Payment Status",
         "Paid Amount",
         "Paid Date",
@@ -161,6 +163,8 @@ export async function GET(req: NextRequest) {
         d.customerPhone,
         d.deliveryAddress,
         d.codAmount || 0,
+        d.deliveryFee || 0,
+        d.returnOrderRate || 0,
         d.codPaymentStatus || "pending",
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
@@ -197,6 +201,8 @@ export async function GET(req: NextRequest) {
         { header: "Customer Phone", key: "customerPhone", width: 16 },
         { header: "Delivery Address", key: "deliveryAddress", width: 40 },
         { header: "COD Amount", key: "codAmount", width: 14 },
+        { header: "Delivery Fee", key: "deliveryFee", width: 14 },
+        { header: "RTO Amount", key: "returnOrderRate", width: 14 },
         { header: "Payment Status", key: "codPaymentStatus", width: 16 },
         { header: "Paid Amount", key: "codPaidAmount", width: 14 },
         { header: "Paid Date", key: "codPaidDate", width: 16 },
@@ -215,6 +221,8 @@ export async function GET(req: NextRequest) {
           customerPhone: d.customerPhone,
           deliveryAddress: d.deliveryAddress,
           codAmount: d.codAmount || 0,
+          deliveryFee: d.deliveryFee || 0,
+          returnOrderRate: d.returnOrderRate || 0,
           codPaymentStatus: d.codPaymentStatus || "pending",
           codPaidAmount: d.codPaidAmount || "",
           codPaidDate: d.codPaidDate
@@ -318,11 +326,12 @@ export async function GET(req: NextRequest) {
         "Phone",
         "COD",
         "Fee",
+        "RTO",
         "Status",
         auth.role === "admin" ? "Driver" : "",
         "Date",
       ];
-      const columnWidths = [90, 120, 80, 60, 60, 70, 90, 70];
+      const columnWidths = [80, 100, 70, 50, 50, 50, 60, 80, 60];
       const startX = margin;
 
       const columnX: number[] = [];
@@ -391,13 +400,20 @@ export async function GET(req: NextRequest) {
         drawCell(String(d.customerName ?? ""), 1, y);
         drawCell(String(d.customerPhone ?? ""), 2, y);
         drawCell(String((d.codAmount || 0).toLocaleString()), 3, y, "right");
-        drawCell(String(d.status ?? "").toUpperCase(), 5, y);
+        drawCell(String((d.deliveryFee || 0).toLocaleString()), 4, y, "right");
+        drawCell(
+          String((d.returnOrderRate || 0).toLocaleString()),
+          5,
+          y,
+          "right"
+        );
+        drawCell(String(d.status ?? "").toUpperCase(), 6, y);
         drawCell(
           auth.role === "admin" ? String(d.assignedDriver ?? "") : "",
-          6,
+          7,
           y
         );
-        drawCell(new Date(d.createdAt).toLocaleDateString(), 7, y);
+        drawCell(new Date(d.createdAt).toLocaleDateString(), 8, y);
         cursorY -= lineHeight;
       }
 
@@ -406,11 +422,37 @@ export async function GET(req: NextRequest) {
         (sum, d) => sum + (Number(d.codAmount) || 0),
         0
       );
+      const totalDeliveryFee = processedDeliveries.reduce(
+        (sum, d) => sum + (Number(d.deliveryFee) || 0),
+        0
+      );
+      const totalRTO = processedDeliveries.reduce(
+        (sum, d) => sum + (Number(d.returnOrderRate) || 0),
+        0
+      );
 
-      ensureSpace(lineHeight * 2);
+      ensureSpace(lineHeight * 4);
       // Place totals at left margin
       drawText(
         `Total COD: SAR ${totalCOD.toLocaleString()}`,
+        startX,
+        cursorY - textFontSize,
+        {
+          font: helveticaBold,
+        }
+      );
+      cursorY -= lineHeight;
+      drawText(
+        `Total Delivery Fee: SAR ${totalDeliveryFee.toLocaleString()}`,
+        startX,
+        cursorY - textFontSize,
+        {
+          font: helveticaBold,
+        }
+      );
+      cursorY -= lineHeight;
+      drawText(
+        `Total RTO: SAR ${totalRTO.toLocaleString()}`,
         startX,
         cursorY - textFontSize,
         {

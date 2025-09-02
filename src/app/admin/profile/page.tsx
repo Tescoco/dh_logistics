@@ -7,7 +7,6 @@ import Input from "@/components/ui/Input";
 import { useToast } from "@/contexts/ToastContext";
 import Select from "@/components/ui/Select";
 
-
 export default function ProfilePage() {
   const { showError, showSuccess } = useToast();
   const [firstName, setFirstName] = useState("");
@@ -199,7 +198,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Address Information */}
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 p-5">
           <h3 className="text-[15px] font-semibold text-slate-900">
             Address Information
           </h3>

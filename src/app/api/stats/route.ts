@@ -53,6 +53,7 @@ export async function GET() {
     returnedLast30Global,
     inTransitPrevWindowGlobal,
     inTransitLastWindowGlobal,
+    allDeliveries,
   ] = await Promise.all([
     // current snapshots
     Delivery.countDocuments({
@@ -167,6 +168,7 @@ export async function GET() {
       status: "in_transit",
       updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
     }),
+    Delivery.countDocuments({}),
   ]);
 
   function percentChange(current: number, previous: number): number {
@@ -183,24 +185,7 @@ export async function GET() {
   const totalPrevWindowGlobal =
     deliveredPrev30Global + returnedPrev30Global + inTransitPrevWindowGlobal;
 
-  const totalParcels =
-    activeDeliveries +
-    delivered +
-    returned +
-    pending +
-    assigned +
-    noAnswer +
-    outForDelivery +
-    productDestroyed +
-    lostShipments +
-    damagedShipments +
-    readyForReturn +
-    returnInTransit +
-    returnedToClient +
-    shipmentOnHold +
-    returnedToInventory +
-    rto +
-    futureDelivery;
+  const totalParcels = allDeliveries;
 
   return NextResponse.json({
     // Main stats

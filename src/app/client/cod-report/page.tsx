@@ -33,6 +33,7 @@ type CODDelivery = {
   deliveryAddress: string;
   codAmount: number;
   deliveryFee: number;
+  returnOrderRate: number;
   status: string;
   createdAt: string;
 };
@@ -618,7 +619,7 @@ export default function CodReportPage() {
       >
         <div className="space-y-4">
           {/* Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-lg">
             <div className="text-center">
               <div className="text-2xl font-bold text-slate-900">
                 {previewData.length}
@@ -636,6 +637,24 @@ export default function CodReportPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
+                SAR
+                {previewData
+                  .reduce((sum, d) => sum + (d.deliveryFee || 0), 0)
+                  .toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Total Delivery Fee</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                SAR
+                {previewData
+                  .reduce((sum, d) => sum + (d.returnOrderRate || 0), 0)
+                  .toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Total RTO Amount</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
                 {previewData
                   .reduce(
                     (sum, d) => sum + (d.status === "delivered" ? 1 : 0),
@@ -659,7 +678,8 @@ export default function CodReportPage() {
                   <th className="px-3 py-2 font-medium">Phone</th>
                   <th className="px-3 py-2 font-medium">Address</th>
                   <th className="px-3 py-2 font-medium">COD Amount</th>
-                  {/* <th className="px-3 py-2 font-medium">Delivery Fee</th> */}
+                  <th className="px-3 py-2 font-medium">Delivery Fee</th>
+                  <th className="px-3 py-2 font-medium">RTO Amount</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                   <th className="px-3 py-2 font-medium">Date</th>
                 </tr>
@@ -683,6 +703,12 @@ export default function CodReportPage() {
                     </td>
                     <td className="px-3 py-2 font-medium">
                       SAR {delivery.codAmount?.toLocaleString() || "0"}
+                    </td>
+                    <td className="px-3 py-2 font-medium">
+                      SAR {delivery.deliveryFee?.toLocaleString() || "0"}
+                    </td>
+                    <td className="px-3 py-2 font-medium">
+                      SAR {delivery.returnOrderRate?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2">
                       <Badge

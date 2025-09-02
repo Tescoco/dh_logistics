@@ -186,7 +186,7 @@ export default function ClientLoginPage() {
           </p>
         </div>
       </div>
-      <div className="mt-4 text-left w-full z-10 mt-20">
+      <div className="mt-4 text-left w-full z-10 mt-20 lg:mt-40">
         © Shipz Solutions {new Date().getFullYear()}. All Right Reserved.
       </div>
     </div>

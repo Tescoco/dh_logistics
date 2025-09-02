@@ -454,7 +454,6 @@ export default function AdminCODReportsPage() {
               <option value="">All Status</option>
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
-              <option value="partial">Partial</option>
             </Select>
           </div>
           <div>
