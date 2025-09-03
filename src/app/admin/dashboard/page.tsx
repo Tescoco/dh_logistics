@@ -395,6 +395,63 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function handleSelectedDownload(format: "csv" | "xls") {
+    try {
+      let ids: string[];
+      let downloadType: string;
+      let count: number;
+
+      if (selectedIds.size > 0) {
+        // Download selected parcels
+        ids = Array.from(selectedIds);
+        downloadType = "selected-parcels";
+        count = selectedIds.size;
+      } else {
+        // Download all filtered parcels
+        ids = filteredRecent.map((delivery) => delivery._id);
+        downloadType = "filtered-parcels";
+        count = filteredRecent.length;
+      }
+
+      if (ids.length === 0) {
+        showError("Download Failed", "No parcels available to download");
+        return;
+      }
+
+      const res = await fetch("/api/deliveries/bulk-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, format }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showError("Download Failed", data?.error ?? "Failed to download file");
+        return;
+      }
+
+      // Create blob and download
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${downloadType}-${
+        new Date().toISOString().split("T")[0]
+      }.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      showSuccess(
+        "Download Successful",
+        `Downloaded ${count} parcel${count > 1 ? "s" : ""} successfully`
+      );
+    } catch {
+      showError("Download Failed", "Failed to download file");
+    }
+  }
+
   function openViewDelivery(id: string) {
     setViewOpen(true);
     setViewLoading(true);
@@ -847,44 +904,71 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Courier Assignment Section */}
-        {selectedIds.size > 0 && (
-          <div className="px-6 pb-4 border-t border-slate-100">
+        {/* Actions Section */}
+        <div className="px-6 pb-4 border-t border-slate-100">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            {/* Courier Assignment - Left Side */}
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="text-[13px] text-slate-500 whitespace-nowrap">
-                {selectedIds.size} parcel{selectedIds.size > 1 ? "s" : ""}{" "}
-                selected
-              </div>
-              <Select
-                className="w-full md:w-56"
-                value={selectedCourierId}
-                onChange={(e) =>
-                  setSelectedCourierId((e.target as HTMLSelectElement).value)
-                }
-              >
-                <option value="" disabled>
-                  {couriersLoading
-                    ? "Loading couriers…"
-                    : "Assign to driver / courier"}
-                </option>
-                {couriers.map((c: CourierLite) => (
-                  <option key={c._id} value={c._id}>
-                    {c.courierCompanyName ||
-                      `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
-                      c._id}
-                  </option>
-                ))}
-              </Select>
+              {selectedIds.size > 0 && (
+                <>
+                  <div className="text-[13px] text-slate-500 whitespace-nowrap">
+                    {selectedIds.size} parcel{selectedIds.size > 1 ? "s" : ""}{" "}
+                    selected
+                  </div>
+                  <Select
+                    className="w-full md:w-56"
+                    value={selectedCourierId}
+                    onChange={(e) =>
+                      setSelectedCourierId(
+                        (e.target as HTMLSelectElement).value
+                      )
+                    }
+                  >
+                    <option value="" disabled>
+                      {couriersLoading
+                        ? "Loading couriers…"
+                        : "Assign to driver / courier"}
+                    </option>
+                    {couriers.map((c: CourierLite) => (
+                      <option key={c._id} value={c._id}>
+                        {c.courierCompanyName ||
+                          `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
+                          c._id}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button
+                    disabled={!selectedCourierId || selectedIds.size === 0}
+                    onClick={handleCourierAssignment}
+                    className="w-full md:w-auto whitespace-nowrap"
+                  >
+                    Assign to Driver / Courier
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Download Buttons - Right Side */}
+            <div className="flex flex-col gap-2 md:flex-row md:gap-3">
               <Button
-                disabled={!selectedCourierId || selectedIds.size === 0}
-                onClick={handleCourierAssignment}
+                onClick={() => handleSelectedDownload("csv")}
+                variant="secondary"
+                leftIcon={<DownloadIcon size={16} />}
                 className="w-full md:w-auto whitespace-nowrap"
               >
-                Assign to Driver / Courier
+                Download CSV
+              </Button>
+              <Button
+                onClick={() => handleSelectedDownload("xls")}
+                variant="secondary"
+                leftIcon={<DownloadIcon size={16} />}
+                className="w-full md:w-auto whitespace-nowrap"
+              >
+                Download XLSX
               </Button>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full">

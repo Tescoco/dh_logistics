@@ -225,80 +225,6 @@ function CODTab() {
     router.push(`/admin/deliveries/${id}`);
   }
 
-  async function downloadInternalDeliveries(format: "csv" | "xlsx") {
-    if (filtered.length === 0) {
-      showError("Download Error", "No data to download");
-      return;
-    }
-
-    // Prepare headers
-    const headers = [
-      "Reference ID",
-      "Customer Name",
-      "Store Name",
-      "Assigned Driver/Courier",
-      "Delivery Address",
-      "Status",
-      "Created Date",
-    ];
-
-    // Prepare data
-    const data = filtered.map((d) => [
-      d.reference,
-      d.customerName,
-      d.customerStoreName || "",
-      d.assignedDriverId
-        ? `${d.assignedDriverId.firstName || ""} ${
-            d.assignedDriverId.lastName || ""
-          }`.trim()
-        : "",
-      d.deliveryAddress,
-      d.status.replace("_", " "),
-      new Date(d.createdAt).toLocaleDateString(),
-    ]);
-
-    if (format === "csv") {
-      // Create CSV content
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
-
-      // Download CSV file
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `internal_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else if (format === "xlsx") {
-      // For XLSX, we'll use a simple approach with CSV-like data
-      // In a production environment, you might want to use a library like exceljs
-      const csvContent = [headers, ...data]
-        .map((row) => row.map((cell) => `"${cell}"`).join(","))
-        .join("\n");
-
-      // Download as XLSX (using CSV content for now)
-      const blob = new Blob([csvContent], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `internal_deliveries_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  }
-
   async function downloadDeliveries(format: "csv" | "xlsx") {
     if (filtered.length === 0) {
       showError("Download Error", "No data to download");
@@ -858,11 +784,6 @@ function CODTab() {
 function InternalTab() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
-  const [driverName, setDriverName] = useState("");
-  const [driverPhone, setDriverPhone] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [vehicleType, setVehicleType] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   const [counts, setCounts] = useState({
     activeDrivers: 0,
@@ -1073,40 +994,129 @@ function InternalTab() {
     }
   }
 
-  async function handleAddDriver() {
-    if (!driverName || !driverPhone) {
-      showError("Validation Error", "Driver name and phone are required");
+  async function downloadDeliveries(format: "csv" | "xlsx") {
+    if (filtered.length === 0) {
+      showError("Download Error", "No data to download");
       return;
     }
-    const parts = driverName.trim().split(/\s+/);
-    const firstName = parts.shift() || "";
-    const lastName = parts.join(" ");
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName,
-          lastName: lastName || undefined,
-          phone: driverPhone,
-          email: `${Date.now()}+driver@placeholder.local`,
-          role: "driver",
-          password: Math.random().toString(36).slice(2, 10) + "A1",
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        showError("Creation Failed", data?.error ?? "Failed to add driver");
-        return;
+
+    // Prepare headers
+    const headers = [
+      "Reference ID",
+      "Customer Name",
+      "Store Name",
+      "Phone",
+      "COD Amount",
+      "Delivery Address",
+      "Status",
+      "Assigned Driver",
+      "Created Date",
+    ];
+
+    // Prepare data
+    const data = filtered.map((d) => [
+      d.reference,
+      d.customerName,
+      d.customerStoreName || "",
+      d.customerPhone,
+      d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "",
+      d.deliveryAddress,
+      d.status.replace("_", " "),
+      d.assignedDriverId
+        ? `${d.assignedDriverId.firstName || ""} ${
+            d.assignedDriverId.lastName || ""
+          }`.trim()
+        : "",
+      new Date(d.createdAt).toLocaleDateString(),
+    ]);
+
+    if (format === "csv") {
+      // Create CSV content
+      const csvContent = [headers, ...data]
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
+
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `internal_deliveries_${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (format === "xlsx") {
+      try {
+        // Use proper Excel export with exceljs
+        const ExcelModule = await import("exceljs");
+        const workbook = new ExcelModule.Workbook();
+        const worksheet = workbook.addWorksheet("Internal Deliveries");
+
+        worksheet.columns = [
+          { header: "Reference ID", key: "reference", width: 18 },
+          { header: "Customer Name", key: "customerName", width: 24 },
+          { header: "Store Name", key: "customerStoreName", width: 24 },
+          { header: "Phone", key: "customerPhone", width: 16 },
+          { header: "COD Amount", key: "codAmount", width: 14 },
+          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+          { header: "Status", key: "status", width: 14 },
+          {
+            header: "Assigned Driver",
+            key: "assignedDriver",
+            width: 20,
+          },
+          { header: "Created Date", key: "createdAt", width: 16 },
+        ];
+
+        filtered.forEach((d) => {
+          worksheet.addRow({
+            reference: d.reference,
+            customerName: d.customerName,
+            customerStoreName: d.customerStoreName || "",
+            customerPhone: d.customerPhone,
+            codAmount: d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "",
+            deliveryAddress: d.deliveryAddress,
+            status: d.status.replace("_", " "),
+            assignedDriver: d.assignedDriverId
+              ? `${d.assignedDriverId.firstName || ""} ${
+                  d.assignedDriverId.lastName || ""
+                }`.trim()
+              : "",
+            createdAt: new Date(d.createdAt).toLocaleDateString(),
+          });
+        });
+
+        // Style the header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFE2E8F0" },
+        };
+
+        // Generate and download the file
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `internal_deliveries_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Excel export error:", error);
+        showError("Export Error", "Failed to export Excel file");
       }
-      setDriverName("");
-      setDriverPhone("");
-      setEmployeeId("");
-      setVehicleType("");
-      showSuccess("Driver Created", "Driver created successfully");
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -1120,6 +1130,20 @@ function InternalTab() {
           leftIcon={<PlusIcon size={18} />}
         >
           Add New Delivery
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => downloadDeliveries("csv")}
+          leftIcon={<DownloadIcon size={18} />}
+        >
+          Download CSV
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => downloadDeliveries("xlsx")}
+          leftIcon={<DownloadIcon size={18} />}
+        >
+          Download XLSX
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -1457,11 +1481,6 @@ function InternalTab() {
 function CourierTab() {
   const router = useRouter();
   const { showError, showSuccess } = useToast();
-  const [driverName, setDriverName] = useState("");
-  const [driverPhone, setDriverPhone] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [vehicleType, setVehicleType] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   const [counts, setCounts] = useState({
     activeDrivers: 0,
@@ -1672,40 +1691,129 @@ function CourierTab() {
     }
   }
 
-  async function handleAddDriver() {
-    if (!driverName || !driverPhone) {
-      showError("Validation Error", "Driver name and phone are required");
+  async function downloadDeliveries(format: "csv" | "xlsx") {
+    if (filtered.length === 0) {
+      showError("Download Error", "No data to download");
       return;
     }
-    const parts = driverName.trim().split(/\s+/);
-    const firstName = parts.shift() || "";
-    const lastName = parts.join(" ");
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName,
-          lastName: lastName || undefined,
-          phone: driverPhone,
-          email: `${Date.now()}+driver@placeholder.local`,
-          role: "driver",
-          password: Math.random().toString(36).slice(2, 10) + "A1",
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        showError("Creation Failed", data?.error ?? "Failed to add driver");
-        return;
+
+    // Prepare headers
+    const headers = [
+      "Reference ID",
+      "Customer Name",
+      "Store Name",
+      "Phone",
+      "COD Amount",
+      "Delivery Address",
+      "Status",
+      "Assigned Courier",
+      "Created Date",
+    ];
+
+    // Prepare data
+    const data = filtered.map((d) => [
+      d.reference,
+      d.customerName,
+      d.customerStoreName || "",
+      d.customerPhone,
+      d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "",
+      d.deliveryAddress,
+      d.status.replace("_", " "),
+      d.assignedDriverId
+        ? `${d.assignedDriverId.firstName || ""} ${
+            d.assignedDriverId.lastName || ""
+          }`.trim()
+        : "",
+      new Date(d.createdAt).toLocaleDateString(),
+    ]);
+
+    if (format === "csv") {
+      // Create CSV content
+      const csvContent = [headers, ...data]
+        .map((row) => row.map((cell) => `"${cell}"`).join(","))
+        .join("\n");
+
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `courier_deliveries_${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (format === "xlsx") {
+      try {
+        // Use proper Excel export with exceljs
+        const ExcelModule = await import("exceljs");
+        const workbook = new ExcelModule.Workbook();
+        const worksheet = workbook.addWorksheet("Courier Deliveries");
+
+        worksheet.columns = [
+          { header: "Reference ID", key: "reference", width: 18 },
+          { header: "Customer Name", key: "customerName", width: 24 },
+          { header: "Store Name", key: "customerStoreName", width: 24 },
+          { header: "Phone", key: "customerPhone", width: 16 },
+          { header: "COD Amount", key: "codAmount", width: 14 },
+          { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+          { header: "Status", key: "status", width: 14 },
+          {
+            header: "Assigned Courier",
+            key: "assignedDriver",
+            width: 20,
+          },
+          { header: "Created Date", key: "createdAt", width: 16 },
+        ];
+
+        filtered.forEach((d) => {
+          worksheet.addRow({
+            reference: d.reference,
+            customerName: d.customerName,
+            customerStoreName: d.customerStoreName || "",
+            customerPhone: d.customerPhone,
+            codAmount: d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "",
+            deliveryAddress: d.deliveryAddress,
+            status: d.status.replace("_", " "),
+            assignedDriver: d.assignedDriverId
+              ? `${d.assignedDriverId.firstName || ""} ${
+                  d.assignedDriverId.lastName || ""
+                }`.trim()
+              : "",
+            createdAt: new Date(d.createdAt).toLocaleDateString(),
+          });
+        });
+
+        // Style the header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFE2E8F0" },
+        };
+
+        // Generate and download the file
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `courier_deliveries_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Excel export error:", error);
+        showError("Export Error", "Failed to export Excel file");
       }
-      setDriverName("");
-      setDriverPhone("");
-      setEmployeeId("");
-      setVehicleType("");
-      showSuccess("Driver Created", "Driver created successfully");
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -1719,6 +1827,20 @@ function CourierTab() {
           leftIcon={<PlusIcon size={18} />}
         >
           Add New Delivery
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => downloadDeliveries("csv")}
+          leftIcon={<DownloadIcon size={18} />}
+        >
+          Download CSV
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => downloadDeliveries("xlsx")}
+          leftIcon={<DownloadIcon size={18} />}
+        >
+          Download XLSX
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
