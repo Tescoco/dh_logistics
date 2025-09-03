@@ -55,12 +55,14 @@ export default function AdminLoginPage() {
           style={{}}
           className="bg-white/35 backdrop-blur-sm shadow-2xl border-0"
         >
-          <div className="mb-2 text-xl font-semibold">Admin Login</div>
-          <p className="mb-6 text-sm text-slate-500">
+          <div className="mb-2 text-xl font-semibold text-black">
+            Admin Login
+          </div>
+          <p className="mb-6 text-sm text-black">
             Sign in to access the Shipz admin dashboard
           </p>
           <form
-            className="space-y-4"
+            className="space-y-4 text-black"
             onSubmit={async (e) => {
               e.preventDefault();
               setLoading(true);
@@ -87,9 +89,7 @@ export default function AdminLoginPage() {
             }}
           >
             <div>
-              <label className="text-[13px] text-slate-600">
-                Email Address
-              </label>
+              <label className="text-[13px] text-black">Email Address</label>
               <Input
                 type="email"
                 placeholder="admin@shipz.com"
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
               />
             </div>
             <div>
-              <label className="text-[13px] text-slate-600">Password</label>
+              <label className="text-[13px] text-black">Password</label>
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
@@ -109,7 +109,7 @@ export default function AdminLoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-black hover:text-slate-600"
                   >
                     <EyeIcon size={16} />
                   </button>
@@ -118,15 +118,19 @@ export default function AdminLoginPage() {
               />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 text-black">
                 <input type="checkbox" className="h-4 w-4" /> Remember me
               </label>
-              <a className="text-[#0EA5E9]" href="#">
+              <a className="text-[#0EA5E9] text-black" href="#">
                 Forgot password?
               </a>
             </div>
             {error ? <div className="text-sm text-red-600">{error}</div> : null}
-            <Button disabled={loading} variant="gradient" className="w-full">
+            <Button
+              disabled={loading}
+              variant="gradient"
+              className="w-full text-black"
+            >
               {loading ? "Signing in..." : "Sign in to Shipz"}
             </Button>
           </form>

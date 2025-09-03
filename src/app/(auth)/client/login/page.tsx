@@ -76,7 +76,7 @@ export default function ClientLoginPage() {
             <h1 className="text-[18px] font-semibold text-black">
               Shipz Customer Portal
             </h1>
-            <p className="text-sm text-center text-black">
+            <p className="text-sm text-center text-black text-black ">
               Sign in to your Shipz account
             </p>
           </div>
@@ -93,7 +93,7 @@ export default function ClientLoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-slate-700 mb-1"
+                className="block text-sm font-medium text-black mb-1"
               >
                 Email Address
               </label>
@@ -111,7 +111,7 @@ export default function ClientLoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 mb-1"
+                className="block text-sm font-medium text-black mb-1"
               >
                 Password
               </label>
@@ -127,7 +127,7 @@ export default function ClientLoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-black hover:text-slate-600"
                   >
                     <EyeIcon size={16} />
                   </button>
@@ -147,7 +147,7 @@ export default function ClientLoginPage() {
                 />
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-slate-700"
+                  className="ml-2 block text-sm text-black"
                 >
                   Remember me
                 </label>
@@ -156,7 +156,7 @@ export default function ClientLoginPage() {
               <div className="text-sm">
                 <Link
                   href="/forgot-password"
-                  className="font-medium text-[#0EA5E9] hover:text-[#0C94CF]"
+                  className="font-medium text-[#0EA5E9] hover:text-[#0C94CF] text-black"
                 >
                   Forgot password?
                 </Link>
@@ -168,6 +168,7 @@ export default function ClientLoginPage() {
               fullWidth
               loading={loading}
               disabled={loading}
+              className="text-black"
             >
               Sign In
             </Button>
@@ -175,11 +176,11 @@ export default function ClientLoginPage() {
         </Card>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-black">
             Need assistance?{" "}
             <Link
               href="mailto:hello@shipzsolutions.com?subject=Shipz Portal Support"
-              className="font-medium text-[#0EA5E9] hover:text-[#0C94CF]"
+              className="font-medium text-[#0EA5E9] hover:text-[#0C94CF] text-black"
             >
               Contact Support
             </Link>
