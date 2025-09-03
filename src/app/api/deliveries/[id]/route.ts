@@ -28,7 +28,7 @@ const UpdateDeliverySchema = z.object({
   deliveryFee: z.number().optional(),
   codAmount: z.number().optional(),
   returnOrderRate: z.number().optional(),
-  codPaymentStatus: z.enum(["pending", "paid", "partial"]).optional(),
+  codPaymentStatus: z.enum(["pending", "paid", "returned"]).optional(),
   codPaidAmount: z.number().optional(),
   codPaidDate: z.string().optional(), // ISO date string
   codNotes: z.string().optional(),

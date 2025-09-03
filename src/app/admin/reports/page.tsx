@@ -17,6 +17,7 @@ type ReportData = {
   codAmount?: number;
   deliveryFee?: number;
   returnOrderRate?: number;
+  codPaymentStatus?: string;
   status: string;
   createdAt: string;
   assignedDriverId?: {
@@ -139,10 +140,15 @@ export default function ReportsPage() {
           (sum: number, d: ReportData) => sum + (d.deliveryFee || 0),
           0
         );
-        const totalRtoFees = deliveries.reduce(
-          (sum: number, d: ReportData) => sum + (d.returnOrderRate || 0),
-          0
-        );
+        const totalRtoFees = deliveries
+          .filter(
+            (d: ReportData) =>
+              d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
+          )
+          .reduce(
+            (sum: number, d: ReportData) => sum + (d.returnOrderRate || 0),
+            0
+          );
         const uniqueClients = new Set(
           deliveries.map((d: ReportData) => d.customerName)
         ).size;

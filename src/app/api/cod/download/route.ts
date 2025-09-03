@@ -93,7 +93,9 @@ export async function POST(req: NextRequest) {
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
         d.deliveryFee || 0,
-        d.returnOrderRate || 0,
+        d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
+          ? d.returnOrderRate || 0
+          : 0,
         d.status,
         auth.role === "admin" ? d.assignedDriver : "",
         new Date(d.createdAt).toLocaleDateString(),

@@ -22,7 +22,7 @@ type CODDelivery = {
   customerPhone: string;
   deliveryAddress: string;
   codAmount: number;
-  codPaymentStatus: "pending" | "paid" | "partial";
+  codPaymentStatus: "pending" | "paid" | "returned";
   codPaidAmount?: number;
   codPaidDate?: string;
   codNotes?: string;
@@ -66,6 +66,7 @@ export default function AdminCODReportsPage() {
     pendingAmount: 0,
     paidAmount: 0,
     deliveryFee: 0,
+    returnFee: 0,
   });
 
   // Edit modal state
@@ -74,7 +75,7 @@ export default function AdminCODReportsPage() {
     null
   );
   const [editPaymentStatus, setEditPaymentStatus] = useState<
-    "pending" | "paid" | "partial"
+    "pending" | "paid" | "returned"
   >("pending");
   const [editPaidAmount, setEditPaidAmount] = useState("");
   const [editPaidDate, setEditPaidDate] = useState("");
@@ -130,6 +131,12 @@ export default function AdminCODReportsPage() {
           (sum: number, d: CODDelivery) => sum + (d.deliveryFee || 0),
           0
         );
+        const returnFee = deliveriesData
+          .filter((d: CODDelivery) => d.codPaymentStatus === "returned")
+          .reduce(
+            (sum: number, d: CODDelivery) => sum + (d.returnOrderRate || 0),
+            0
+          );
 
         setSummary({
           totalAmount,
@@ -137,6 +144,7 @@ export default function AdminCODReportsPage() {
           pendingAmount,
           paidAmount,
           deliveryFee,
+          returnFee,
         });
       })
       .catch(() => showError("Error", "Failed to load COD deliveries"))
@@ -171,7 +179,12 @@ export default function AdminCODReportsPage() {
   function openEditModal(delivery: CODDelivery) {
     setEditingDelivery(delivery);
     setEditPaymentStatus(delivery.codPaymentStatus);
-    setEditPaidAmount(String(delivery.codAmount || 0));
+    // Set paid amount to 0 if status is returned, otherwise use COD amount
+    setEditPaidAmount(
+      delivery.codPaymentStatus === "returned"
+        ? "0"
+        : String(delivery.codAmount || 0)
+    );
     setEditPaidDate(new Date().toISOString().split("T")[0]);
     setEditRtoFee(String(delivery.returnOrderRate || 0));
     setEditNotes(delivery.codNotes || "");
@@ -259,6 +272,12 @@ export default function AdminCODReportsPage() {
             (sum: number, d: CODDelivery) => sum + (d.deliveryFee || 0),
             0
           );
+          const returnFee = deliveriesData
+            .filter((d: CODDelivery) => d.codPaymentStatus === "returned")
+            .reduce(
+              (sum: number, d: CODDelivery) => sum + (d.returnOrderRate || 0),
+              0
+            );
 
           setSummary({
             totalAmount,
@@ -266,6 +285,7 @@ export default function AdminCODReportsPage() {
             pendingAmount,
             paidAmount,
             deliveryFee,
+            returnFee,
           });
         })
         .catch(() => {});
@@ -454,6 +474,7 @@ export default function AdminCODReportsPage() {
               <option value="">All Status</option>
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
+              <option value="returned">Returned</option>
             </Select>
           </div>
           <div>
@@ -471,7 +492,7 @@ export default function AdminCODReportsPage() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         <Card>
           <div className="text-[13px] text-slate-500">Total COD Amount</div>
           <div className="mt-2 text-2xl font-semibold">
@@ -500,6 +521,12 @@ export default function AdminCODReportsPage() {
           <div className="text-[13px] text-slate-500">Delivery Fee</div>
           <div className="mt-2 text-2xl font-semibold text-blue-600">
             SAR {summary.deliveryFee.toFixed(2)}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-[13px] text-slate-500">Return Fee</div>
+          <div className="mt-2 text-2xl font-semibold text-red-600">
+            SAR {summary.returnFee.toFixed(2)}
           </div>
         </Card>
       </div>
@@ -565,8 +592,8 @@ export default function AdminCODReportsPage() {
                         className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${
                           delivery.codPaymentStatus === "paid"
                             ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                            : delivery.codPaymentStatus === "partial"
-                            ? "bg-blue-50 text-blue-700 ring-blue-200"
+                            : delivery.codPaymentStatus === "returned"
+                            ? "bg-red-50 text-red-700 ring-red-200"
                             : "bg-amber-50 text-amber-700 ring-amber-200"
                         }`}
                       >
@@ -648,12 +675,23 @@ export default function AdminCODReportsPage() {
                 </label>
                 <Select
                   value={editPaymentStatus}
-                  onChange={(e) =>
-                    setEditPaymentStatus(e.target.value as "pending" | "paid")
-                  }
+                  onChange={(e) => {
+                    const newStatus = e.target.value as
+                      | "pending"
+                      | "paid"
+                      | "returned";
+                    setEditPaymentStatus(newStatus);
+                    // Set paid amount to 0 if status is returned, otherwise use COD amount
+                    setEditPaidAmount(
+                      newStatus === "returned"
+                        ? "0"
+                        : String(editingDelivery.codAmount || 0)
+                    );
+                  }}
                 >
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
+                  <option value="returned">Returned</option>
                 </Select>
               </div>
               <div>

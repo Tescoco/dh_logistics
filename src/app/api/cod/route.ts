@@ -426,10 +426,11 @@ export async function GET(req: NextRequest) {
         (sum, d) => sum + (Number(d.deliveryFee) || 0),
         0
       );
-      const totalRTO = processedDeliveries.reduce(
-        (sum, d) => sum + (Number(d.returnOrderRate) || 0),
-        0
-      );
+      const totalRTO = processedDeliveries
+        .filter(
+          (d) => d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
+        )
+        .reduce((sum, d) => sum + (Number(d.returnOrderRate) || 0), 0);
 
       ensureSpace(lineHeight * 4);
       // Place totals at left margin

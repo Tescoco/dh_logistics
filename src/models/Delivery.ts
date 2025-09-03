@@ -11,7 +11,7 @@ export type DeliveryStatus =
   | "lost_damaged"
   | "cancelled";
 
-export type CODPaymentStatus = "pending" | "paid" | "partial";
+export type CODPaymentStatus = "pending" | "paid" | "returned";
 
 export interface DeliveryDocument {
   _id: string;
@@ -92,7 +92,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     returnOrderRate: { type: Number, default: 0 },
     codPaymentStatus: {
       type: String,
-      enum: ["pending", "paid", "partial"],
+      enum: ["pending", "paid", "returned"],
       default: "pending",
     },
     codPaidAmount: { type: Number, default: 0 },

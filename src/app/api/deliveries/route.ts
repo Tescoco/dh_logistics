@@ -31,6 +31,7 @@ const CreateDeliverySchema = z.object({
   paymentMethod: z.enum(["cod"]).optional(),
   deliveryFee: z.number().optional(),
   codAmount: z.number().optional(),
+  returnOrderRate: z.number().optional(),
   specialInstructions: z.array(z.string()).optional(),
   notes: z.string().optional(),
   isDraft: z.boolean().optional(),
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
     // fetch delivery fee and store name from user record
     const user = await User.findById(auth.userId)
       .select(
-        "deliveryFee customerStoreName firstName phone address city district postalCode"
+        "deliveryFee customerStoreName firstName phone address city district postalCode returnOrderRate"
       )
       .lean();
 
@@ -148,6 +149,7 @@ export async function POST(req: NextRequest) {
       senderCity: body.senderCity || user?.city,
       senderDistrict: body.senderDistrict || user?.district,
       senderPostalCode: body.senderPostalCode || user?.postalCode,
+      returnOrderRate: body.returnOrderRate || user?.returnOrderRate,
     });
 
     // If a driver is specified, ensure it exists and has role 'driver'
