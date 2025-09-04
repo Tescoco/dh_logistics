@@ -13,6 +13,7 @@ import {
   ClockIcon,
   DownloadIcon,
   ArrowUpIcon,
+  PrinterIcon,
 } from "@/components/icons";
 import DeliveryChart from "@/components/ui/DeliveryChart";
 import Select from "@/components/ui/Select";
@@ -395,6 +396,16 @@ export default function AdminDashboardPage() {
     }
   }
 
+  function handleThermalPrint() {
+    if (bulkSearchResults.length === 0) {
+      showError("Print Failed", "No search results to print");
+      return;
+    }
+
+    const deliveryIds = bulkSearchResults.map((d) => d.id).join(",");
+    router.push(`/admin/thermal-tickets?deliveryIds=${deliveryIds}`);
+  }
+
   async function handleSelectedDownload(format: "csv" | "xls") {
     try {
       let ids: string[];
@@ -655,12 +666,22 @@ export default function AdminDashboardPage() {
                 <h4 className="font-medium text-slate-900">
                   Search Results ({bulkSearchResults.length} parcels found)
                 </h4>
-                <button
-                  onClick={() => setBulkSearchResults([])}
-                  className="text-sm text-slate-500 hover:text-slate-700"
-                >
-                  Clear Results
-                </button>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={handleThermalPrint}
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<PrinterIcon size={16} />}
+                  >
+                    Thermal Print
+                  </Button>
+                  <button
+                    onClick={() => setBulkSearchResults([])}
+                    className="text-sm text-slate-500 hover:text-slate-700"
+                  >
+                    Clear Results
+                  </button>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-slate-200 rounded-lg">

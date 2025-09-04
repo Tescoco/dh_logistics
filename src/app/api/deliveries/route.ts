@@ -5,6 +5,7 @@ import { Delivery } from "@/models/Delivery";
 import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
 import { ObjectId } from "mongodb";
+import ExcelJS from "exceljs";
 
 const CreateDeliverySchema = z.object({
   reference: z.string().min(3),
@@ -131,6 +132,192 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    // Handle download requests
+    if (body.format && (body.format === "csv" || body.format === "xls")) {
+      const { format, status, search } = body;
+
+      // Build query
+      const query: Record<string, unknown> = {};
+      if (status) query.status = status;
+      if (search) {
+        query.$or = [
+          { reference: { $regex: search, $options: "i" } },
+          { customerName: { $regex: search, $options: "i" } },
+          { deliveryAddress: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      // Fetch deliveries with populated fields
+      const deliveries = await Delivery.find(query)
+        .populate("assignedDriverId", "firstName lastName")
+        .populate("assignedCourierId", "firstName lastName courierCompanyName")
+        .populate("createdById", "firstName lastName")
+        .sort({ createdAt: -1 })
+        .lean();
+
+      // Format data for export
+      const processedDeliveries = deliveries.map((delivery) => ({
+        id: delivery._id.toString(),
+        reference: delivery.reference,
+        customerName: delivery.customerName,
+        customerPhone: delivery.customerPhone,
+        deliveryAddress: delivery.deliveryAddress,
+        status: delivery.status,
+        paymentMethod: delivery.paymentMethod,
+        codAmount: delivery.codAmount || 0,
+        deliveryFee: delivery.deliveryFee || 0,
+        priority: delivery.priority,
+        assignedDriver: delivery.assignedDriverId
+          ? `${
+              (
+                delivery.assignedDriverId as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.firstName || ""
+            } ${
+              (
+                delivery.assignedDriverId as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.lastName || ""
+            }`.trim()
+          : "",
+        assignedCourier: delivery.assignedCourierId
+          ? `${
+              (
+                delivery.assignedCourierId as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.firstName || ""
+            } ${
+              (
+                delivery.assignedCourierId as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.lastName || ""
+            }`.trim()
+          : "",
+        createdBy: delivery.createdById
+          ? `${
+              (
+                delivery.createdById as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.firstName || ""
+            } ${
+              (
+                delivery.createdById as {
+                  firstName?: string;
+                  lastName?: string;
+                }
+              )?.lastName || ""
+            }`.trim()
+          : "",
+        notes: delivery.notes || "",
+        createdAt: new Date(delivery.createdAt).toLocaleString(),
+        updatedAt: new Date(delivery.updatedAt).toLocaleString(),
+      }));
+
+      if (format === "csv") {
+        // Generate CSV
+        const csvHeaders = [
+          "Reference",
+          "Customer",
+          "Phone",
+          "Address",
+          "Status",
+          "Payment Method",
+          "COD Amount",
+          "Delivery Fee",
+          "Priority",
+          "Assigned Driver",
+          "Assigned Courier",
+          "Created By",
+          "Notes",
+          "Created At",
+          "Updated At",
+        ];
+
+        const csvRows = processedDeliveries.map((delivery) => [
+          delivery.reference,
+          delivery.customerName,
+          delivery.customerPhone,
+          delivery.deliveryAddress,
+          delivery.status,
+          delivery.paymentMethod,
+          delivery.codAmount.toString(),
+          delivery.deliveryFee.toString(),
+          delivery.priority,
+          delivery.assignedDriver,
+          delivery.assignedCourier,
+          delivery.createdBy,
+          delivery.notes,
+          delivery.createdAt,
+          delivery.updatedAt,
+        ]);
+
+        const csvContent = [
+          csvHeaders.join(","),
+          ...csvRows.map((row) =>
+            row
+              .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+              .join(",")
+          ),
+        ].join("\n");
+
+        return new NextResponse(csvContent, {
+          headers: {
+            "Content-Type": "text/csv",
+            "Content-Disposition": `attachment; filename="all-deliveries-${
+              new Date().toISOString().split("T")[0]
+            }.csv"`,
+          },
+        });
+      } else if (format === "xls") {
+        // Generate Excel
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("All Deliveries");
+
+        worksheet.columns = [
+          { header: "Reference", key: "reference", width: 15 },
+          { header: "Customer", key: "customerName", width: 20 },
+          { header: "Phone", key: "customerPhone", width: 15 },
+          { header: "Address", key: "deliveryAddress", width: 30 },
+          { header: "Status", key: "status", width: 15 },
+          { header: "Payment Method", key: "paymentMethod", width: 15 },
+          { header: "COD Amount", key: "codAmount", width: 15 },
+          { header: "Delivery Fee", key: "deliveryFee", width: 15 },
+          { header: "Priority", key: "priority", width: 10 },
+          { header: "Assigned Driver", key: "assignedDriver", width: 20 },
+          { header: "Assigned Courier", key: "assignedCourier", width: 20 },
+          { header: "Created By", key: "createdBy", width: 20 },
+          { header: "Notes", key: "notes", width: 30 },
+          { header: "Created At", key: "createdAt", width: 20 },
+          { header: "Updated At", key: "updatedAt", width: 20 },
+        ];
+
+        processedDeliveries.forEach((delivery) => {
+          worksheet.addRow(delivery);
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        return new NextResponse(buffer, {
+          headers: {
+            "Content-Type":
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="all-deliveries-${
+              new Date().toISOString().split("T")[0]
+            }.xlsx"`,
+          },
+        });
+      }
+    }
     // fetch delivery fee and store name from user record
     const user = await User.findById(auth.userId)
       .select(

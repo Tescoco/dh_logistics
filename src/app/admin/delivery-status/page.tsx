@@ -583,6 +583,51 @@ export default function DeliveryStatusPage() {
     }
   }
 
+  async function handleAllDeliveriesDownload(format: "csv" | "xls") {
+    if (rows.length === 0) {
+      showError("Download Failed", "No deliveries to download");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/deliveries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          format,
+          status: listStatusFilter || undefined,
+          search: query || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showError("Download Failed", data?.error ?? "Failed to download file");
+        return;
+      }
+
+      // Create blob and download
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `all-deliveries-${
+        new Date().toISOString().split("T")[0]
+      }.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      showSuccess(
+        "Download Successful",
+        `All deliveries downloaded successfully`
+      );
+    } catch {
+      showError("Download Failed", "Failed to download file");
+    }
+  }
+
   async function handleFileChange(f: File | null) {
     setUploadFile(f);
     setPreviewRows([]);
@@ -1162,6 +1207,26 @@ export default function DeliveryStatusPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handleAllDeliveriesDownload("csv")}
+              variant="secondary"
+              size="sm"
+              leftIcon={<DownloadIcon size={16} />}
+              disabled={rows.length === 0}
+            >
+              CSV
+            </Button>
+            <Button
+              onClick={() => handleAllDeliveriesDownload("xls")}
+              variant="secondary"
+              size="sm"
+              leftIcon={<DownloadIcon size={16} />}
+              disabled={rows.length === 0}
+            >
+              XLS
+            </Button>
+          </div>
         </div>
 
         {/* Courier Assignment Section */}
