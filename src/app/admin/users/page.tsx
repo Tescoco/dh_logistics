@@ -80,6 +80,11 @@ export default function UsersPage() {
   }, [users, query, tab]);
 
   async function handleDelete(id: string) {
+    // if id is a cod eg 68c8103f91e0438730fbfc28 can delete
+
+    if (id === "68c8103f91e0438730fbfc28") {
+      return alert("You can't delete a COD driver");
+    }
     if (!confirm("Delete this user?")) return;
     const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
     if (res.ok) setUsers((prev) => prev.filter((u) => u._id !== id));

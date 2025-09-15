@@ -186,7 +186,7 @@ export async function PATCH(req: NextRequest, context: any) {
 
     // Check if driver is COD logistics and create order through their API
     if (
-      input.assignedDriverId === "68b4e8320937d8c4337027a6" &&
+      input.assignedDriverId === "68c8103f91e0438730fbfc28" &&
       input.assignedDriverId !== currentDelivery.assignedDriverId?.toString() &&
       auth.role === "admin"
     ) {

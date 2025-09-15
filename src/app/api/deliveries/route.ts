@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
   const query: Record<string, unknown> = {};
   if (status) query.status = status;
   if (payment) query.paymentMethod = payment;
-  // if tab is internal get all deliveries with assignedDriverId that is not equal to 68b4e8320937d8c4337027a6
+  // if tab is internal get all deliveries with assignedDriverId that is not equal to 68c8103f91e0438730fbfc28
   if (tab === "internal") {
     const driverUsers = await User.find({ role: "driver" })
       .select("_id")
@@ -75,15 +75,15 @@ export async function GET(req: NextRequest) {
       .map((u: { _id: unknown }) => u._id)
       .filter(
         (id) =>
-          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+          id instanceof ObjectId && id.toString() !== "68c8103f91e0438730fbfc28"
       );
 
     console.log("driverUserIds ===>", driverUserIds);
     query.assignedDriverId = { $in: driverUserIds };
   }
-  // if tab is cod get all deliveries with assignedDriverId that is equal to 68b4e8320937d8c4337027a6
+  // if tab is cod get all deliveries with assignedDriverId that is equal to 68c8103f91e0438730fbfc28
   if (tab === "cod") {
-    query.assignedDriverId = "68b4e8320937d8c4337027a6";
+    query.assignedDriverId = "68c8103f91e0438730fbfc28";
   }
 
   if (tab === "courier") {
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
       .map((u: { _id: unknown }) => u._id)
       .filter(
         (id) =>
-          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+          id instanceof ObjectId && id.toString() !== "68c8103f91e0438730fbfc28"
       );
     if (courierUserIds.length > 0) {
       query.assignedDriverId = { $in: courierUserIds };
@@ -389,7 +389,7 @@ export async function POST(req: NextRequest) {
       if (
         !input.assignedCourierId && // Not assigned to courier
         (!input.assignedDriverId ||
-          input.assignedDriverId === "68b4e8320937d8c4337027a6") &&
+          input.assignedDriverId === "68c8103f91e0438730fbfc28") &&
         auth.role === "admin"
       ) {
         const settingsDoc = await (

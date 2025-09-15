@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       .map((u: { _id: unknown }) => u._id)
       .filter(
         (id) =>
-          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+          id instanceof ObjectId && id.toString() !== "68c8103f91e0438730fbfc28"
       );
     if (driverUserIds.length > 0) {
       query.assignedDriverId = { $in: driverUserIds };
@@ -32,9 +32,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ deliveries: [] });
     }
   }
-  // if tab is cod get all deliveries with assignedDriverId that is equal to 68b4e8320937d8c4337027a6
+  // if tab is cod get all deliveries with assignedDriverId that is equal to 68c8103f91e0438730fbfc28
   if (tab === "cod") {
-    query.assignedDriverId = "68b4e8320937d8c4337027a6";
+    query.assignedDriverId = "68c8103f91e0438730fbfc28";
   }
 
   if (tab === "courier") {
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       .map((u: { _id: unknown }) => u._id)
       .filter(
         (id) =>
-          id instanceof ObjectId && id.toString() !== "68b4e8320937d8c4337027a6"
+          id instanceof ObjectId && id.toString() !== "68c8103f91e0438730fbfc28"
       );
     if (courierUserIds.length > 0) {
       query.assignedDriverId = { $in: courierUserIds };

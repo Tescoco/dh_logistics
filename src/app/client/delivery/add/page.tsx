@@ -248,7 +248,7 @@ export default function CreateDeliveryPage() {
         description: form.description,
         priority: "standard" as const,
         paymentMethod: "cod" as const,
-        assignedDriverId: "68b4e8320937d8c4337027a6",
+        assignedDriverId: "68c8103f91e0438730fbfc28",
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
         isDraft,

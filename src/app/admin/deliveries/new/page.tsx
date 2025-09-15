@@ -40,7 +40,7 @@ export default function AdminNewDeliveryPage() {
   const [loadingReference, setLoadingReference] = useState(true);
   const [referenceError, setReferenceError] = useState<string | null>(null);
   const [insuranceModalOpen, setInsuranceModalOpen] = useState(false);
-  const restrictedDriverId = "68b4e8320937d8c4337027a6";
+  const restrictedDriverId = "68c8103f91e0438730fbfc28";
 
   // Auto-generate reference number based on existing orders
   async function generateReference(): Promise<string> {
