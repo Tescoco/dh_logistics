@@ -257,7 +257,7 @@ function ThermalTicketsContent() {
             <!-- Shipper Info -->
             <div class="mb-4 text-xs">
               <div><strong>Shipper:</strong> ${
-                ticket.senderName || "Shipz Solutions"
+                ticket.customerName || "Shipz Solutions"
               }</div>
               <div><strong>Service:</strong> ${getServiceName(
                 ticket.serviceType
@@ -400,7 +400,7 @@ function ThermalTicketsContent() {
         
         <div style="margin-bottom: 15px;">
           <div><strong>Shipper:</strong> ${
-            ticket.senderName || "Shipz Solutions"
+            ticket.customerName || "Shipz Solutions"
           }</div>
           <div><strong>Service:</strong> ${getServiceName(
             ticket.serviceType
@@ -590,7 +590,7 @@ function ThermalTicketsContent() {
                 <div className="mb-4 text-xs">
                   <div>
                     <strong>Shipper:</strong>{" "}
-                    {ticket.senderName || "Shipz Solutions"}
+                    {ticket.customerName || "Shipz Solutions"}
                   </div>
                   <div>
                     <strong>Service:</strong>{" "}

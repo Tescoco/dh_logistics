@@ -257,7 +257,7 @@ export default function ThermalTicketsPage() {
             <!-- Shipper Info -->
             <div class="mb-4 text-xs">
               <div><strong>Shipper:</strong> ${
-                ticket.senderName || "Shipz Solutions"
+                ticket.customerName || "Shipz Solutions"
               }</div>
               <div><strong>Service:</strong> ${getServiceName(
                 ticket.serviceType
@@ -400,7 +400,7 @@ export default function ThermalTicketsPage() {
         
         <div style="margin-bottom: 15px;">
           <div><strong>Shipper:</strong> ${
-            ticket.senderName || "Shipz Solutions"
+            ticket.customerName || "Shipz Solutions"
           }</div>
           <div><strong>Service:</strong> ${getServiceName(
             ticket.serviceType
@@ -589,7 +589,7 @@ export default function ThermalTicketsPage() {
                 <div className="mb-4 text-xs">
                   <div>
                     <strong>Shipper:</strong>{" "}
-                    {ticket.senderName || "Shipz Solutions"}
+                    {ticket.customerName || "Shipz Solutions"}
                   </div>
                   <div>
                     <strong>Service:</strong>{" "}
