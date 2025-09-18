@@ -410,11 +410,11 @@ export async function POST(req: NextRequest) {
             description: input.description,
             branded_content: "No",
             country: 2,
-            whatsapp: input.customerWhatsApp,
+            whatsapp: input.customerWhatsApp ?? "-",
             insurance: "No",
             client_id: 82589,
-            location: input.deliveryDistrict,
-            Service:
+            location: null,
+            service:
               input.serviceType === "1" ? 1 : input.serviceType === "5" ? 5 : 9,
           };
           const r = await fetch(

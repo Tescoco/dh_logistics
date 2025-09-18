@@ -210,13 +210,16 @@ export async function PATCH(req: NextRequest, context: any) {
             description: input.description || currentDelivery.description,
             branded_content: "No",
             country: 2,
-            whatsapp: currentDelivery.customerWhatsApp,
+            whatsapp: currentDelivery.customerWhatsApp ?? "-",
             insurance: "No",
             client_id: 82589,
-            location:
-              input.deliveryDistrict || currentDelivery.deliveryDistrict,
-            Service:
-              input.serviceType === "1" ? 1 : input.serviceType === "5" ? 5 : 9,
+            location: null,
+            service:
+              input.serviceType === "1"
+                ? "1"
+                : input.serviceType === "5"
+                ? "5"
+                : "9",
           };
 
           const r = await fetch(

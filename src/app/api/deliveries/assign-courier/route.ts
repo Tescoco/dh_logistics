@@ -75,16 +75,16 @@ export async function POST(req: NextRequest) {
               description: delivery.description,
               branded_content: "No",
               country: 2,
-              whatsapp: delivery.customerWhatsApp,
+              whatsapp: delivery.customerWhatsApp ?? "-",
               insurance: "No",
               client_id: 82589,
-              location: delivery.deliveryDistrict,
-              Service:
+              location: null,
+              service:
                 delivery.serviceType === "1"
-                  ? 1
+                  ? "1"
                   : delivery.serviceType === "5"
-                  ? 5
-                  : 9,
+                  ? "5"
+                  : "9",
             };
 
             const r = await fetch(
