@@ -212,14 +212,14 @@ export default function AdminNewDeliveryPage() {
     return SAUDI_CITIES;
   }, [form.serviceType]);
 
-  useEffect(() => {
-    if (form.senderCity && !serviceCities.includes(form.senderCity)) {
-      setForm((f) => ({ ...f, senderCity: "", senderDistrict: "" }));
-    }
-    if (form.deliveryCity && !serviceCities.includes(form.deliveryCity)) {
-      setForm((f) => ({ ...f, deliveryCity: "", deliveryDistrict: "" }));
-    }
-  }, [serviceCities, form.deliveryCity, form.senderCity]);
+  // useEffect(() => {
+  // if (form.senderCity && !serviceCities.includes(form.senderCity)) {
+  //   setForm((f) => ({ ...f, senderCity: "", senderDistrict: "" }));
+  // }
+  // if (form.deliveryCity && !serviceCities.includes(form.deliveryCity)) {
+  //   setForm((f) => ({ ...f, deliveryCity: "", deliveryDistrict: "" }));
+  // }
+  // }, [serviceCities, form.deliveryCity, form.senderCity]);
 
   function update<K extends keyof typeof form>(
     key: K,
@@ -609,13 +609,17 @@ export default function AdminNewDeliveryPage() {
             </div>
             <div>
               <label className="text-[13px] text-slate-600">Sender City</label>
-              <Select
+              <Input
+                value={form.senderCity}
+                disabled={form.assignedDriverId === restrictedDriverId}
+              />
+              {/* <Select
                 value={form.senderCity}
                 onChange={(e) => {
                   const city = (e.target as HTMLSelectElement).value;
                   update("senderCity", city);
                 }}
-                disabled={form.assignedDriverId === restrictedDriverId}
+                // disabled={form.assignedDriverId === restrictedDriverId}
               >
                 <option value="">Select City</option>
                 {serviceCities.map((c, i) => (
@@ -623,7 +627,7 @@ export default function AdminNewDeliveryPage() {
                     {c}
                   </option>
                 ))}
-              </Select>
+              </Select> */}
             </div>
             {/* <div>
               <label className="text-[13px] text-slate-600">
