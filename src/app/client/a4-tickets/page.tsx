@@ -11,6 +11,10 @@ import JsBarcode from "jsbarcode";
 type DeliveryTicket = {
   _id: string;
   reference: string;
+  createdById: {
+    firstName: string;
+    lastName: string;
+  };
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
@@ -188,9 +192,11 @@ function A4TicketsContent() {
               <div style="flex-grow: 1;">
                 <div class="reference-large">${ticket.reference.toUpperCase()}</div>
                 <div class="info-block">
-                  <span><strong>(${ticket.customerName})</strong> Ref: ${
-              ticket.description || "N/A"
-            }</span>
+                  <span><strong>(${
+                    ticket.createdById.firstName +
+                    " " +
+                    ticket.createdById.lastName
+                  })</strong> Ref: ${ticket.description || "N/A"}</span>
                   <span style="margin-left: 20px;">${getServiceName(
                     ticket.serviceType
                   )}</span>
@@ -308,8 +314,14 @@ function A4TicketsContent() {
                   </div>
                   <div className="text-xs mt-1">
                     <span>
-                      <strong>({ticket.customerName})</strong> Ref:{" "}
-                      {ticket.description || "N/A"}
+                      <strong>
+                        (
+                        {ticket.createdById.firstName +
+                          " " +
+                          ticket.createdById.lastName}
+                        )
+                      </strong>{" "}
+                      Ref: {ticket.description || "N/A"}
                     </span>
                     <span className="ml-4">
                       {getServiceName(ticket.serviceType)}
@@ -341,7 +353,13 @@ function A4TicketsContent() {
 
 export default function A4TicketsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><div className="text-slate-500">Loading...</div></div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-slate-500">Loading...</div>
+        </div>
+      }
+    >
       <A4TicketsContent />
     </Suspense>
   );

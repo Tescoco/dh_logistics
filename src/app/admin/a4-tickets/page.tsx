@@ -11,6 +11,10 @@ import JsBarcode from "jsbarcode";
 type DeliveryTicket = {
   _id: string;
   reference: string;
+  createdById: {
+    firstName: string;
+    lastName: string;
+  };
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
@@ -188,9 +192,11 @@ export default function A4TicketsPage() {
               <div style="flex-grow: 1;">
                 <div class="reference-large">${ticket.reference.toUpperCase()}</div>
                 <div class="info-block">
-                  <span><strong>(${ticket.customerName})</strong> Ref: ${
-              ticket.description || "N/A"
-            }</span>
+                  <span><strong>(${
+                    ticket.createdById.firstName +
+                    " " +
+                    ticket.createdById.lastName
+                  })</strong> Ref: ${ticket.description || "N/A"}</span>
                   <span style="margin-left: 20px;">${getServiceName(
                     ticket.serviceType
                   )}</span>
@@ -307,8 +313,14 @@ export default function A4TicketsPage() {
                   </div>
                   <div className="text-xs mt-1">
                     <span>
-                      <strong>({ticket.customerName})</strong> Ref:{" "}
-                      {ticket.description || "N/A"}
+                      <strong>
+                        (
+                        {ticket.createdById.firstName +
+                          " " +
+                          ticket.createdById.lastName}
+                        )
+                      </strong>{" "}
+                      Ref: {ticket.description || "N/A"}
                     </span>
                     <span className="ml-4">
                       {getServiceName(ticket.serviceType)}
