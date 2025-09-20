@@ -11,6 +11,10 @@ import JsBarcode from "jsbarcode";
 type DeliveryTicket = {
   _id: string;
   reference: string;
+  createdById: {
+    firstName: string;
+    lastName: string;
+  };
   customerName: string;
   customerPhone: string;
   customerWhatsApp: string;
@@ -257,7 +261,9 @@ function ThermalTicketsContent() {
             <!-- Shipper Info -->
             <div class="mb-4 text-xs">
               <div><strong>Shipper:</strong> ${
-                ticket.customerName || "Shipz Solutions"
+                ticket.createdById.firstName +
+                  " " +
+                  ticket.createdById.lastName || "Shipz Solutions"
               }</div>
               <div><strong>Service:</strong> ${getServiceName(
                 ticket.serviceType
@@ -400,7 +406,8 @@ function ThermalTicketsContent() {
         
         <div style="margin-bottom: 15px;">
           <div><strong>Shipper:</strong> ${
-            ticket.customerName || "Shipz Solutions"
+            ticket.createdById.firstName + " " + ticket.createdById.lastName ||
+            "Shipz Solutions"
           }</div>
           <div><strong>Service:</strong> ${getServiceName(
             ticket.serviceType
@@ -590,7 +597,9 @@ function ThermalTicketsContent() {
                 <div className="mb-4 text-xs">
                   <div>
                     <strong>Shipper:</strong>{" "}
-                    {ticket.customerName || "Shipz Solutions"}
+                    {ticket.createdById.firstName +
+                      " " +
+                      ticket.createdById.lastName || "Shipz Solutions"}
                   </div>
                   <div>
                     <strong>Service:</strong>{" "}

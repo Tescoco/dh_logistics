@@ -42,7 +42,9 @@ export async function POST(req: NextRequest) {
     // Fetch deliveries by IDs
     const deliveries = await Delivery.find({
       _id: { $in: ids },
-    }).lean();
+    })
+      .populate("createdById", "firstName lastName")
+      .lean();
 
     if (!deliveries || deliveries.length === 0) {
       return NextResponse.json(
