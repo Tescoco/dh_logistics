@@ -173,16 +173,16 @@ export default function EditDeliveryPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-6 text-slate-500">Loading delivery…</div>;
-  }
-
   const serviceCities = useMemo(() => {
     if (form.serviceType === "1") return RGS_CITIES;
     if (form.serviceType === "5") return JNT_CITIES;
     if (form.serviceType === "9") return IMILE_CITIES;
     return SAUDI_CITIES;
   }, [form.serviceType]);
+
+  if (loading) {
+    return <div className="p-6 text-slate-500">Loading delivery…</div>;
+  }
 
   return (
     <div className="space-y-6">
