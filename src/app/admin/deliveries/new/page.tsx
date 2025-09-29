@@ -3,6 +3,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import SmartSelect from "@/components/ui/SmartSelect";
 import Modal from "@/components/ui/Modal";
 import { SAUDI_CITIES } from "@/lib/cities";
 
@@ -727,23 +728,13 @@ export default function AdminNewDeliveryPage() {
               />
             </div>
             {form.serviceType && (
-              <div>
-                <label className="text-[13px] text-slate-600">City</label>
-                <Select
-                  value={form.deliveryCity}
-                  onChange={(e) => {
-                    const city = (e.target as HTMLSelectElement).value;
-                    update("deliveryCity", city);
-                  }}
-                >
-                  <option value="">Select City</option>
-                  {serviceCities.map((c, i) => (
-                    <option key={i} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              <SmartSelect
+                label="City"
+                options={serviceCities}
+                value={form.deliveryCity}
+                onChange={(city) => update("deliveryCity", city)}
+                placeholder="Select City"
+              />
             )}
             {/* <div>
               <label className="text-[13px] text-slate-600">District</label>

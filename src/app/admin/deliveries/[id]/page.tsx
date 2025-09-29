@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import SmartSelect from "@/components/ui/SmartSelect";
 import { SAUDI_CITIES } from "@/lib/cities";
 
 import { useEffect, useMemo, useState } from "react";
@@ -378,25 +379,17 @@ export default function AdminEditDeliveryPage() {
                 onChange={(e) => update("deliveryAddress", e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">City</label>
-              <Select
-                value={form.deliveryCity}
-                onChange={(e) => {
-                  const city = (e.target as HTMLSelectElement).value;
-                  update("deliveryCity", city);
-                  // Reset district when city changes
-                  update("deliveryDistrict", "");
-                }}
-              >
-                <option value="">Select City</option>
-                {serviceCities.map((c, i) => (
-                  <option key={i} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <SmartSelect
+              label="City"
+              options={serviceCities}
+              value={form.deliveryCity}
+              onChange={(city) => {
+                update("deliveryCity", city);
+                // Reset district when city changes
+                update("deliveryDistrict", "");
+              }}
+              placeholder="Select City"
+            />
             {/* <div>
               <label className="text-[13px] text-slate-600">District</label>
               <Select

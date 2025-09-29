@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { User } from "@/models/User";
 import { getAuthUserFromCookies } from "@/lib/session";
+import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,8 @@ export async function GET() {
   const auth = await getAuthUserFromCookies();
   if (!auth)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const scope = auth.role !== "admin" ? { createdById: auth.userId } : {};
+  const scope =
+    auth.role !== "admin" ? { createdById: new ObjectId(auth.userId) } : {};
   const now = new Date();
   const currentWindowStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const previousWindowStart = new Date(
@@ -21,11 +23,13 @@ export async function GET() {
   const currentWindowEndInclusive = new Date(now.getTime());
   const previousWindowEndInclusive = new Date(currentWindowStart.getTime() - 1);
 
+  console.log("scope", scope);
+
   const [
     activeDeliveries,
     delivered,
     returned,
-    users,
+    totalUsers,
     inTransit,
     pending,
     assigned,
@@ -58,7 +62,7 @@ export async function GET() {
     // current snapshots
     Delivery.countDocuments({
       ...scope,
-      status: { $in: ["in_transit"] },
+      status: { $in: ["assigned"] },
     }),
     Delivery.countDocuments({ ...scope, status: "delivered" }),
     Delivery.countDocuments({ ...scope, status: "returned" }),
@@ -136,6 +140,7 @@ export async function GET() {
     }),
     // global windowed counts for admin-wide changes (unscoped)
     Delivery.countDocuments({
+      ...scope,
       status: "delivered",
       updatedAt: {
         $gte: previousWindowStart,
@@ -143,10 +148,12 @@ export async function GET() {
       },
     }),
     Delivery.countDocuments({
+      ...scope,
       status: "delivered",
       updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
     }),
     Delivery.countDocuments({
+      ...scope,
       status: "returned",
       updatedAt: {
         $gte: previousWindowStart,
@@ -154,10 +161,12 @@ export async function GET() {
       },
     }),
     Delivery.countDocuments({
+      ...scope,
       status: "returned",
       updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
     }),
     Delivery.countDocuments({
+      ...scope,
       status: "in_transit",
       updatedAt: {
         $gte: previousWindowStart,
@@ -165,10 +174,11 @@ export async function GET() {
       },
     }),
     Delivery.countDocuments({
+      ...scope,
       status: "in_transit",
       updatedAt: { $gte: currentWindowStart, $lte: currentWindowEndInclusive },
     }),
-    Delivery.countDocuments({}),
+    Delivery.countDocuments({ ...scope }),
   ]);
 
   function percentChange(current: number, previous: number): number {
@@ -193,7 +203,7 @@ export async function GET() {
     activeDeliveries,
     delivered,
     returned,
-    totalUsers: users,
+    totalUsers: auth.role === "admin" ? totalUsers : undefined,
     inTransit,
     pending,
     assigned,

@@ -4,10 +4,14 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import SmartSelect from "@/components/ui/SmartSelect";
 import { SAUDI_CITIES } from "@/lib/cities";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
+import { IMILE_CITIES } from "@/lib/imile_cities";
+import { JNT_CITIES } from "@/lib/jnt_cities";
+import { RGS_CITIES } from "@/lib/rgs_cities";
 
 type DeliveryResponse = {
   delivery: {
@@ -27,6 +31,7 @@ type DeliveryResponse = {
     paymentMethod?: "prepaid" | "cod";
     codAmount?: number;
     notes?: string;
+    serviceType?: string;
   };
 };
 
@@ -54,6 +59,7 @@ export default function EditDeliveryPage() {
     paymentMethod: "prepaid" as "prepaid" | "cod",
     codAmount: "",
     notes: "",
+    serviceType: "",
   });
 
   function update<K extends keyof typeof form>(
@@ -88,6 +94,7 @@ export default function EditDeliveryPage() {
           paymentMethod: d.paymentMethod || "prepaid",
           codAmount: d.codAmount != null ? String(d.codAmount) : "",
           notes: d.notes || "",
+          serviceType: d.serviceType || "",
         });
       } finally {
         if (mounted) setLoading(false);
@@ -147,6 +154,7 @@ export default function EditDeliveryPage() {
         paymentMethod: form.paymentMethod,
         codAmount: form.codAmount ? Number(form.codAmount) : undefined,
         notes: form.notes || undefined,
+        serviceType: form.serviceType || undefined,
       };
       const res = await fetch(`/api/deliveries/${deliveryId}`, {
         method: "PATCH",
@@ -165,11 +173,16 @@ export default function EditDeliveryPage() {
     }
   }
 
-
-
   if (loading) {
     return <div className="p-6 text-slate-500">Loading delivery…</div>;
   }
+
+  const serviceCities = useMemo(() => {
+    if (form.serviceType === "1") return RGS_CITIES;
+    if (form.serviceType === "5") return JNT_CITIES;
+    if (form.serviceType === "9") return IMILE_CITIES;
+    return SAUDI_CITIES;
+  }, [form.serviceType]);
 
   return (
     <div className="space-y-6">
@@ -255,22 +268,13 @@ export default function EditDeliveryPage() {
                 onChange={(e) => update("deliveryAddress", e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">City</label>
-              <Select
-                value={form.deliveryCity}
-                onChange={(e) =>
-                  update("deliveryCity", (e.target as HTMLSelectElement).value)
-                }
-              >
-                <option value="">Select City</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <SmartSelect
+              label="City"
+              options={serviceCities}
+              value={form.deliveryCity}
+              onChange={(city) => update("deliveryCity", city)}
+              placeholder="Select City"
+            />
           </section>
 
           <section className="space-y-4">

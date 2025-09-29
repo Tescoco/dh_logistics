@@ -3,6 +3,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
+import CitySelect from "@/components/ui/CitySelect";
 import {
   UploadIcon,
   SearchIcon,
@@ -1688,11 +1689,22 @@ export default function DeliveryStatusPage() {
                     </select>
                   ) : header.toLowerCase().includes("deliverycity") ||
                     header.toLowerCase().includes("delivery city") ? (
-                    <select
+                    <CitySelect
+                      serviceType={(() => {
+                        // Get the current service type from the row
+                        const serviceTypeIndex = columns.findIndex(
+                          (col) =>
+                            col.toLowerCase().includes("servicetype") ||
+                            col.toLowerCase().includes("service type")
+                        );
+                        return serviceTypeIndex >= 0
+                          ? editValues[serviceTypeIndex] || ""
+                          : "";
+                      })()}
                       value={editValues[index] || ""}
-                      onChange={(e) => {
+                      onChange={(value) => {
                         const newValues = [...editValues];
-                        newValues[index] = e.target.value;
+                        newValues[index] = value;
                         setEditValues(newValues);
 
                         // Build full row data from all edited values
@@ -1745,43 +1757,8 @@ export default function DeliveryStatusPage() {
                           );
                         }
                       }}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Select City</option>
-                      {(() => {
-                        // Get the current service type from the row
-                        const serviceTypeIndex = columns.findIndex(
-                          (col) =>
-                            col.toLowerCase().includes("servicetype") ||
-                            col.toLowerCase().includes("service type")
-                        );
-                        const currentServiceType =
-                          serviceTypeIndex >= 0
-                            ? editValues[serviceTypeIndex]
-                            : "";
-
-                        let cities: string[] = [];
-                        switch (currentServiceType) {
-                          case "1":
-                            cities = RGS_CITIES;
-                            break;
-                          case "5":
-                            cities = JNT_CITIES;
-                            break;
-                          case "9":
-                            cities = IMILE_CITIES;
-                            break;
-                          default:
-                            cities = [];
-                        }
-
-                        return cities.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ));
-                      })()}
-                    </select>
+                      className="w-full"
+                    />
                   ) : (
                     <Input
                       type={

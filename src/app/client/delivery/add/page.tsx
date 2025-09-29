@@ -3,6 +3,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import SmartSelect from "@/components/ui/SmartSelect";
 import Modal from "@/components/ui/Modal";
 import { SAUDI_CITIES } from "@/lib/cities";
 import { useState, useEffect, useMemo } from "react";
@@ -440,23 +441,13 @@ export default function CreateDeliveryPage() {
                     City <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
-                    <Select
+                    <SmartSelect
+                      options={serviceCities}
                       value={form.deliveryCity}
-                      onChange={(e) =>
-                        update(
-                          "deliveryCity",
-                          (e.target as HTMLSelectElement).value
-                        )
-                      }
+                      onChange={(city) => update("deliveryCity", city)}
+                      placeholder="Select City"
                       className="flex-1"
-                    >
-                      <option value="">Select City</option>
-                      {serviceCities.map((c, i) => (
-                        <option key={i} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </Select>
+                    />
                   </div>
                 </div>
               )}
