@@ -1,1 +1,1 @@
-export const RGS_CITIES: string[] = ["Riyadh", "Jeddah"];
+export const RGS_CITIES: string[] = ["Riyadh", "Jeddah", "Tarut", "Hassa"];
