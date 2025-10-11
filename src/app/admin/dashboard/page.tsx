@@ -1263,13 +1263,13 @@ export default function AdminDashboardPage() {
                             <div className="mt-1 text-xs text-slate-500">
                               by{" "}
                               <span className="text-amber-700 font-medium">
-                                {activity.performedBy.firstName}{" "}
-                                {activity.performedBy.lastName}
+                                {activity.performedBy?.firstName || ""}{" "}
+                                {activity.performedBy?.lastName || ""}
                               </span>
-                              {activity.performedBy.role && (
+                              {activity.performedBy?.role && (
                                 <span className="text-slate-400">
                                   {" "}
-                                  (Role: {activity.performedBy.role})
+                                  (Role: {activity.performedBy?.role || ""})
                                 </span>
                               )}
                             </div>

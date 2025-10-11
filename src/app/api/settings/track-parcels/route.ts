@@ -145,7 +145,11 @@ export async function POST() {
             $push: {
               activityLog: {
                 action: "status_updated",
-                performedBy: null, // System update
+                performedBy: {
+                  firstName: "Cod",
+                  lastName: "Solution",
+                  role: "system",
+                }, // System update
                 performedAt: new Date(),
                 details: `Status updated via third-party API: ${delivery.status} → ${newStatus}. Third-party status: ${shipmentData.Status}`,
                 oldValue: delivery.status,

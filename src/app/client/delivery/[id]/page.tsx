@@ -32,6 +32,7 @@ type DeliveryResponse = {
     codAmount?: number;
     notes?: string;
     serviceType?: string;
+    status: string;
   };
 };
 
@@ -43,6 +44,7 @@ export default function EditDeliveryPage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<string>("pending");
   const [form, setForm] = useState({
     reference: "",
     customerName: "",
@@ -78,6 +80,7 @@ export default function EditDeliveryPage() {
         const data: DeliveryResponse = await res.json();
         if (!mounted) return;
         const d = data.delivery;
+        setDeliveryStatus(d.status);
         setForm({
           reference: d.reference,
           customerName: d.customerName || "",
@@ -173,6 +176,8 @@ export default function EditDeliveryPage() {
     }
   }
 
+  const isFormDisabled = deliveryStatus !== "pending";
+
   const serviceCities = useMemo(() => {
     if (form.serviceType === "1") return RGS_CITIES;
     if (form.serviceType === "5") return JNT_CITIES;
@@ -231,6 +236,7 @@ export default function EditDeliveryPage() {
                   placeholder="Jane Smith"
                   value={form.customerName}
                   onChange={(e) => update("customerName", e.target.value)}
+                  disabled={isFormDisabled}
                 />
               </div>
               <div>
@@ -253,6 +259,7 @@ export default function EditDeliveryPage() {
                       }
                     }}
                     className="rounded-l-none"
+                    disabled={isFormDisabled}
                   />
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
@@ -266,6 +273,7 @@ export default function EditDeliveryPage() {
                 placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
                 value={form.deliveryAddress}
                 onChange={(e) => update("deliveryAddress", e.target.value)}
+                disabled={isFormDisabled}
               />
             </div>
             <SmartSelect
@@ -274,6 +282,7 @@ export default function EditDeliveryPage() {
               value={form.deliveryCity}
               onChange={(city) => update("deliveryCity", city)}
               placeholder="Select City"
+              disabled={isFormDisabled}
             />
           </section>
 
@@ -291,6 +300,7 @@ export default function EditDeliveryPage() {
                   placeholder="1.5"
                   value={form.weightKg}
                   onChange={(e) => update("weightKg", e.target.value)}
+                  disabled={isFormDisabled}
                 />
               </div>
               <div>
@@ -301,6 +311,7 @@ export default function EditDeliveryPage() {
                   placeholder="20×15×10 cm"
                   value={form.dimensions}
                   onChange={(e) => update("dimensions", e.target.value)}
+                  disabled={isFormDisabled}
                 />
               </div>
               <div>
@@ -312,6 +323,7 @@ export default function EditDeliveryPage() {
                   onChange={(e) =>
                     update("packageType", (e.target as HTMLSelectElement).value)
                   }
+                  disabled={isFormDisabled}
                 >
                   <option value="">Select Type</option>
                   <option value="parcel">Parcel</option>
@@ -326,6 +338,7 @@ export default function EditDeliveryPage() {
                 placeholder="Brief description of package contents"
                 value={form.description}
                 onChange={(e) => update("description", e.target.value)}
+                disabled={isFormDisabled}
               />
             </div>
           </section>
@@ -345,6 +358,7 @@ export default function EditDeliveryPage() {
                       (e.target as HTMLSelectElement).value as "standard"
                     )
                   }
+                  disabled={isFormDisabled}
                 >
                   <option value="standard">Standard</option>
                 </Select>
@@ -361,6 +375,7 @@ export default function EditDeliveryPage() {
                       (e.target as HTMLSelectElement).value as "prepaid" | "cod"
                     )
                   }
+                  disabled={isFormDisabled}
                 >
                   <option value="cod">Cash on Delivery</option>
                 </Select>
@@ -375,6 +390,7 @@ export default function EditDeliveryPage() {
                   placeholder="0.00"
                   value={form.codAmount}
                   onChange={(e) => update("codAmount", e.target.value)}
+                  disabled={isFormDisabled}
                 />
               </div>
             </div>
@@ -390,6 +406,7 @@ export default function EditDeliveryPage() {
                 placeholder="Any special delivery instructions or notes"
                 value={form.notes}
                 onChange={(e) => update("notes", e.target.value)}
+                disabled={isFormDisabled}
               />
             </div>
           </section>
@@ -402,7 +419,7 @@ export default function EditDeliveryPage() {
             Cancel
           </Button>
           <Button
-            disabled={submitting}
+            disabled={submitting || isFormDisabled}
             variant="gradient"
             onClick={() => submit()}
           >

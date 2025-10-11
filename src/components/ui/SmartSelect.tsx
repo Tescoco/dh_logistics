@@ -8,6 +8,7 @@ export interface SmartSelectProps {
   placeholder?: string;
   label?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function SmartSelect({
@@ -17,6 +18,7 @@ export default function SmartSelect({
   placeholder = "Select an option",
   label,
   className = "",
+  disabled = false,
 }: SmartSelectProps) {
   // Always declare hooks at the top, before any conditional logic
   const [isOpen, setIsOpen] = useState(false);
@@ -53,6 +55,7 @@ export default function SmartSelect({
         <Select
           value={value}
           onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
+          disabled={disabled}
         >
           <option value="">{placeholder}</option>
           {options.map((option, i) => (
@@ -81,6 +84,7 @@ export default function SmartSelect({
   };
 
   const handleInputFocus = () => {
+    if (disabled) return;
     setIsOpen(true);
     setSearchTerm("");
     setHighlightedIndex(-1);
@@ -103,6 +107,7 @@ export default function SmartSelect({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
     if (!isOpen) {
       if (e.key === "Enter" || e.key === "ArrowDown") {
         setIsOpen(true);
@@ -154,7 +159,8 @@ export default function SmartSelect({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[15px] text-slate-900 shadow-xs focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-[#0EA5E9] pr-10"
+          disabled={disabled}
+          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[15px] text-slate-900 shadow-xs focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-[#0EA5E9] pr-10 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
           <svg
