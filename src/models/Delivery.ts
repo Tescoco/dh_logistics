@@ -52,11 +52,24 @@ export interface DeliveryDocument {
   senderPostalCode?: string;
   activityLog?: Array<{
     action: string;
-    performedBy: Types.ObjectId;
+    performedBy:
+      | Types.ObjectId
+      | {
+          firstName: string;
+          lastName: string;
+          role: string;
+        };
     performedAt: Date;
     details?: string;
     oldValue?: string;
     newValue?: string;
+    metadata?: {
+      thirdPartyStatus?: string;
+      thirdPartyStatusId?: string;
+      thirdPartyComment?: string;
+      thirdPartyDate?: string;
+      thirdPartyTime?: string;
+    };
   }>;
   createdAt: Date;
   updatedAt: Date;
@@ -125,14 +138,32 @@ const deliverySchema = new Schema<DeliveryDocument>(
       {
         action: { type: String, required: true },
         performedBy: {
-          type: Schema.Types.ObjectId,
-          ref: "User",
+          type: Schema.Types.Mixed, // Allow both ObjectId and object
           required: true,
+          validate: {
+            validator: function (value: any) {
+              // Allow ObjectId or object with required fields
+              if (value instanceof Types.ObjectId) return true;
+              if (typeof value === "object" && value !== null) {
+                return value.firstName && value.lastName && value.role;
+              }
+              return false;
+            },
+            message:
+              "performedBy must be either an ObjectId or an object with firstName, lastName, and role",
+          },
         },
         performedAt: { type: Date, default: Date.now },
         details: String,
         oldValue: String,
         newValue: String,
+        metadata: {
+          thirdPartyStatus: String,
+          thirdPartyStatusId: String,
+          thirdPartyComment: String,
+          thirdPartyDate: String,
+          thirdPartyTime: String,
+        },
       },
     ],
     senderName: { type: String },
