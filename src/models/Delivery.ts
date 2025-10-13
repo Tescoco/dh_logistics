@@ -141,10 +141,20 @@ const deliverySchema = new Schema<DeliveryDocument>(
           type: Schema.Types.Mixed, // Allow both ObjectId and object
           required: true,
           validate: {
-            validator: function (value: any) {
+            validator: function (
+              value:
+                | Types.ObjectId
+                | { firstName: string; lastName: string; role: string }
+            ) {
               // Allow ObjectId or object with required fields
               if (value instanceof Types.ObjectId) return true;
-              if (typeof value === "object" && value !== null) {
+              if (
+                typeof value === "object" &&
+                value !== null &&
+                "firstName" in value &&
+                "lastName" in value &&
+                "role" in value
+              ) {
                 return value.firstName && value.lastName && value.role;
               }
               return false;
