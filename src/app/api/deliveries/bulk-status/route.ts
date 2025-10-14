@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { Types } from "mongoose";
 import { getAuthUser } from "@/lib/session";
+import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
               $push: {
                 activityLog: {
                   action: "bulk_status_update",
-                  performedBy: auth.userId,
+                  performedBy: new ObjectId(auth.userId),
                   performedAt: new Date(),
                   details: `Status bulk updated from ${delivery.status} to ${input.status}`,
                   oldValue: delivery.status,

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
 import { getAuthUser } from "@/lib/session";
+import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
@@ -88,7 +89,7 @@ export async function PATCH(req: NextRequest, context: any) {
     if (input.status && input.status !== currentDelivery.status) {
       activityEntries.push({
         action: "status_changed",
-        performedBy: auth.userId,
+        performedBy: new ObjectId(auth.userId),
         performedAt: new Date(),
         details: `Status changed from ${currentDelivery.status} to ${input.status}`,
         oldValue: currentDelivery.status,
@@ -103,7 +104,7 @@ export async function PATCH(req: NextRequest, context: any) {
     ) {
       activityEntries.push({
         action: "driver_assigned",
-        performedBy: auth.userId,
+        performedBy: new ObjectId(auth.userId),
         performedAt: new Date(),
         details: `Driver assignment changed`,
         oldValue: currentDelivery.assignedDriverId?.toString() || "None",
@@ -118,7 +119,7 @@ export async function PATCH(req: NextRequest, context: any) {
     ) {
       activityEntries.push({
         action: "cod_payment_updated",
-        performedBy: auth.userId,
+        performedBy: new ObjectId(auth.userId),
         performedAt: new Date(),
         details: `COD payment status changed from ${currentDelivery.codPaymentStatus} to ${input.codPaymentStatus}`,
         oldValue: currentDelivery.codPaymentStatus,
@@ -133,7 +134,7 @@ export async function PATCH(req: NextRequest, context: any) {
     ) {
       activityEntries.push({
         action: "cod_amount_updated",
-        performedBy: auth.userId,
+        performedBy: new ObjectId(auth.userId),
         performedAt: new Date(),
         details: `COD amount changed from ${
           currentDelivery.codAmount || 0
@@ -160,7 +161,7 @@ export async function PATCH(req: NextRequest, context: any) {
           if (field === "notes") {
             activityEntries.push({
               action: "note_added",
-              performedBy: auth.userId,
+              performedBy: new ObjectId(auth.userId),
               performedAt: new Date(),
               details: `Note added: ${newValue}`,
               oldValue: String(oldValue || ""),
@@ -169,7 +170,7 @@ export async function PATCH(req: NextRequest, context: any) {
           } else {
             activityEntries.push({
               action: "details_updated",
-              performedBy: auth.userId,
+              performedBy: new ObjectId(auth.userId),
               performedAt: new Date(),
               details: `${field} changed from "${oldValue || "empty"}" to "${
                 newValue || "empty"
@@ -246,7 +247,7 @@ export async function PATCH(req: NextRequest, context: any) {
             // Add activity log for COD logistics order creation
             activityEntries.push({
               action: "cod_logistics_order_created",
-              performedBy: auth.userId,
+              performedBy: new ObjectId(auth.userId),
               performedAt: new Date(),
               details: `Order created on COD logistics with shipment number: ${j.shipment_number}`,
               newValue: j.shipment_number,
@@ -255,7 +256,7 @@ export async function PATCH(req: NextRequest, context: any) {
             // Add activity log for failed COD logistics order creation
             activityEntries.push({
               action: "cod_logistics_order_failed",
-              performedBy: auth.userId,
+              performedBy: new ObjectId(auth.userId),
               performedAt: new Date(),
               details: `Failed to create order on COD logistics: ${
                 j?.message || "Unknown error"
@@ -268,7 +269,7 @@ export async function PATCH(req: NextRequest, context: any) {
         // Add activity log for API error
         activityEntries.push({
           action: "cod_logistics_api_error",
-          performedBy: auth.userId,
+          performedBy: new ObjectId(auth.userId),
           performedAt: new Date(),
           details: `Error calling COD logistics API: ${
             e instanceof Error ? e.message : "Unknown error"

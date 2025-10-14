@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
               delivery.activityLog?.push({
                 action: "cod_logistics_order_created",
-                performedBy: authUser.userId as unknown as ObjectId,
+                performedBy: new ObjectId(authUser.userId),
                 performedAt: new Date(),
                 details: `Order created on COD logistics with shipment number: ${j.shipment_number}`,
                 newValue: j.shipment_number,
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
               // Add activity log for failed COD logistics order creation
               delivery.activityLog?.push({
                 action: "cod_logistics_order_failed",
-                performedBy: authUser.userId as unknown as ObjectId,
+                performedBy: new ObjectId(authUser.userId),
                 performedAt: new Date(),
                 details: `Failed to create order on COD logistics: ${
                   j?.message || "Unknown error"
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
           // Add activity log for API error
           delivery.activityLog?.push({
             action: "cod_logistics_api_error",
-            performedBy: authUser.userId as unknown as ObjectId,
+            performedBy: new ObjectId(authUser.userId),
             performedAt: new Date(),
             details: `Error calling COD logistics API: ${
               e instanceof Error ? e.message : "Unknown error"
@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
         $push: {
           activityLog: {
             action: `assigned_to_${courier.role}`,
-            performedBy: authUser.userId,
+            performedBy: new ObjectId(authUser.userId),
             performedAt: new Date(),
             details: `Assigned to ${courier.role}: ${
               courier.courierCompanyName || courier.firstName

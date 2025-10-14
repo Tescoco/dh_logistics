@@ -254,7 +254,7 @@ export async function POST(req: NextRequest) {
         activityLog: [
           {
             action: "delivery_created",
-            performedBy: auth.userId,
+            performedBy: new ObjectId(auth.userId),
             performedAt: new Date(),
             details: `Delivery created via ${
               isCSV ? "CSV" : "XLSX"

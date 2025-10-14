@@ -365,7 +365,7 @@ export async function POST(req: NextRequest) {
     // Add initial activity log entry
     const initialActivity = {
       action: "created",
-      performedBy: auth.userId,
+      performedBy: new ObjectId(auth.userId),
       performedAt: new Date(),
       details: "Delivery created",
     };
