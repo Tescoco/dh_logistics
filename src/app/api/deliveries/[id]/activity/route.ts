@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
+import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
+import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 
@@ -17,10 +19,22 @@ export async function GET(
   }
 
   try {
-    const delivery = await Delivery.findById(id)
-      .select("activityLog")
-      .populate("activityLog.performedBy", "firstName lastName role")
+    // Fetch all users once for activityLog resolution
+    const allUsers = await User.find({})
+      .select("_id firstName lastName role")
       .lean();
+    const userMap = new Map(
+      allUsers.map((user) => [
+        user._id.toString(),
+        {
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          role: user.role || "",
+        },
+      ])
+    );
+
+    const delivery = await Delivery.findById(id).select("activityLog").lean();
 
     if (!delivery) {
       return NextResponse.json(
@@ -40,8 +54,24 @@ export async function GET(
       }
     }
 
+    // Process activityLog to resolve ObjectId performedBy to user objects
+    const processedActivityLog = (delivery.activityLog || []).map(
+      (activity) => ({
+        ...activity,
+        performedBy:
+          typeof activity.performedBy === "object" &&
+          activity.performedBy instanceof ObjectId
+            ? userMap.get(activity.performedBy.toString()) || {
+                firstName: "",
+                lastName: "",
+                role: "",
+              }
+            : activity.performedBy,
+      })
+    );
+
     return NextResponse.json({
-      activityLog: delivery.activityLog || [],
+      activityLog: processedActivityLog,
     });
   } catch (err) {
     console.error("Get activity log error", err);

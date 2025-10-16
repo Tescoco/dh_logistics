@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/db";
 import { Delivery } from "@/models/Delivery";
+import { User } from "@/models/User";
 import { getAuthUser } from "@/lib/session";
 import { ObjectId } from "mongodb";
 
@@ -57,12 +58,46 @@ const UpdateDeliverySchema = z.object({
 export async function GET(_req: NextRequest, context: any) {
   await connectToDatabase();
   const { id } = await context.params;
+
+  // Fetch all users once for activityLog resolution
+  const allUsers = await User.find({})
+    .select("_id firstName lastName role")
+    .lean();
+  const userMap = new Map(
+    allUsers.map((user) => [
+      user._id.toString(),
+      {
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        role: user.role || "",
+      },
+    ])
+  );
+
   const delivery = await Delivery.findById(id)
     .populate("assignedDriverId", "firstName lastName")
     .lean();
   if (!delivery)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ delivery });
+
+  // Process activityLog to resolve ObjectId performedBy to user objects
+  const processedDelivery = {
+    ...delivery,
+    activityLog: (delivery.activityLog || []).map((activity) => ({
+      ...activity,
+      performedBy:
+        typeof activity.performedBy === "object" &&
+        activity.performedBy instanceof ObjectId
+          ? userMap.get(activity.performedBy.toString()) || {
+              firstName: "",
+              lastName: "",
+              role: "",
+            }
+          : activity.performedBy,
+    })),
+  };
+
+  return NextResponse.json({ delivery: processedDelivery });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

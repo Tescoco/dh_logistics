@@ -39,6 +39,7 @@ export default function DeliveryStatusPage() {
       id: string;
       reference: string;
       customerName: string;
+      customerStoreName?: string;
       customerPhone: string;
       deliveryAddress: string;
       paymentMethod: string;
@@ -60,6 +61,7 @@ export default function DeliveryStatusPage() {
       _id: string;
       reference: string;
       customerName: string;
+      customerStoreName?: string;
       deliveryAddress: string;
       status: string;
       updatedAt: string;
@@ -70,6 +72,7 @@ export default function DeliveryStatusPage() {
     _id: string;
     reference: string;
     customerName: string;
+    customerStoreName?: string;
     deliveryAddress: string;
     status: string;
     updatedAt: string;
@@ -308,6 +311,7 @@ export default function DeliveryStatusPage() {
       [
         r._id.slice(-8),
         r.customerName,
+        r.customerStoreName,
         r.deliveryAddress,
         r.status,
         r.reference,
@@ -700,7 +704,7 @@ export default function DeliveryStatusPage() {
 
     // Download empty template
     const headers = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
+      "reference,customerName,customerStoreName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -717,10 +721,10 @@ export default function DeliveryStatusPage() {
 
     // Also download example template with sample data
     const exampleData = [
-      "reference,customerName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
-      "SS10001,Ahmed Al-Rashid,501234567,John Smith,502345678,123 Sender St,Riyadh,456 Customer Ave,Jeddah,parcel,Electronics package,standard,cod,150.00,Sample delivery,25.00,1,0599999999",
-      "SS10002,Sarah Johnson,503456789,Mike Wilson,504567890,456 Sender Blvd,Dammam,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,standard,cod,75.50,Handle with care,20.00,5,0599999999",
-      "SS10003,Mohammed Ali,505678901,Lisa Brown,506789012,789 Sender Ave,Jeddah,123 Customer St,Mijannah,parcel,Books and documents,standard,cod,45.00,No signature required,15.00,9,0599999999",
+      "reference,customerName,customerStoreName,customerPhone,senderName,senderPhone,senderAddress,senderCity,deliveryAddress,deliveryCity,packageType,description,priority,paymentMethod,codAmount,notes,deliveryFee,serviceType,customerWhatsApp",
+      "SS10001,Ahmed Al-Rashid,Tech Store,501234567,John Smith,502345678,123 Sender St,Riyadh,456 Customer Ave,Jeddah,parcel,Electronics package,standard,cod,150.00,Sample delivery,25.00,1,0599999999",
+      "SS10002,Sarah Johnson,Fashion Hub,503456789,Mike Wilson,504567890,456 Sender Blvd,Dammam,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,standard,cod,75.50,Handle with care,20.00,5,0599999999",
+      "SS10003,Mohammed Ali,Book World,505678901,Lisa Brown,506789012,789 Sender Ave,Jeddah,123 Customer St,Mijannah,parcel,Books and documents,standard,cod,45.00,No signature required,15.00,9,0599999999",
     ].join("\n");
 
     const exampleBlob = new Blob([exampleData], {
@@ -745,7 +749,7 @@ export default function DeliveryStatusPage() {
   async function downloadClientTemplate() {
     // Client template with minimal required fields
     const headers = [
-      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,customerWhatsApp",
+      "reference,customerName,customerStoreName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,customerWhatsApp",
     ].join("\n");
     const blob = new Blob([headers], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -762,10 +766,10 @@ export default function DeliveryStatusPage() {
 
     // Also download example template with sample data for client uploads
     const exampleData = [
-      "reference,customerName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType,customerWhatsApp",
-      "CL10001,Ahmed Al-Rashid,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery, 1,0599999999",
-      "CL10002,Sarah Johnson,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care, 5,0599999999",
-      "CL10003,Mohammed Ali,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required, 9,0599999999",
+      "reference,customerName,customerStoreName,customerPhone,deliveryAddress,deliveryCity,packageType,description,codAmount,notes,serviceType,customerWhatsApp",
+      "CL10001,Ahmed Al-Rashid,Tech Store,501234567,456 Customer Ave,Jeddah,parcel,Electronics package,150.00,Sample delivery, 1,0599999999",
+      "CL10002,Sarah Johnson,Fashion Hub,503456789,789 Customer Rd,Abu Sidayrah,parcel,Clothing items,75.50,Handle with care, 5,0599999999",
+      "CL10003,Mohammed Ali,Book World,505678901,123 Customer St,Mijannah,parcel,Books and documents,45.00,No signature required, 9,0599999999",
     ].join("\n");
 
     const exampleBlob = new Blob([exampleData], {
@@ -1121,6 +1125,9 @@ export default function DeliveryStatusPage() {
                         Customer
                       </th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
+                        Store Name
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
                         Status
                       </th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">
@@ -1143,6 +1150,9 @@ export default function DeliveryStatusPage() {
                         </td>
                         <td className="px-4 py-2 text-sm text-slate-700">
                           {delivery.customerName}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-slate-700">
+                          {delivery.customerStoreName || "—"}
                         </td>
                         <td className="px-4 py-2">
                           <span
@@ -1320,6 +1330,7 @@ export default function DeliveryStatusPage() {
                 {[
                   "Reference ID",
                   "Customer",
+                  "Store Name",
                   "Address",
                   "Status",
                   "Last Updated",
@@ -1344,6 +1355,7 @@ export default function DeliveryStatusPage() {
                   </td>
                   <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
+                  <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
                   <td className="px-5 py-3">{d.deliveryAddress}</td>
                   <td className="px-5 py-3">
                     <span
@@ -1449,6 +1461,14 @@ export default function DeliveryStatusPage() {
                   <span className="text-slate-500">Customer:</span>{" "}
                   <span className="font-medium">{viewRow.customerName}</span>
                 </div>
+                {viewRow.customerStoreName && (
+                  <div>
+                    <span className="text-slate-500">Store Name:</span>{" "}
+                    <span className="font-medium">
+                      {viewRow.customerStoreName}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <span className="text-slate-500">Address:</span>{" "}
                   <span className="font-medium">{viewRow.deliveryAddress}</span>

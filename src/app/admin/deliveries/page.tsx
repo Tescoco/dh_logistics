@@ -588,6 +588,7 @@ function CODTab() {
                   "Store Name",
                   "Phone",
                   "COD Amount",
+                  "Delivery Address",
                   "Assigned Driver/Courier",
                   "Status",
                   "Actions",
@@ -616,6 +617,7 @@ function CODTab() {
                   <td className="px-5 py-3">
                     {d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "—"}
                   </td>
+                  <td className="px-5 py-3">{d.deliveryAddress}</td>
                   <td className="px-5 py-3">
                     {d.assignedDriverId?.firstName || "—"}{" "}
                     {d.assignedDriverId?.lastName || "—"}

@@ -113,6 +113,21 @@ export async function GET(req: NextRequest) {
   // Scope to the requesting user unless admin
   if (auth.role !== "admin") query.createdById = auth.userId;
 
+  // Fetch all users once for activityLog resolution
+  const allUsers = await User.find({})
+    .select("_id firstName lastName role")
+    .lean();
+  const userMap = new Map(
+    allUsers.map((user) => [
+      user._id.toString(),
+      {
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        role: user.role || "",
+      },
+    ])
+  );
+
   const deliveries = await Delivery.find(query)
     .sort({ createdAt: -1 })
     .populate("assignedDriverId", "firstName lastName")
@@ -120,7 +135,24 @@ export async function GET(req: NextRequest) {
     .limit(100)
     .lean();
 
-  return NextResponse.json({ deliveries });
+  // Process activityLog to resolve ObjectId performedBy to user objects
+  const processedDeliveries = deliveries.map((delivery) => ({
+    ...delivery,
+    activityLog: (delivery.activityLog || []).map((activity) => ({
+      ...activity,
+      performedBy:
+        typeof activity.performedBy === "object" &&
+        activity.performedBy instanceof ObjectId
+          ? userMap.get(activity.performedBy.toString()) || {
+              firstName: "",
+              lastName: "",
+              role: "",
+            }
+          : activity.performedBy,
+    })),
+  }));
+
+  return NextResponse.json({ deliveries: processedDeliveries });
 }
 
 export async function POST(req: NextRequest) {

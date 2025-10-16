@@ -316,6 +316,16 @@ export function validateDeliveryRow(
     "WhatsApp",
     "Customer WhatsApp",
   ]);
+  const customerStoreName = getFieldValue([
+    "customerStoreName",
+    "customer_store_name",
+    "storeName",
+    "store_name",
+    "store",
+    "Store Name",
+    "Store",
+    "Customer Store Name",
+  ]);
   const senderName = getFieldValue([
     "senderName",
     "sender_name",
@@ -506,7 +516,7 @@ export function validateDeliveryRow(
       customerName,
       customerPhone,
       customerWhatsApp,
-      customerStoreName: "", // Will be populated from user account
+      customerStoreName, // Extracted from uploaded file
       senderName,
       senderPhone,
       senderAddress,
