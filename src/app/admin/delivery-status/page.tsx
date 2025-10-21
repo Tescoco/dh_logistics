@@ -41,7 +41,7 @@ export default function DeliveryStatusPage() {
       customerName: string;
       customerStoreName?: string;
       customerPhone: string;
-      deliveryAddress: string;
+      deliveryCity: string;
       paymentMethod: string;
       codAmount: number;
       priority: string;
@@ -62,7 +62,7 @@ export default function DeliveryStatusPage() {
       reference: string;
       customerName: string;
       customerStoreName?: string;
-      deliveryAddress: string;
+      deliveryCity: string;
       status: string;
       updatedAt: string;
     }[]
@@ -73,7 +73,8 @@ export default function DeliveryStatusPage() {
     reference: string;
     customerName: string;
     customerStoreName?: string;
-    deliveryAddress: string;
+    deliveryAddress?: string;
+    deliveryCity: string;
     status: string;
     updatedAt: string;
   }>(null);
@@ -312,7 +313,7 @@ export default function DeliveryStatusPage() {
         r._id.slice(-8),
         r.customerName,
         r.customerStoreName,
-        r.deliveryAddress,
+        r.deliveryCity,
         r.status,
         r.reference,
       ]
@@ -1331,7 +1332,7 @@ export default function DeliveryStatusPage() {
                   "Reference ID",
                   "Customer",
                   "Store Name",
-                  "Address",
+                  "City",
                   "Status",
                   "Last Updated",
                   "Actions",
@@ -1356,7 +1357,7 @@ export default function DeliveryStatusPage() {
                   <td className="px-5 py-3 uppercase">{d.reference}</td>
                   <td className="px-5 py-3">{d.customerName}</td>
                   <td className="px-5 py-3">{d.customerStoreName || "—"}</td>
-                  <td className="px-5 py-3">{d.deliveryAddress}</td>
+                  <td className="px-5 py-3">{d.deliveryCity}</td>
                   <td className="px-5 py-3">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${

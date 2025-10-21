@@ -235,7 +235,9 @@ function ThermalTicketsContent() {
                 ticket.reference
               }</span></div>
               <div><strong>Contact #:</strong> ${ticket.customerPhone}</div>
-              <div><strong>Whatsapp #:</strong> ${ticket.customerWhatsApp}</div>
+              <div><strong>Whatsapp #:</strong> +${
+                ticket.customerWhatsApp
+              }</div>
               <div><strong>Address:</strong> ${ticket.deliveryAddress}</div>
             </div>
 
@@ -383,7 +385,7 @@ function ThermalTicketsContent() {
             }</span>
           </div>
           <div><strong>Contact #:</strong> ${ticket.customerPhone}</div>
-          <div><strong>Whatsapp #:</strong> ${ticket.customerWhatsApp}</div>
+          <div><strong>Whatsapp #:</strong> +${ticket.customerWhatsApp}</div>
           <div><strong>Address:</strong> ${ticket.deliveryAddress}</div>
         </div>
         
@@ -562,7 +564,7 @@ function ThermalTicketsContent() {
                     <strong>Contact #:</strong> {ticket.customerPhone}
                   </div>
                   <div>
-                    <strong>Whatsapp #:</strong> {ticket.customerWhatsApp}
+                    <strong>Whatsapp #:</strong> +{ticket.customerWhatsApp}
                   </div>
                   <div>
                     <strong>Address:</strong> {ticket.deliveryAddress}

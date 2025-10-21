@@ -58,6 +58,7 @@ type DeliveryRow = {
   customerPhone: string;
   customerStoreName?: string; // Store name for customer tracking
   deliveryAddress: string;
+  deliveryCity?: string;
   codAmount?: number;
   status: string;
   createdAt: string;
@@ -108,6 +109,7 @@ function CODTab() {
     customerPhone: string;
     customerStoreName?: string; // Store name for customer tracking
     deliveryAddress: string;
+    deliveryCity?: string;
     paymentMethod?: string;
     deliveryFee?: number;
     codAmount?: number;
@@ -588,7 +590,7 @@ function CODTab() {
                   "Store Name",
                   "Phone",
                   "COD Amount",
-                  "Delivery Address",
+                  "Delivery City",
                   "Assigned Driver/Courier",
                   "Status",
                   "Actions",
@@ -617,7 +619,7 @@ function CODTab() {
                   <td className="px-5 py-3">
                     {d.codAmount ? `SAR ${d.codAmount.toFixed(2)}` : "—"}
                   </td>
-                  <td className="px-5 py-3">{d.deliveryAddress}</td>
+                  <td className="px-5 py-3">{d.deliveryCity}</td>
                   <td className="px-5 py-3">
                     {d.assignedDriverId?.firstName || "—"}{" "}
                     {d.assignedDriverId?.lastName || "—"}
@@ -713,12 +715,8 @@ function CODTab() {
                 <div className="font-medium">{viewDelivery?.customerPhone}</div>
               </div>
               <div className="md:col-span-2">
-                <div className="text-[12px] text-slate-500">
-                  Delivery Address
-                </div>
-                <div className="font-medium">
-                  {viewDelivery?.deliveryAddress}
-                </div>
+                <div className="text-[12px] text-slate-500">Delivery City</div>
+                <div className="font-medium">{viewDelivery?.deliveryCity}</div>
               </div>
               <div>
                 <div className="text-[12px] text-slate-500">Payment</div>
@@ -1293,7 +1291,7 @@ function InternalTab() {
                   "Customer",
                   "Store Name",
                   "Assigned Driver/Courier",
-                  "Delivery Address",
+                  "Delivery City",
                   "Status",
                   "Actions",
                 ].map((h) => (
@@ -1321,7 +1319,7 @@ function InternalTab() {
                     {d.assignedDriverId?.firstName || "—"}{" "}
                     {d.assignedDriverId?.lastName || "—"}
                   </td>
-                  <td className="px-5 py-3">{d.deliveryAddress}</td>
+                  <td className="px-5 py-3">{d.deliveryCity}</td>
                   <td className="px-5 py-3">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${
@@ -1573,7 +1571,7 @@ function CourierTab() {
         r.reference,
         r.customerName,
         r.customerStoreName,
-        r.deliveryAddress,
+        r.deliveryCity,
         r.status,
       ]
         .filter(Boolean)
@@ -1990,7 +1988,7 @@ function CourierTab() {
                   "Customer",
                   "Store Name",
                   "Assigned Courier",
-                  "Delivery Address",
+                  "Delivery City",
                   "Status",
                   "Actions",
                 ].map((h) => (
@@ -2018,7 +2016,7 @@ function CourierTab() {
                     {d.assignedDriverId?.firstName || "—"}{" "}
                     {d.assignedDriverId?.lastName || "—"}
                   </td>
-                  <td className="px-5 py-3">{d.deliveryAddress}</td>
+                  <td className="px-5 py-3">{d.deliveryCity}</td>
                   <td className="px-5 py-3">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset capitalize ${

@@ -399,19 +399,7 @@ export default function CreateDeliveryPage() {
                 </div>
               </div>
             </div>
-            <div>
-              <label className="text-[13px] text-slate-600">
-                Address <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
-                  value={form.deliveryAddress}
-                  onChange={(e) => update("deliveryAddress", e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-[13px] text-slate-600">
@@ -477,6 +465,19 @@ export default function CreateDeliveryPage() {
                   </Select>
                 </div>
               </div> */}
+            </div>
+            <div>
+              <label className="text-[13px] text-slate-600">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="2929, Unit (D), Rayhanah Bint Zaid, 8118"
+                  value={form.deliveryAddress}
+                  onChange={(e) => update("deliveryAddress", e.target.value)}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </section>
 
