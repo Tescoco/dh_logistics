@@ -2,7 +2,7 @@ const statusMapping = [
   {
     status_id: "1",
     status_name: "Record Created",
-    internal_status: "assigned",
+    internal_status: "record_created",
   },
   {
     status_id: "2",
@@ -17,12 +17,12 @@ const statusMapping = [
   {
     status_id: "5",
     status_name: "Attempted Cancelled",
-    internal_status: "cancelled",
+    internal_status: "attempted_cancel",
   },
   {
     status_id: "6",
     status_name: "No Answer",
-    internal_status: "cancelled",
+    internal_status: "no_answer",
   },
   {
     status_id: "8",
@@ -47,7 +47,7 @@ const statusMapping = [
   {
     status_id: "12",
     status_name: "Number Switched Off",
-    internal_status: "cancelled",
+    internal_status: "number_switched_off",
   },
   {
     status_id: "13",
@@ -82,7 +82,7 @@ const statusMapping = [
   {
     status_id: "21",
     status_name: "Shipment on Hold",
-    internal_status: "in_transit",
+    internal_status: "shipment_on_hold",
   },
   {
     status_id: "22",
@@ -192,7 +192,7 @@ const statusMapping = [
   {
     status_id: "43",
     status_name: "Preparing for Return",
-    internal_status: "returning",
+    internal_status: "returned",
   },
   {
     status_id: "44",
@@ -427,12 +427,12 @@ const statusMapping = [
   {
     status_id: "91",
     status_name: "Shipment on Hold - RGS",
-    internal_status: "in_transit",
+    internal_status: "shipment_on_hold",
   },
   {
     status_id: "92",
     status_name: "Shipment on Hold - Shipper",
-    internal_status: "in_transit",
+    internal_status: "shipment_on_hold",
   },
   {
     status_id: "93",
@@ -517,7 +517,7 @@ const statusMapping = [
   {
     status_id: "109",
     status_name: "Shipment on Hold - Warehouse",
-    internal_status: "in_transit",
+    internal_status: "shipment_on_hold",
   },
   {
     status_id: "110",
