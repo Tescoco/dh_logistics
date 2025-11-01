@@ -559,7 +559,7 @@ export default function DailyParcelsPage() {
       <Modal
         open={viewOpen}
         onClose={() => setViewOpen(false)}
-        title="Parcel Details - Reference ID: {viewData?.reference}"
+        title={`Parcel Details - Reference ID: ${viewData?.reference}`}
       >
         {viewData ? (
           <div className="space-y-2 text-sm">
