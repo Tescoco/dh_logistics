@@ -26,7 +26,23 @@ type ParcelRow = {
   receiverAddress: string;
   receiverPhone: string;
   amount: number;
-  status: "Delivered" | "In Transit" | "Pending" | "Returned" | "Assigned";
+  status:
+    | "Delivered"
+    | "In Transit"
+    | "Pending"
+    | "Returned"
+    | "Assigned"
+    | "Future Delivery"
+    | "Lost & Damages"
+    | "Cancelled"
+    | "Returning"
+    | "Attempted Cancel"
+    | "No Answer"
+    | "Number Switched Off"
+    | "Shipment on Hold"
+    | "Out for Delivery"
+    | "Record Created"
+    | "RTO";
   date: string; // yyyy-mm-dd
 };
 
@@ -40,11 +56,50 @@ type DeliveryApiLite = {
   customerPhone?: string;
   codAmount?: number;
   deliveryFee?: number;
-  status?: "delivered" | "in_transit" | "pending" | "assigned" | "returned";
+  status?:
+    | "delivered"
+    | "in_transit"
+    | "pending"
+    | "assigned"
+    | "returned"
+    | "future_delivery"
+    | "lost_damaged"
+    | "cancelled"
+    | "returning"
+    | "attempted_cancel"
+    | "no_answer"
+    | "number_switched_off"
+    | "shipment_on_hold"
+    | "out_for_delivery"
+    | "record_created"
+    | "rto";
   createdAt?: string | Date;
 };
 
 // All rows are fetched from the database via /api/deliveries
+
+function transformStatus(status?: string): ParcelRow["status"] {
+  if (!status) return "Pending";
+  const mapping: Record<string, ParcelRow["status"]> = {
+    record_created: "Record Created",
+    delivered: "Delivered",
+    in_transit: "In Transit",
+    pending: "Pending",
+    returned: "Returned",
+    assigned: "Assigned",
+    future_delivery: "Future Delivery",
+    lost_damaged: "Lost & Damages",
+    cancelled: "Cancelled",
+    returning: "Returning",
+    attempted_cancel: "Attempted Cancel",
+    no_answer: "No Answer",
+    number_switched_off: "Number Switched Off",
+    shipment_on_hold: "Shipment on Hold",
+    out_for_delivery: "Out for Delivery",
+    rto: "RTO",
+  };
+  return mapping[status] || "Pending";
+}
 
 export default function DailyParcelsPage() {
   const router = useRouter();
@@ -112,16 +167,7 @@ export default function DailyParcelsPage() {
             receiverAddress: it.deliveryAddress || "—",
             receiverPhone: it.customerPhone || "—",
             amount: Number(it.codAmount || it.deliveryFee || 0),
-            status:
-              it.status === "delivered"
-                ? "Delivered"
-                : it.status === "in_transit"
-                ? "In Transit"
-                : it.status === "pending"
-                ? "Pending"
-                : it.status === "assigned"
-                ? "Assigned"
-                : "Returned",
+            status: transformStatus(it.status),
             date: new Date(it.createdAt ?? Date.now())
               .toISOString()
               .slice(0, 10),
@@ -275,6 +321,7 @@ export default function DailyParcelsPage() {
             onChange={(e) => setStatus(e.currentTarget.value)}
           >
             <option value="">All Status</option>
+            <option value="record_created">Record Created</option>
             <option value="delivered">Delivered</option>
             <option value="in_transit">In Transit</option>
             <option value="pending">Pending</option>
@@ -282,6 +329,14 @@ export default function DailyParcelsPage() {
             <option value="assigned">Assigned</option>
             <option value="future_delivery">Future Delivery</option>
             <option value="lost_damaged">Lost & Damages</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="returning">Returning</option>
+            <option value="attempted_cancel">Attempted Cancel</option>
+            <option value="no_answer">No Answer</option>
+            <option value="number_switched_off">Number Switched Off</option>
+            <option value="shipment_on_hold">Shipment on Hold</option>
+            <option value="out_for_delivery">Out for Delivery</option>
+            <option value="rto">RTO</option>
           </Select>
           <Input
             type="date"
@@ -371,11 +426,22 @@ export default function DailyParcelsPage() {
               className="w-32 text-sm  border-white/20  focus:border-white/40"
             >
               <option value="">All Status</option>
+              <option value="record_created">Record Created</option>
               <option value="pending">Pending</option>
               <option value="assigned">Assigned</option>
               <option value="in_transit">In Transit</option>
               <option value="delivered">Delivered</option>
               <option value="returned">Returned</option>
+              <option value="future_delivery">Future Delivery</option>
+              <option value="lost_damaged">Lost & Damages</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="returning">Returning</option>
+              <option value="attempted_cancel">Attempted Cancel</option>
+              <option value="no_answer">No Answer</option>
+              <option value="number_switched_off">Number Switched Off</option>
+              <option value="shipment_on_hold">Shipment on Hold</option>
+              <option value="out_for_delivery">Out for Delivery</option>
+              <option value="rto">RTO</option>
             </Select>
           </div>
         </div>
@@ -641,8 +707,25 @@ function StatusBadge({ status }: { status: ParcelRow["status"] }) {
     Pending: { label: "Pending", variant: "warning" },
     Returned: { label: "Returned", variant: "danger" },
     Assigned: { label: "Assigned", variant: "default" },
+    "Future Delivery": { label: "Future Delivery", variant: "default" },
+    "Lost & Damages": { label: "Lost & Damages", variant: "danger" },
+    Cancelled: { label: "Cancelled", variant: "danger" },
+    Returning: { label: "Returning", variant: "warning" },
+    "Attempted Cancel": { label: "Attempted Cancel", variant: "warning" },
+    "No Answer": { label: "No Answer", variant: "warning" },
+    "Number Switched Off": { label: "Number Switched Off", variant: "warning" },
+    "Shipment on Hold": { label: "Shipment on Hold", variant: "default" },
+    "Out for Delivery": { label: "Out for Delivery", variant: "info" },
+    "Record Created": { label: "Record Created", variant: "default" },
+    RTO: { label: "RTO", variant: "warning" },
   } as const;
-  const { label, variant } = mapping[status];
+
+  // Fallback if status is not in the mapping
+  const fallback = { label: status ?? "Unknown", variant: "default" as const };
+
+  const { label, variant } =
+    mapping[status as keyof typeof mapping] ?? fallback;
+
   return <Badge variant={variant}>{label.replace("_", " ")}</Badge>;
 }
 

@@ -14,7 +14,23 @@ export default function ClientDashboard() {
   type DeliveryApiItem = {
     _id?: string;
     reference?: string;
-    status?: "pending" | "assigned" | "in_transit" | "delivered" | "returned";
+    status?:
+      | "pending"
+      | "assigned"
+      | "in_transit"
+      | "delivered"
+      | "returned"
+      | "future_delivery"
+      | "rto"
+      | "lost_damaged"
+      | "cancelled"
+      | "returning"
+      | "record_created"
+      | "attempted_cancel"
+      | "no_answer"
+      | "number_switched_off"
+      | "shipment_on_hold"
+      | "out_for_delivery";
     updatedAt?: string | Date;
     createdAt?: string | Date;
     deliveryAddress?: string;
@@ -94,21 +110,67 @@ export default function ClientDashboard() {
               ? `Delivered to ${destination} - ${when}`
               : status === "in_transit"
               ? `En route to ${destination} - ${when}`
+              : status === "out_for_delivery"
+              ? `Out for delivery to ${destination} - ${when}`
               : status === "assigned"
               ? `Assigned - ${when}`
               : status === "returned"
               ? `Returned - ${when}`
+              : status === "cancelled"
+              ? `Cancelled - ${when}`
+              : status === "lost_damaged"
+              ? `Lost/Damaged - ${when}`
+              : status === "rto"
+              ? `RTO - ${when}`
+              : status === "returning"
+              ? `Returning - ${when}`
+              : status === "attempted_cancel"
+              ? `Attempted Cancel - ${when}`
+              : status === "no_answer"
+              ? `No Answer - ${when}`
+              : status === "number_switched_off"
+              ? `Number Switched Off - ${when}`
+              : status === "shipment_on_hold"
+              ? `Shipment on Hold - ${when}`
+              : status === "future_delivery"
+              ? `Future Delivery - ${when}`
+              : status === "record_created"
+              ? `Record Created - ${when}`
               : `Processing - ${when}`;
           const statusLabel =
             status === "delivered"
               ? "Delivered"
               : status === "in_transit"
               ? "In Transit"
+              : status === "out_for_delivery"
+              ? "Out for Delivery"
               : status === "assigned"
               ? "Assigned"
               : status === "returned"
               ? "Returned"
-              : "Pending";
+              : status === "cancelled"
+              ? "Cancelled"
+              : status === "lost_damaged"
+              ? "Lost & Damages"
+              : status === "rto"
+              ? "RTO"
+              : status === "returning"
+              ? "Returning"
+              : status === "attempted_cancel"
+              ? "Attempted Cancel"
+              : status === "no_answer"
+              ? "No Answer"
+              : status === "number_switched_off"
+              ? "Number Switched Off"
+              : status === "shipment_on_hold"
+              ? "Shipment on Hold"
+              : status === "future_delivery"
+              ? "Future Delivery"
+              : status === "record_created"
+              ? "Record Created"
+              : status === "pending"
+              ? "Pending"
+              : "Unknown";
           return {
             id,
             description: desc,
@@ -133,6 +195,7 @@ export default function ClientDashboard() {
           statusColor: "bg-emerald-100 text-emerald-700",
         };
       case "in_transit":
+      case "out_for_delivery":
         return { dot: "bg-blue-500", statusColor: "bg-blue-100 text-blue-700" };
       case "assigned":
         return {
@@ -140,11 +203,30 @@ export default function ClientDashboard() {
           statusColor: "bg-purple-100 text-purple-700",
         };
       case "returned":
+      case "rto":
+      case "lost_damaged":
+      case "cancelled":
         return { dot: "bg-rose-500", statusColor: "bg-rose-100 text-rose-700" };
-      default:
+      case "pending":
+      case "record_created":
+      case "future_delivery":
         return {
           dot: "bg-amber-500",
           statusColor: "bg-amber-100 text-amber-700",
+        };
+      case "returning":
+      case "attempted_cancel":
+      case "no_answer":
+      case "number_switched_off":
+      case "shipment_on_hold":
+        return {
+          dot: "bg-orange-500",
+          statusColor: "bg-orange-100 text-orange-700",
+        };
+      default:
+        return {
+          dot: "bg-gray-500",
+          statusColor: "bg-gray-100 text-gray-700",
         };
     }
   }

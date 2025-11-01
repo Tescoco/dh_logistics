@@ -31,7 +31,17 @@ type DeliveryRow = {
     | "Pending"
     | "Returned"
     | "Assigned"
-    | "Cancelled";
+    | "Cancelled"
+    | "Future Delivery"
+    | "RTO"
+    | "Lost & Damages"
+    | "Returning"
+    | "Record Created"
+    | "Attempted Cancel"
+    | "No Answer"
+    | "Number Switched Off"
+    | "Shipment on Hold"
+    | "Out for Delivery";
   origin: string;
   destination: string;
   date: string; // ISO string
@@ -51,7 +61,17 @@ type DeliveryApiLite = {
     | "pending"
     | "assigned"
     | "returned"
-    | "cancelled";
+    | "cancelled"
+    | "future_delivery"
+    | "rto"
+    | "lost_damaged"
+    | "returning"
+    | "record_created"
+    | "attempted_cancel"
+    | "no_answer"
+    | "number_switched_off"
+    | "shipment_on_hold"
+    | "out_for_delivery";
   senderAddress?: string;
   senderName?: string;
   senderPhone?: string;
@@ -147,7 +167,9 @@ export default function TrackDeliveriesPage() {
             customerPhone: it.customerPhone || "—",
             reference: it.reference || "—",
             status:
-              it.status === "delivered"
+              it.status === "record_created"
+                ? "Record Created"
+                : it.status === "delivered"
                 ? "Delivered"
                 : it.status === "in_transit"
                 ? "In Transit"
@@ -159,6 +181,24 @@ export default function TrackDeliveriesPage() {
                 ? "Returned"
                 : it.status === "cancelled"
                 ? "Cancelled"
+                : it.status === "future_delivery"
+                ? "Future Delivery"
+                : it.status === "rto"
+                ? "RTO"
+                : it.status === "lost_damaged"
+                ? "Lost & Damages"
+                : it.status === "returning"
+                ? "Returning"
+                : it.status === "attempted_cancel"
+                ? "Attempted Cancel"
+                : it.status === "no_answer"
+                ? "No Answer"
+                : it.status === "number_switched_off"
+                ? "Number Switched Off"
+                : it.status === "shipment_on_hold"
+                ? "Shipment on Hold"
+                : it.status === "out_for_delivery"
+                ? "Out for Delivery"
                 : "Pending",
             origin: it.senderAddress || "—",
             destination: it.deliveryAddress || "—",
@@ -568,6 +608,7 @@ export default function TrackDeliveriesPage() {
             }
           >
             <option value="">All Statuses</option>
+            <option value="record_created">Record Created</option>
             <option value="delivered">Delivered</option>
             <option value="in_transit">In Transit</option>
             <option value="pending">Pending</option>
@@ -575,7 +616,14 @@ export default function TrackDeliveriesPage() {
             <option value="returned">Returned</option>
             <option value="cancelled">Cancelled</option>
             <option value="future_delivery">Future Delivery</option>
+            <option value="rto">RTO</option>
             <option value="lost_damaged">Lost & Damages</option>
+            <option value="returning">Returning</option>
+            <option value="attempted_cancel">Attempted Cancel</option>
+            <option value="no_answer">No Answer</option>
+            <option value="number_switched_off">Number Switched Off</option>
+            <option value="shipment_on_hold">Shipment on Hold</option>
+            <option value="out_for_delivery">Out for Delivery</option>
           </Select>
           <Input
             type="date"
@@ -1105,12 +1153,22 @@ export default function TrackDeliveriesPage() {
             </label>
             <div className="grid grid-cols-2 gap-2">
               {[
+                { value: "record_created", label: "Record Created" },
                 { value: "delivered", label: "Delivered" },
                 { value: "in_transit", label: "In Transit" },
                 { value: "pending", label: "Pending" },
                 { value: "assigned", label: "Assigned" },
                 { value: "returned", label: "Returned" },
                 { value: "cancelled", label: "Cancelled" },
+                { value: "future_delivery", label: "Future Delivery" },
+                { value: "rto", label: "RTO" },
+                { value: "lost_damaged", label: "Lost & Damages" },
+                { value: "returning", label: "Returning" },
+                { value: "attempted_cancel", label: "Attempted Cancel" },
+                { value: "no_answer", label: "No Answer" },
+                { value: "number_switched_off", label: "Number Switched Off" },
+                { value: "shipment_on_hold", label: "Shipment on Hold" },
+                { value: "out_for_delivery", label: "Out for Delivery" },
               ].map((status) => (
                 <label
                   key={status.value}
@@ -1175,6 +1233,16 @@ function StatusBadge({ status }: { status: DeliveryRow["status"] }) {
     Returned: { label: "Returned", variant: "danger" },
     Assigned: { label: "Assigned", variant: "default" },
     Cancelled: { label: "Cancelled", variant: "danger" },
+    "Future Delivery": { label: "Future Delivery", variant: "default" },
+    RTO: { label: "RTO", variant: "warning" },
+    "Lost & Damages": { label: "Lost & Damages", variant: "danger" },
+    Returning: { label: "Returning", variant: "warning" },
+    "Record Created": { label: "Record Created", variant: "default" },
+    "Attempted Cancel": { label: "Attempted Cancel", variant: "warning" },
+    "No Answer": { label: "No Answer", variant: "warning" },
+    "Number Switched Off": { label: "Number Switched Off", variant: "warning" },
+    "Shipment on Hold": { label: "Shipment on Hold", variant: "default" },
+    "Out for Delivery": { label: "Out for Delivery", variant: "info" },
   } as const;
   const { label, variant } = mapping[status];
   return <Badge variant={variant}>{label.replace("_", " ")}</Badge>;
