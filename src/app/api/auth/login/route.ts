@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const token = await createJwt({
       sub: user._id.toString(),
       role: user.role,
-      email: user.email,
+      email: user.email.toLowerCase(),
     });
 
     // Call third-party login on the server (no form-data; query params only)
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         id: user._id.toString(),
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
+        email: user.email.toLowerCase(),
         role: user.role,
       },
     });
