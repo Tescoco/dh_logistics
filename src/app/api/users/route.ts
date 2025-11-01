@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const input = CreateUserSchema.parse(body);
 
-    const existing = await User.findOne({ email: input.email });
+    const existing = await User.findOne({ email: input.email.toLowerCase() });
     if (existing) {
       return NextResponse.json(
         { error: "Email already in use" },
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const user = await User.create({
       firstName: input.firstName,
       lastName: input?.lastName || " ",
-      email: input.email,
+      email: input.email.toLowerCase(),
       phone: input.phone,
       role: input.role,
       passwordHash,

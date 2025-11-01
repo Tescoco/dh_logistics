@@ -17,6 +17,10 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
@@ -89,6 +93,61 @@ export default function ProfilePage() {
       }
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleUpdatePassword() {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showError("Validation Error", "Please fill in all password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showError(
+        "Validation Error",
+        "New password and confirmation do not match"
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showError(
+        "Validation Error",
+        "New password must be at least 6 characters long"
+      );
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const res = await fetch("/api/me/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showSuccess(
+          "Password Updated",
+          "Your password has been updated successfully"
+        );
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        showError("Update Failed", data.error || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Password update error:", error);
+      showError("Update Failed", "An error occurred while updating password");
+    } finally {
+      setUpdatingPassword(false);
     }
   }
 
@@ -246,17 +305,32 @@ export default function ProfilePage() {
             <label className="text-[13px] text-slate-600">
               Current Password
             </label>
-            <Input placeholder="Enter current password" type="password" />
+            <Input
+              placeholder="Enter current password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
           </div>
           <div>
             <label className="text-[13px] text-slate-600">New Password</label>
-            <Input placeholder="Enter new password" type="password" />
+            <Input
+              placeholder="Enter new password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
           </div>
           <div>
             <label className="text-[13px] text-slate-600">
               Confirm New Password
             </label>
-            <Input placeholder="Confirm new password" type="password" />
+            <Input
+              placeholder="Confirm new password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
           {/* <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
             <div>
@@ -269,7 +343,12 @@ export default function ProfilePage() {
             </div>
             <input type="checkbox" className="h-5 w-5" />
           </div> */}
-          <Button className="w-48" leftIcon={<span>🔑</span>} disabled>
+          <Button
+            className="w-48"
+            leftIcon={<span>🔑</span>}
+            onClick={handleUpdatePassword}
+            loading={updatingPassword}
+          >
             Update Password
           </Button>
         </div>

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const input = CreateCourierSchema.parse(body);
 
-    const existing = await User.findOne({ email: input.email });
+    const existing = await User.findOne({ email: input.email.toLowerCase() });
     if (existing) {
       return NextResponse.json(
         { error: "Email already in use" },
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const courier = await User.create({
       firstName: input.firstName,
       lastName: input.lastName || "",
-      email: input.email,
+      email: input.email.toLowerCase(),
       phone: input.phone || undefined,
       role: "courier",
       passwordHash,

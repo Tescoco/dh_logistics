@@ -260,6 +260,7 @@ export default function ReportsPage() {
       "Pending Orders",
       "In Transit Orders",
       "Delivered Orders",
+      "No of RTOs",
     ];
 
     // Prepare data
@@ -273,6 +274,11 @@ export default function ReportsPage() {
       (group.statusBreakdown["pending"] || 0).toString(),
       (group.statusBreakdown["in_transit"] || 0).toString(),
       (group.statusBreakdown["delivered"] || 0).toString(),
+      (
+        group.statusBreakdown["returned"] ||
+        0 + group.statusBreakdown["returning"] ||
+        0
+      ).toString(),
     ]);
 
     const csvContent = [headers, ...data]

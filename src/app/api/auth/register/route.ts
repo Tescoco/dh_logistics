@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const existing = await User.findOne({ email: input.email });
+    const existing = await User.findOne({ email: input.email.toLowerCase() });
     if (existing) {
       return NextResponse.json(
         { error: "Email already in use" },
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const user = await User.create({
       firstName: input.firstName,
       lastName: input.lastName,
-      email: input.email,
+      email: input.email.toLowerCase(),
       phone: input.phone,
       role: input.role ?? "admin",
       passwordHash,
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const token = await createJwt({
       sub: user._id.toString(),
       role: user.role,
-      email: user.email,
+      email: user.email.toLowerCase(),
     });
 
     const res = NextResponse.json({
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         id: user._id.toString(),
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
+        email: user.email.toLowerCase(),
         role: user.role,
       },
     });

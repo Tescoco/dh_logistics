@@ -7,7 +7,6 @@ import Button from "@/components/ui/Button";
 import { UserIcon } from "@/components/icons";
 import Select from "@/components/ui/Select";
 
-
 export default function ClientSettingsPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -19,6 +18,7 @@ export default function ClientSettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
@@ -84,6 +84,52 @@ export default function ClientSettingsPage() {
       }
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleUpdatePassword() {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Please fill in all password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("New password and confirmation do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert("New password must be at least 6 characters long");
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const res = await fetch("/api/me/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        alert(data.error || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Password update error:", error);
+      alert("An error occurred while updating password");
+    } finally {
+      setUpdatingPassword(false);
     }
   }
 
@@ -289,7 +335,9 @@ export default function ClientSettingsPage() {
             <Button variant="gradient">Enable 2FA</Button>
           </div> */}
           <div className="flex justify-end">
-            <Button>Update Password</Button>
+            <Button onClick={handleUpdatePassword} disabled={updatingPassword}>
+              {updatingPassword ? "Updating..." : "Update Password"}
+            </Button>
           </div>
         </div>
       </Card>
