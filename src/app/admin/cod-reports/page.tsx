@@ -128,11 +128,18 @@ export default function AdminCODReportsPage() {
             0
           );
         const deliveryFee = deliveriesData.reduce(
-          (sum: number, d: CODDelivery) => sum + (d.deliveryFee || 0),
+          (sum: number, d: CODDelivery) =>
+            sum +
+            (d.status === "returned" || d.status === "returning"
+              ? 0
+              : d.deliveryFee || 0),
           0
         );
         const returnFee = deliveriesData
-          .filter((d: CODDelivery) => d.codPaymentStatus === "returned")
+          .filter(
+            (d: CODDelivery) =>
+              d.status === "returned" || d.status === "returning"
+          )
           .reduce(
             (sum: number, d: CODDelivery) => sum + (d.returnOrderRate || 0),
             0

@@ -9,7 +9,8 @@ export type DeliveryStatus =
   | "future_delivery"
   | "rto"
   | "lost_damaged"
-  | "cancelled";
+  | "cancelled"
+  | "returning";
 
 export type CODPaymentStatus = "pending" | "paid" | "returned";
 
@@ -105,7 +106,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
     returnOrderRate: { type: Number, default: 0 },
     codPaymentStatus: {
       type: String,
-      enum: ["pending", "paid", "returned"],
+      enum: ["pending", "paid", "returned", "returning"],
       default: "pending",
     },
     codPaidAmount: { type: Number, default: 0 },
@@ -127,6 +128,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
         "rto",
         "lost_damaged",
         "cancelled",
+        "returning",
       ],
       default: "pending",
       index: true,

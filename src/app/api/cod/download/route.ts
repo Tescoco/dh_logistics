@@ -55,8 +55,12 @@ export async function POST(req: NextRequest) {
       codPaidAmount: d.codPaidAmount,
       codPaidDate: d.codPaidDate,
       codNotes: d.codNotes,
-      deliveryFee: d.deliveryFee,
-      returnOrderRate: d.returnOrderRate,
+      deliveryFee:
+        d.status === "returned" || d.status === "returning" ? 0 : d.deliveryFee,
+      returnOrderRate:
+        d.status === "returned" || d.status === "returning"
+          ? d.returnOrderRate
+          : 0,
       status: d.status,
       assignedDriver:
         auth.role === "admin"
@@ -95,8 +99,11 @@ export async function POST(req: NextRequest) {
         d.codPaymentStatus || "pending",
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
-        d.deliveryFee || 0,
-        d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
+        d.status === "returned" || d.status === "returning"
+          ? 0
+          : d.deliveryFee || 0,
+        d.status === "returned" ||
+        (d.status === "returning" && d.returnOrderRate !== 0)
           ? d.returnOrderRate || 0
           : 0,
         d.status,
@@ -170,8 +177,10 @@ export async function POST(req: NextRequest) {
           d.codPaymentStatus || "pending",
           d.codPaidAmount || "",
           d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
-          d.deliveryFee || 0,
-          d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
+          d.status === "returned" || d.status === "returning"
+            ? 0
+            : d.deliveryFee || 0,
+          d.status === "returned" || d.status === "returning"
             ? d.returnOrderRate || 0
             : 0,
           d.status,

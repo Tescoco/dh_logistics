@@ -639,7 +639,14 @@ export default function CodReportPage() {
               <div className="text-2xl font-bold text-blue-600">
                 SAR
                 {previewData
-                  .reduce((sum, d) => sum + (d.deliveryFee || 0), 0)
+                  .reduce(
+                    (sum, d) =>
+                      sum +
+                      (d.status === "returned" || d.status === "returning"
+                        ? 0
+                        : d.deliveryFee || 0),
+                    0
+                  )
                   .toLocaleString()}
               </div>
               <div className="text-sm text-slate-500">Total Delivery Fee</div>
@@ -648,7 +655,14 @@ export default function CodReportPage() {
               <div className="text-2xl font-bold text-orange-600">
                 SAR
                 {previewData
-                  .reduce((sum, d) => sum + (d.returnOrderRate || 0), 0)
+                  .reduce(
+                    (sum, d) =>
+                      sum +
+                      (d.status === "returned" || d.status === "returning"
+                        ? d.returnOrderRate || 0
+                        : 0),
+                    0
+                  )
                   .toLocaleString()}
               </div>
               <div className="text-sm text-slate-500">Total RTO Amount</div>
@@ -705,10 +719,19 @@ export default function CodReportPage() {
                       SAR {delivery.codAmount?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2 font-medium">
-                      SAR {delivery.deliveryFee?.toLocaleString() || "0"}
+                      SAR{" "}
+                      {(delivery.status === "returned" ||
+                      delivery.status === "returning"
+                        ? 0
+                        : delivery.deliveryFee || 0
+                      )?.toLocaleString()}
                     </td>
                     <td className="px-3 py-2 font-medium">
-                      SAR {delivery.returnOrderRate?.toLocaleString() || "0"}
+                      SAR{" "}
+                      {delivery.status === "returned" ||
+                      delivery.status === "returning"
+                        ? (delivery.returnOrderRate || 0)?.toLocaleString()
+                        : "0"}
                     </td>
                     <td className="px-3 py-2">
                       <Badge

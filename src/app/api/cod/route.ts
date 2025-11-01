@@ -115,12 +115,16 @@ export async function GET(req: NextRequest) {
     codPaidAmount: d.codPaidAmount,
     codPaidDate: d.codPaidDate,
     codNotes: d.codNotes,
-    returnOrderRate: d.returnOrderRate,
+    returnOrderRate:
+      d.status === "returned" || d.status === "returning"
+        ? d.returnOrderRate
+        : 0,
     status: d.status,
     assignedDriver: "",
     assignedDriverId: d.assignedDriverId,
     createdAt: d.createdAt,
-    deliveryFee: d.deliveryFee,
+    deliveryFee:
+      d.status === "returned" || d.status === "returning" ? 0 : d.deliveryFee,
   }));
 
   // if the role is admin add assigned driver name to the processed deliveries
@@ -163,8 +167,12 @@ export async function GET(req: NextRequest) {
         d.customerPhone,
         d.deliveryAddress,
         d.codAmount || 0,
-        d.deliveryFee || 0,
-        d.returnOrderRate || 0,
+        d.status === "returned" || d.status === "returning"
+          ? 0
+          : d.deliveryFee || 0,
+        d.status === "returned" || d.status === "returning"
+          ? d.returnOrderRate || 0
+          : 0,
         d.codPaymentStatus || "pending",
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
@@ -221,8 +229,14 @@ export async function GET(req: NextRequest) {
           customerPhone: d.customerPhone,
           deliveryAddress: d.deliveryAddress,
           codAmount: d.codAmount || 0,
-          deliveryFee: d.deliveryFee || 0,
-          returnOrderRate: d.returnOrderRate || 0,
+          deliveryFee:
+            d.status === "returned" || d.status === "returning"
+              ? 0
+              : d.deliveryFee || 0,
+          returnOrderRate:
+            d.status === "returned" || d.status === "returning"
+              ? d.returnOrderRate || 0
+              : 0,
           codPaymentStatus: d.codPaymentStatus || "pending",
           codPaidAmount: d.codPaidAmount || "",
           codPaidDate: d.codPaidDate
@@ -400,9 +414,24 @@ export async function GET(req: NextRequest) {
         drawCell(String(d.customerName ?? ""), 1, y);
         drawCell(String(d.customerPhone ?? ""), 2, y);
         drawCell(String((d.codAmount || 0).toLocaleString()), 3, y, "right");
-        drawCell(String((d.deliveryFee || 0).toLocaleString()), 4, y, "right");
         drawCell(
-          String((d.returnOrderRate || 0).toLocaleString()),
+          String(
+            (d.status === "returned" || d.status === "returning"
+              ? 0
+              : d.deliveryFee || 0
+            ).toLocaleString()
+          ),
+          4,
+          y,
+          "right"
+        );
+        drawCell(
+          String(
+            (d.status === "returned" || d.status === "returning"
+              ? d.returnOrderRate || 0
+              : 0
+            ).toLocaleString()
+          ),
           5,
           y,
           "right"
@@ -423,14 +452,21 @@ export async function GET(req: NextRequest) {
         0
       );
       const totalDeliveryFee = processedDeliveries.reduce(
-        (sum, d) => sum + (Number(d.deliveryFee) || 0),
+        (sum, d) =>
+          sum +
+          (d.status === "returned" || d.status === "returning"
+            ? 0
+            : Number(d.deliveryFee) || 0),
         0
       );
-      const totalRTO = processedDeliveries
-        .filter(
-          (d) => d.codPaymentStatus === "returned" && d.returnOrderRate !== 0
-        )
-        .reduce((sum, d) => sum + (Number(d.returnOrderRate) || 0), 0);
+      const totalRTO = processedDeliveries.reduce(
+        (sum, d) =>
+          sum +
+          (d.status === "returned" || d.status === "returning"
+            ? Number(d.returnOrderRate) || 0
+            : 0),
+        0
+      );
 
       ensureSpace(lineHeight * 4);
       // Place totals at left margin
