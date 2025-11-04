@@ -43,31 +43,41 @@ export async function POST(req: NextRequest) {
       return undefined;
     }
 
-    const processedDeliveries = deliveriesData.map((d) => ({
-      _id: d._id,
-      reference: d.reference,
-      customerName: d.customerName,
-      customerPhone: d.customerPhone,
-      customerStoreName: d.customerStoreName,
-      deliveryAddress: d.deliveryAddress,
-      codAmount: d.codAmount,
-      codPaymentStatus: d.codPaymentStatus || "pending",
-      codPaidAmount: d.codPaidAmount,
-      codPaidDate: d.codPaidDate,
-      codNotes: d.codNotes,
-      deliveryFee:
-        d.status === "returned" || d.status === "returning" ? 0 : d.deliveryFee,
-      returnOrderRate:
+    const processedDeliveries = deliveriesData.map((d) => {
+      const deliveryFee =
         d.status === "returned" || d.status === "returning"
-          ? d.returnOrderRate
-          : 0,
-      status: d.status,
-      assignedDriver:
-        auth.role === "admin"
-          ? extractAssignedDriverName(d.assignedDriverId) ?? "Unassigned"
-          : "",
-      createdAt: d.createdAt,
-    }));
+          ? 0
+          : d.deliveryFee || 0;
+      const rtoAmount =
+        d.status === "returned" || d.status === "returning"
+          ? d.returnOrderRate || 0
+          : 0;
+      const codAmount = d.codAmount || 0;
+      const netCodAmount = codAmount - deliveryFee - rtoAmount;
+
+      return {
+        _id: d._id,
+        reference: d.reference,
+        customerName: d.customerName,
+        customerPhone: d.customerPhone,
+        customerStoreName: d.customerStoreName,
+        deliveryAddress: d.deliveryAddress,
+        codAmount: codAmount,
+        codPaymentStatus: d.codPaymentStatus || "pending",
+        codPaidAmount: d.codPaidAmount,
+        codPaidDate: d.codPaidDate,
+        codNotes: d.codNotes,
+        deliveryFee: deliveryFee,
+        returnOrderRate: rtoAmount,
+        status: d.status,
+        assignedDriver:
+          auth.role === "admin"
+            ? extractAssignedDriverName(d.assignedDriverId) ?? "Unassigned"
+            : "",
+        createdAt: d.createdAt,
+        netCodAmount: netCodAmount,
+      };
+    });
 
     const filename = `COD_Report_${fromDate}_to_${toDate}`;
 
@@ -84,6 +94,7 @@ export async function POST(req: NextRequest) {
         "Paid Date",
         "Delivery Fee",
         "RTO Amount",
+        "Net COD Amount",
         "Status",
         auth.role === "admin" ? "Assigned Driver" : "",
         "Created Date",
@@ -99,13 +110,9 @@ export async function POST(req: NextRequest) {
         d.codPaymentStatus || "pending",
         d.codPaidAmount || "",
         d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
-        d.status === "returned" || d.status === "returning"
-          ? 0
-          : d.deliveryFee || 0,
-        d.status === "returned" ||
-        (d.status === "returning" && d.returnOrderRate !== 0)
-          ? d.returnOrderRate || 0
-          : 0,
+        d.deliveryFee || 0,
+        d.returnOrderRate || 0,
+        d.netCodAmount || 0,
         d.status,
         auth.role === "admin" ? d.assignedDriver : "",
         new Date(d.createdAt).toLocaleDateString(),
@@ -142,6 +149,7 @@ export async function POST(req: NextRequest) {
         "Paid Date",
         "Delivery Fee",
         "RTO Amount",
+        "Net COD Amount",
         "Status",
         ...(auth.role === "admin" ? ["Assigned Driver"] : []),
         "Created Date",
@@ -177,12 +185,9 @@ export async function POST(req: NextRequest) {
           d.codPaymentStatus || "pending",
           d.codPaidAmount || "",
           d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "",
-          d.status === "returned" || d.status === "returning"
-            ? 0
-            : d.deliveryFee || 0,
-          d.status === "returned" || d.status === "returning"
-            ? d.returnOrderRate || 0
-            : 0,
+          d.deliveryFee || 0,
+          d.returnOrderRate || 0,
+          d.netCodAmount || 0,
           d.status,
           ...(auth.role === "admin" ? [d.assignedDriver] : []),
           new Date(d.createdAt).toLocaleDateString(),
@@ -222,6 +227,11 @@ export async function POST(req: NextRequest) {
           headers.indexOf("RTO Amount") + 1
         );
         rtoAmountCell.numFmt = '"SAR "#,##0.00';
+
+        const netCodAmountCell = addedRow.getCell(
+          headers.indexOf("Net COD Amount") + 1
+        );
+        netCodAmountCell.numFmt = '"SAR "#,##0.00';
       });
 
       // Auto-fit columns
@@ -297,11 +307,12 @@ export async function POST(req: NextRequest) {
         "Reference",
         "Customer Name",
         "COD Amount",
+        "Net COD Amount",
         "Payment Status",
         "Paid Amount",
         "Date",
       ];
-      const colWidths = [100, 150, 90, 100, 90, 80];
+      const colWidths = [90, 130, 80, 90, 90, 80, 70];
       const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
 
       // Draw header background
@@ -388,6 +399,7 @@ export async function POST(req: NextRequest) {
             ? (d.customerName || "").substring(0, 17) + "..."
             : d.customerName || "",
           `SAR ${(d.codAmount || 0).toFixed(2)}`,
+          `SAR ${(d.netCodAmount || 0).toFixed(2)}`,
           (d.codPaymentStatus || "pending").toUpperCase(),
           d.codPaidAmount ? `SAR ${d.codPaidAmount.toFixed(2)}` : "-",
           d.codPaidDate ? new Date(d.codPaidDate).toLocaleDateString() : "-",
