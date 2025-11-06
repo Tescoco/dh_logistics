@@ -42,6 +42,7 @@ export interface DeliveryDocument {
   assignedDriverId?: Types.ObjectId;
   assignedCourierId?: Types.ObjectId; // Assigned courier company
   status: DeliveryStatus;
+  deliveryDate?: Date; // Date when status was updated to delivered
   createdById?: Types.ObjectId;
   isDraft?: boolean;
   thirdPartyShipmentNumber?: string;
@@ -133,6 +134,7 @@ const deliverySchema = new Schema<DeliveryDocument>(
       default: "pending",
       index: true,
     },
+    deliveryDate: Date, // Date when status was updated to delivered
     createdById: { type: Schema.Types.ObjectId, ref: "User" },
     isDraft: { type: Boolean, default: false, index: true },
     thirdPartyShipmentNumber: { type: String },

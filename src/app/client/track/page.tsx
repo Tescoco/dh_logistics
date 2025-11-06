@@ -389,6 +389,7 @@ export default function TrackDeliveriesPage() {
     deliveryDistrict?: string;
     deliveryPostalCode?: string;
     status?: string;
+    deliveryDate?: string | Date;
     codAmount?: number;
     deliveryFee?: number;
     createdAt?: string | Date;
@@ -1056,6 +1057,20 @@ export default function TrackDeliveriesPage() {
                 {viewData.status?.replace("_", " ")}
               </span>
             </div>
+            {viewData.deliveryDate && (
+              <div>
+                <span className="text-slate-500">Delivery Date:</span>{" "}
+                <span className="font-medium">
+                  {new Date(viewData.deliveryDate).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
             <div>
               <span className="text-slate-500">COD Amount:</span>{" "}
               <span className="font-medium">

@@ -76,6 +76,7 @@ export default function DeliveryStatusPage() {
     deliveryAddress?: string;
     deliveryCity: string;
     status: string;
+    deliveryDate?: string;
     updatedAt: string;
   }>(null);
 
@@ -1480,6 +1481,23 @@ export default function DeliveryStatusPage() {
                     {viewRow.status.replace("_", " ")}
                   </span>
                 </div>
+                {viewRow.deliveryDate && (
+                  <div>
+                    <span className="text-slate-500">Delivery Date:</span>{" "}
+                    <span className="font-medium">
+                      {new Date(viewRow.deliveryDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <span className="text-slate-500">Updated:</span>{" "}
                   <span className="font-medium">

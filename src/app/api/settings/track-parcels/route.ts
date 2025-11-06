@@ -139,8 +139,8 @@ export async function POST() {
           statusIdMapping[shipmentData.Status_id] || "in_transit"; // Default to in_transit if no mapping found
 
         if (newStatus !== delivery.status) {
-          // Update delivery status
-          await Delivery.findByIdAndUpdate(delivery._id, {
+          // Prepare update data
+          const updateData: Record<string, unknown> = {
             status: newStatus,
             $push: {
               activityLog: {
@@ -163,7 +163,15 @@ export async function POST() {
                 },
               },
             },
-          });
+          };
+
+          // Set delivery date when status changes to delivered
+          if (newStatus === "delivered") {
+            updateData.deliveryDate = new Date();
+          }
+
+          // Update delivery status
+          await Delivery.findByIdAndUpdate(delivery._id, updateData);
 
           updateResults.push({
             deliveryId: delivery._id,

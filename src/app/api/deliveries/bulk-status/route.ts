@@ -69,11 +69,18 @@ export async function POST(req: NextRequest) {
     const bulkWriteOps = [];
     for (const delivery of deliveriesToUpdate) {
       if (delivery.status !== input.status) {
+        const updateFields: Record<string, unknown> = { status: input.status };
+
+        // Set delivery date when status changes to delivered
+        if (input.status === "delivered") {
+          updateFields.deliveryDate = new Date();
+        }
+
         bulkWriteOps.push({
           updateOne: {
             filter: { _id: delivery._id },
             update: {
-              $set: { status: input.status },
+              $set: updateFields,
               $push: {
                 activityLog: {
                   action: "bulk_status_update",

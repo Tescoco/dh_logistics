@@ -117,6 +117,8 @@ export async function PATCH(req: NextRequest, context: any) {
     if (!currentDelivery)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+    const updateData: Record<string, unknown> = { ...input };
+
     // Build activity log entries for changes
     const activityEntries = [];
 
@@ -130,6 +132,11 @@ export async function PATCH(req: NextRequest, context: any) {
         oldValue: currentDelivery.status,
         newValue: input.status,
       });
+
+      // Set delivery date when status changes to delivered
+      if (input.status === "delivered") {
+        updateData.deliveryDate = new Date();
+      }
     }
 
     // Check for driver assignment change
@@ -217,8 +224,6 @@ export async function PATCH(req: NextRequest, context: any) {
         }
       });
     }
-
-    const updateData = { ...input };
 
     // Check if driver is COD logistics and create order through their API
     if (

@@ -66,6 +66,7 @@ export default function AdminDashboardPage() {
     codAmount?: number;
     priority?: string;
     status: string;
+    deliveryDate?: string;
     assignedDriverId?: { firstName?: string; lastName?: string };
     notes?: string;
   };
@@ -1188,6 +1189,25 @@ export default function AdminDashboardPage() {
                       {viewDelivery.status.replace("_", " ")}
                     </div>
                   </div>
+                  {viewDelivery.deliveryDate && (
+                    <div>
+                      <div className="text-[12px] text-slate-500">
+                        Delivery Date
+                      </div>
+                      <div className="font-medium">
+                        {new Date(viewDelivery.deliveryDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div className="md:col-span-2">
                     <div className="text-[12px] text-slate-500">
                       Assigned Driver
