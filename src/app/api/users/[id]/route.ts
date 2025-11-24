@@ -6,12 +6,33 @@ import { getAuthUser } from "@/lib/session";
 
 export const runtime = "nodejs";
 
+/**
+ *      firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          phone: phone || undefined,
+          role: role as "admin" | "driver" | "manager" | "customer",
+          isActive,
+          address: address || undefined,
+          city: city || undefined,
+          district: district || undefined,
+          postalCode: postalCode || undefined,
+          deliveryFee: deliveryFee,
+          returnOrderRate: returnOrderRate,
+        }),
+ */
+
 const UpdateUserSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
   phone: z.string().optional(),
   role: z.enum(["admin", "driver", "manager", "customer"]).optional(),
   isActive: z.boolean().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  postalCode: z.string().optional(),
+  deliveryFee: z.number().optional(),
+  returnOrderRate: z.number().optional(),
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
