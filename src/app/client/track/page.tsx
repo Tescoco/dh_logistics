@@ -102,11 +102,12 @@ export default function TrackDeliveriesPage() {
 
   // Statistics state
   const [stats, setStats] = useState({
-    totalOrders: 0,
-    outForDelivery: 0,
-    forwardToFinalDestination: 0,
-    movedVia3pl: 0,
+    totalParcels: 0,
     delivered: 0,
+    inTransit: 0,
+    pending: 0,
+    assigned: 0,
+    outForDelivery: 0,
     deliveryRatio: 0,
   });
 
@@ -122,40 +123,39 @@ export default function TrackDeliveriesPage() {
   const [originFilter, setOriginFilter] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("");
 
-  // Calculate statistics from rows
-  const calculateStats = (deliveryRows: DeliveryRow[]) => {
-    const total = deliveryRows.length;
-    const delivered = deliveryRows.filter(
-      (r) => r.status === "Delivered"
-    ).length;
-    const outForDelivery = deliveryRows.filter(
-      (r) => r.status === "In Transit"
-    ).length;
-    const forwardToFinalDestination = deliveryRows.filter(
-      (r) => r.status === "Assigned"
-    ).length;
-    const movedVia3pl = deliveryRows.filter(
-      (r) => r.status === "Pending"
-    ).length;
-    const deliveryRatio = total > 0 ? Math.round((delivered / total) * 100) : 0;
+  // Fetch statistics from API
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/stats");
+      if (response.ok) {
+        const data = await response.json();
+        const deliveryRatio =
+          data.totalParcels > 0
+            ? Math.round((data.delivered / data.totalParcels) * 100)
+            : 0;
 
-    setStats({
-      totalOrders: total,
-      outForDelivery,
-      forwardToFinalDestination,
-      movedVia3pl,
-      delivered,
-      deliveryRatio,
-    });
+        setStats({
+          totalParcels: data.totalParcels || 0,
+          delivered: data.delivered || 0,
+          inTransit: data.inTransit || 0,
+          pending: data.pending || 0,
+          assigned: data.assigned || 0,
+          outForDelivery: data.outForDelivery || 0,
+          deliveryRatio,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
   };
 
   useEffect(() => {
     setLoading(true);
     const url = new URL("/api/deliveries", window.location.origin);
     if (statusFilter) url.searchParams.set("status", statusFilter);
-    fetch(url.toString())
-      .then((r) => r.json())
-      .then((d) => {
+
+    Promise.all([fetch(url.toString()).then((r) => r.json()), fetchStats()])
+      .then(([d]) => {
         const serverRows: DeliveryRow[] = (
           (d.deliveries || []) as DeliveryApiLite[]
         )
@@ -210,11 +210,9 @@ export default function TrackDeliveriesPage() {
             codAmount: it.codAmount || 0,
           }));
         setRows(serverRows);
-        calculateStats(serverRows);
       })
       .catch(() => {
         setRows([]);
-        calculateStats([]);
       })
       .finally(() => setLoading(false));
   }, [statusFilter]);
@@ -321,10 +319,10 @@ export default function TrackDeliveriesPage() {
     destinationFilter,
   ]);
 
-  // Update stats when filtered rows change
+  // Load stats on component mount
   useEffect(() => {
-    calculateStats(filteredRows);
-  }, [filteredRows]);
+    fetchStats();
+  }, []);
 
   // Handler functions for new features
   function handleBulkSearch() {
@@ -541,36 +539,36 @@ export default function TrackDeliveriesPage() {
         <Card className="text-center">
           <div className="p-4">
             <div className="text-2xl font-bold text-slate-900">
-              {stats.totalOrders}
+              {stats.totalParcels}
             </div>
-            <div className="text-sm text-slate-600">Total Orders</div>
+            <div className="text-sm text-slate-600">Total Parcels</div>
           </div>
         </Card>
 
         <Card className="text-center">
           <div className="p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {stats.outForDelivery}
+              {stats.inTransit}
             </div>
-            <div className="text-sm text-slate-600">Out for Delivery</div>
+            <div className="text-sm text-slate-600">In Transit</div>
           </div>
         </Card>
 
         <Card className="text-center">
           <div className="p-4">
             <div className="text-2xl font-bold text-orange-600">
-              {stats.forwardToFinalDestination}
+              {stats.assigned}
             </div>
-            <div className="text-sm text-slate-600">Forward to Final</div>
+            <div className="text-sm text-slate-600">Assigned</div>
           </div>
         </Card>
 
         <Card className="text-center">
           <div className="p-4">
             <div className="text-2xl font-bold text-purple-600">
-              {stats.movedVia3pl}
+              {stats.pending}
             </div>
-            <div className="text-sm text-slate-600">Moved via 3PL</div>
+            <div className="text-sm text-slate-600">Pending</div>
           </div>
         </Card>
 
